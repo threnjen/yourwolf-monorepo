@@ -136,7 +136,7 @@ describe('GameSetupPage', () => {
       renderGameSetup();
 
       fireEvent.click(
-        screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!,
+        document.querySelector<HTMLElement>(`[data-role-id="${werewolf.id}"]`)!,
       );
       expect(screen.getByText(/1 \//)).toBeInTheDocument();
     });
@@ -151,7 +151,7 @@ describe('GameSetupPage', () => {
       setupWithRoles([werewolf]);
       renderGameSetup();
 
-      const card = screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!;
+      const card = document.querySelector<HTMLElement>(`[data-role-id="${werewolf.id}"]`)!;
       fireEvent.click(card); // select
       fireEvent.click(card); // deselect
       expect(screen.getByText(/0 \//)).toBeInTheDocument();
@@ -414,7 +414,7 @@ describe('GameSetupPage', () => {
       fireEvent.blur(screen.getByLabelText('Center Cards'));
 
       // Select Werewolf (starts at 1), use + to get to 2, then add Seer (1) = 3 total
-      fireEvent.click(screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!);
+      fireEvent.click(document.querySelector<HTMLElement>(`[data-role-id="${werewolf.id}"]`)!);
       fireEvent.click(screen.getByLabelText('Increase Werewolf count'));
       fireEvent.click(screen.getByRole('heading', {name: 'Seer'}).closest('[data-role-id]')!);
 
@@ -575,7 +575,7 @@ describe('GameSetupPage', () => {
       expect(screen.getByText(/Minion works best with Werewolf/i)).toBeInTheDocument();
 
       // Add Werewolf → warning clears
-      fireEvent.click(screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!);
+      fireEvent.click(document.querySelector<HTMLElement>(`[data-role-id="${werewolf.id}"]`)!);
       expect(screen.queryByText(/Minion works best with Werewolf/i)).not.toBeInTheDocument();
     });
 
@@ -587,6 +587,59 @@ describe('GameSetupPage', () => {
       fireEvent.click(screen.getByText('Villager').closest('[data-role-id]')!);
 
       expect(screen.queryByText(/works best with/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('team grouping', () => {
+    it('renders team section headings for each team that has roles', () => {
+      const villager = createMockOfficialRole('Villager', 'village');
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      const tanner = createMockOfficialRole('Tanner', 'neutral');
+      setupWithRoles([villager, werewolf, tanner]);
+      renderGameSetup();
+
+      expect(screen.getByTestId('team-heading-village')).toHaveTextContent('Village');
+      expect(screen.getByTestId('team-heading-werewolf')).toHaveTextContent('Werewolf');
+      expect(screen.getByTestId('team-heading-neutral')).toHaveTextContent('Neutral');
+    });
+
+    it('does not render headings for teams with no roles', () => {
+      const villager = createMockOfficialRole('Villager', 'village');
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      setupWithRoles([villager, werewolf]);
+      renderGameSetup();
+
+      expect(screen.getByTestId('team-heading-village')).toBeInTheDocument();
+      expect(screen.getByTestId('team-heading-werewolf')).toBeInTheDocument();
+      expect(screen.queryByTestId('team-heading-vampire')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('team-heading-alien')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('team-heading-neutral')).not.toBeInTheDocument();
+    });
+
+    it('displays team sections in correct order (Village before Werewolf before Neutral)', () => {
+      const villager = createMockOfficialRole('Villager', 'village');
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      const tanner = createMockOfficialRole('Tanner', 'neutral');
+      setupWithRoles([tanner, werewolf, villager]); // intentionally out of order
+      renderGameSetup();
+
+      const teamHeadings = screen.getAllByTestId(/^team-heading-/);
+      const headingTexts = teamHeadings.map((h) => h.textContent);
+
+      expect(headingTexts).toEqual(['Village', 'Werewolf', 'Neutral']);
+    });
+
+    it('clicking a role in a team section still toggles selection', () => {
+      const villager = createMockOfficialRole('Villager', 'village');
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      setupWithRoles([villager, werewolf]);
+      renderGameSetup();
+
+      fireEvent.click(screen.getByText('Villager').closest('[data-role-id]')!);
+      expect(screen.getByText(/1 \//)).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Villager').closest('[data-role-id]')!);
+      expect(screen.getByText(/0 \//)).toBeInTheDocument();
     });
   });
 });

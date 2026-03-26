@@ -4,7 +4,9 @@ import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
 import {gamesApi} from '../api/games';
 import {theme} from '../styles/theme';
-import type {RoleListItem} from '../types/role';
+import type {RoleListItem, Team} from '../types/role';
+
+const TEAM_ORDER: Team[] = ['village', 'werewolf', 'vampire', 'alien', 'neutral'];
 
 const containerStyles: React.CSSProperties = {
   width: '100%',
@@ -55,7 +57,16 @@ const roleGridStyles: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
   gap: theme.spacing.md,
+};
+
+const teamSectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,
+};
+
+const teamHeadingStyles: React.CSSProperties = {
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  marginBottom: theme.spacing.md,
 };
 
 const buttonStyle: React.CSSProperties = {
@@ -132,6 +143,17 @@ export function GameSetupPage(): React.ReactElement {
       map[role.id] = role;
     }
     return map;
+  }, [roles]);
+
+  const groupedRoles = useMemo(() => {
+    const byTeam: Record<string, RoleListItem[]> = {};
+    for (const role of roles) {
+      if (!byTeam[role.team]) byTeam[role.team] = [];
+      byTeam[role.team].push(role);
+    }
+    return TEAM_ORDER
+      .filter((team) => byTeam[team]?.length > 0)
+      .map((team) => ({ team, roles: byTeam[team] }));
   }, [roles]);
 
   const totalSelectedCards = useMemo(
@@ -383,75 +405,85 @@ export function GameSetupPage(): React.ReactElement {
         </p>
       </div>
 
-      <div style={roleGridStyles}>
-        {roles.map((role) => {
-          const count = selectedRoleCounts[role.id] || 0;
-          const isSelected = count > 0;
-          const showQuantityControls =
-            isSelected && role.min_count !== role.max_count;
+      {groupedRoles.map(({ team, roles: teamRoles }) => (
+        <div key={team} style={teamSectionStyles}>
+          <h3
+            data-testid={`team-heading-${team}`}
+            style={{ ...teamHeadingStyles, color: theme.colors[team] }}
+          >
+            {team.charAt(0).toUpperCase() + team.slice(1)}
+          </h3>
+          <div style={roleGridStyles}>
+            {teamRoles.map((role) => {
+              const count = selectedRoleCounts[role.id] || 0;
+              const isSelected = count > 0;
+              const showQuantityControls =
+                isSelected && role.min_count !== role.max_count;
 
-          return (
-            <div
-              key={role.id}
-              data-role-id={role.id}
-              onClick={() => selectRole(role.id)}
-              style={{
-                opacity: isSelected ? 1 : 0.5,
-                border: isSelected
-                  ? `2px solid ${theme.colors.primary}`
-                  : '2px solid transparent',
-                borderRadius: theme.borderRadius.md,
-                cursor: 'pointer',
-                transition: 'opacity 0.2s ease',
-                position: 'relative',
-              }}
-            >
-              <RoleCard role={role} />
-              {isSelected && (
+              return (
                 <div
+                  key={role.id}
+                  data-role-id={role.id}
+                  onClick={() => selectRole(role.id)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: theme.spacing.sm,
-                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                    backgroundColor: theme.colors.surfaceLight,
-                    borderBottomLeftRadius: theme.borderRadius.md,
-                    borderBottomRightRadius: theme.borderRadius.md,
+                    opacity: isSelected ? 1 : 0.5,
+                    border: isSelected
+                      ? `2px solid ${theme.colors.primary}`
+                      : '2px solid transparent',
+                    borderRadius: theme.borderRadius.md,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s ease',
+                    position: 'relative',
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  {showQuantityControls && (
-                    <button
-                      aria-label={`Decrease ${role.name} count`}
-                      onClick={() => adjustCount(role.id, -1)}
-                      style={quantityBtnStyles}
-                    >
-                      −
-                    </button>
-                  )}
-                  <span style={quantityBadgeStyles}>×{count}</span>
-                  {showQuantityControls && (
-                    <button
-                      aria-label={`Increase ${role.name} count`}
-                      onClick={() => adjustCount(role.id, 1)}
-                      disabled={count >= role.max_count}
+                  <RoleCard role={role} />
+                  {isSelected && (
+                    <div
                       style={{
-                        ...quantityBtnStyles,
-                        opacity: count >= role.max_count ? 0.4 : 1,
-                        cursor:
-                          count >= role.max_count ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: theme.spacing.sm,
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                        backgroundColor: theme.colors.surfaceLight,
+                        borderBottomLeftRadius: theme.borderRadius.md,
+                        borderBottomRightRadius: theme.borderRadius.md,
                       }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      +
-                    </button>
+                      {showQuantityControls && (
+                        <button
+                          aria-label={`Decrease ${role.name} count`}
+                          onClick={() => adjustCount(role.id, -1)}
+                          style={quantityBtnStyles}
+                        >
+                          −
+                        </button>
+                      )}
+                      <span style={quantityBadgeStyles}>×{count}</span>
+                      {showQuantityControls && (
+                        <button
+                          aria-label={`Increase ${role.name} count`}
+                          onClick={() => adjustCount(role.id, 1)}
+                          disabled={count >= role.max_count}
+                          style={{
+                            ...quantityBtnStyles,
+                            opacity: count >= role.max_count ? 0.4 : 1,
+                            cursor:
+                              count >= role.max_count ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       {/* Recommendation Warnings */}
       {recommendationWarnings.length > 0 && (
