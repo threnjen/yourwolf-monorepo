@@ -1,0 +1,179 @@
+import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {rolesApi} from '../api/roles';
+import {createMockRoles, createMockRole} from './mocks';
+import {RoleListItem} from '../types/role';
+
+// Mock the API client module
+vi.mock('../api/client', () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+// Import the mocked client
+import {apiClient} from '../api/client';
+
+const mockApiClient = apiClient as unknown as {
+  get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+  put: ReturnType<typeof vi.fn>;
+  patch: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
+};
+
+// Helper to wrap roles in paginated response
+function createPaginatedResponse(roles: RoleListItem[]) {
+  return {
+    items: roles,
+    total: roles.length,
+    page: 1,
+    limit: 50,
+    pages: 1,
+  };
+}
+
+describe('rolesApi', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('list', () => {
+    it('fetches roles without parameters', async () => {
+      const mockRoles = createMockRoles(5);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
+
+      const result = await rolesApi.list();
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {params: undefined});
+      expect(result).toEqual(mockRoles);
+    });
+
+    it('passes team filter', async () => {
+      const mockRoles = createMockRoles(3);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
+
+      await rolesApi.list({team: 'werewolf'});
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
+        params: {team: 'werewolf'},
+      });
+    });
+
+    it('passes visibility filter', async () => {
+      const mockRoles = createMockRoles(2);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
+
+      await rolesApi.list({visibility: 'official'});
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
+        params: {visibility: 'official'},
+      });
+    });
+
+    it('passes combined parameters', async () => {
+      const mockRoles = createMockRoles(5);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
+
+      await rolesApi.list({
+        team: 'village',
+        visibility: 'public',
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
+        params: {
+          team: 'village',
+          visibility: 'public',
+        },
+      });
+    });
+
+    it('propagates API errors', async () => {
+      mockApiClient.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(rolesApi.list()).rejects.toThrow('Network error');
+    });
+
+    it('returns array of RoleListItem', async () => {
+      const mockRoles = createMockRoles(3);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
+
+      const result = await rolesApi.list();
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(3);
+    });
+  });
+
+  describe('listOfficial', () => {
+    it('fetches official roles', async () => {
+      const officialRoles = createMockRoles(7).map((r) => ({...r, visibility: 'official' as const}));
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(officialRoles)});
+
+      const result = await rolesApi.listOfficial();
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles/official');
+      expect(result).toEqual(officialRoles);
+    });
+
+    it('propagates API errors', async () => {
+      mockApiClient.get.mockRejectedValue(new Error('Server error'));
+
+      await expect(rolesApi.listOfficial()).rejects.toThrow('Server error');
+    });
+
+    it('returns array of official roles', async () => {
+      const officialRoles = createMockRoles(5);
+      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(officialRoles)});
+
+      const result = await rolesApi.listOfficial();
+
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('getById', () => {
+    it('fetches a single role by ID', async () => {
+      const mockRole = createMockRole({id: 'role-123', name: 'Werewolf'});
+      mockApiClient.get.mockResolvedValue({data: mockRole});
+
+      const result = await rolesApi.getById('role-123');
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles/role-123');
+      expect(result).toEqual(mockRole);
+    });
+
+    it('handles UUID format IDs', async () => {
+      const uuid = '550e8400-e29b-41d4-a716-446655440000';
+      const mockRole = createMockRole({id: uuid});
+      mockApiClient.get.mockResolvedValue({data: mockRole});
+
+      await rolesApi.getById(uuid);
+
+      expect(mockApiClient.get).toHaveBeenCalledWith(`/roles/${uuid}`);
+    });
+
+    it('propagates 404 errors', async () => {
+      const error = {
+        response: {status: 404},
+        message: 'Not found',
+      };
+      mockApiClient.get.mockRejectedValue(error);
+
+      await expect(rolesApi.getById('nonexistent')).rejects.toEqual(error);
+    });
+
+    it('returns Role object with full details', async () => {
+      const mockRole = createMockRole({id: 'role-123'});
+      mockApiClient.get.mockResolvedValue({data: mockRole});
+
+      const result = await rolesApi.getById('role-123');
+
+      expect(result.id).toBe('role-123');
+      expect(result.name).toBeDefined();
+    });
+  });
+});
