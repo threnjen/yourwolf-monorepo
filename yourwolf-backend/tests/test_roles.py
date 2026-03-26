@@ -491,6 +491,16 @@ class TestDeleteRole:
         response = client.delete(f"/api/roles/{sample_role.id}")
         assert response.status_code == 403
 
+    def test_delete_official_role_fails(
+        self,
+        client: TestClient,
+        sample_official_role: Role,
+    ) -> None:
+        """Test deleting an official role returns 403 with correct message."""
+        response = client.delete(f"/api/roles/{sample_official_role.id}")
+        assert response.status_code == 403
+        assert "Cannot delete official roles" in response.json()["detail"]
+
     def test_delete_role_not_found(self, client: TestClient) -> None:
         """Test deleting a nonexistent role returns 404."""
         fake_id = uuid.uuid4()
@@ -501,3 +511,138 @@ class TestDeleteRole:
         """Test deleting with invalid UUID returns 422."""
         response = client.delete("/api/roles/not-a-uuid")
         assert response.status_code == 422
+
+
+class TestCreateRoleOwnership:
+    """Tests for creator_id in POST /api/roles endpoint."""
+
+    def test_create_role_with_creator_id(self, client: TestClient) -> None:
+        """creator_id sent in POST body is persisted and returned in the response."""
+        creator_id = str(uuid.uuid4())
+        role_data = {
+            "name": "Owned Role",
+            "description": "Role with a creator",
+            "team": "village",
+            "creator_id": creator_id,
+        }
+        response = client.post("/api/roles", json=role_data)
+        assert response.status_code == 201
+        data = response.json()
+        assert data["creator_id"] == creator_id
+
+    def test_create_role_without_creator_id_is_null(self, client: TestClient) -> None:
+        """Omitting creator_id results in null in the response."""
+        role_data = {
+            "name": "Anonymous Role",
+            "description": "Role without a creator",
+            "team": "village",
+        }
+        response = client.post("/api/roles", json=role_data)
+        assert response.status_code == 201
+        data = response.json()
+        assert data["creator_id"] is None
+
+
+class TestUpdateRoleStepsAndConditions:
+    """Tests for ability step and win condition replacement via PUT /api/roles/{id}."""
+
+    def test_update_role_replaces_ability_steps(
+        self,
+        client: TestClient,
+        sample_unlocked_role: Role,
+        sample_ability: Ability,
+    ) -> None:
+        """PUT with ability_steps replaces all existing steps."""
+        update_data = {
+            "ability_steps": [
+                {
+                    "ability_type": sample_ability.type,
+                    "order": 1,
+                    "modifier": "none",
+                    "is_required": True,
+                    "parameters": {},
+                }
+            ]
+        }
+        response = client.put(
+            f"/api/roles/{sample_unlocked_role.id}",
+            json=update_data,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["ability_steps"]) == 1
+        assert data["ability_steps"][0]["ability_type"] == sample_ability.type
+
+    def test_update_role_replaces_win_conditions(
+        self,
+        client: TestClient,
+        sample_unlocked_role: Role,
+    ) -> None:
+        """PUT with win_conditions replaces all existing conditions."""
+        update_data = {
+            "win_conditions": [
+                {
+                    "condition_type": "self_dies",
+                    "is_primary": True,
+                    "overrides_team": True,
+                },
+                {
+                    "condition_type": "team_wins",
+                    "is_primary": False,
+                    "overrides_team": False,
+                },
+            ]
+        }
+        response = client.put(
+            f"/api/roles/{sample_unlocked_role.id}",
+            json=update_data,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["win_conditions"]) == 2
+        types = {wc["condition_type"] for wc in data["win_conditions"]}
+        assert types == {"self_dies", "team_wins"}
+
+    def test_update_role_partial_leaves_steps_unchanged(
+        self,
+        client: TestClient,
+        sample_role_with_steps: Role,
+        db_session,
+    ) -> None:
+        """PUT with only scalar fields does not touch existing ability steps."""
+        # sample_role_with_steps is locked, so use an unlocked copy
+        from app.models.role import Role as RoleModel, Team, Visibility
+        from app.models.ability_step import AbilityStep
+        unlocked = RoleModel(
+            id=uuid.uuid4(),
+            name="Partial Update Role",
+            description="Editable role with steps",
+            team=Team.VILLAGE,
+            visibility=Visibility.PRIVATE,
+            is_locked=False,
+        )
+        db_session.add(unlocked)
+        db_session.flush()
+        from app.models.ability_step import StepModifier
+        step = AbilityStep(
+            id=uuid.uuid4(),
+            role_id=unlocked.id,
+            ability_id=sample_role_with_steps.ability_steps[0].ability_id,
+            order=1,
+            modifier=StepModifier.NONE,
+            is_required=True,
+            parameters={},
+        )
+        db_session.add(step)
+        db_session.commit()
+        original_step_id = step.id
+
+        response = client.put(
+            f"/api/roles/{unlocked.id}",
+            json={"name": "Name Only"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Name Only"
+        assert len(data["ability_steps"]) == 1
+        assert data["ability_steps"][0]["id"] == str(original_step_id)

@@ -229,6 +229,30 @@ def sample_roles(db_session: Session) -> list[Role]:
 
 
 @pytest.fixture
+def sample_official_role(db_session: Session) -> Role:
+    """Create an official, unlocked role for testing the official delete guard.
+
+    Args:
+        db_session: The test database session.
+
+    Returns:
+        Role: An official, unlocked role instance.
+    """
+    role = Role(
+        id=uuid.uuid4(),
+        name="Official Unlocked",
+        description="Official role that is not locked",
+        team=Team.VILLAGE,
+        visibility=Visibility.OFFICIAL,
+        is_locked=False,
+    )
+    db_session.add(role)
+    db_session.commit()
+    db_session.refresh(role)
+    return role
+
+
+@pytest.fixture
 def sample_role_with_steps(
     db_session: Session,
     sample_ability: Ability,
