@@ -186,6 +186,47 @@ class TestRoleListItemSchema:
         assert item.name == "List Role"
         assert item.vote_score == 5
 
+    def test_includes_is_primary_team_role(self) -> None:
+        """Test that is_primary_team_role appears in serialized output."""
+        data = {
+            "id": uuid.uuid4(),
+            "name": "Werewolf",
+            "description": "A werewolf",
+            "team": Team.WEREWOLF,
+            "wake_order": 1,
+            "visibility": Visibility.OFFICIAL,
+            "vote_score": 0,
+            "use_count": 0,
+            "default_count": 2,
+            "min_count": 1,
+            "max_count": 2,
+            "is_primary_team_role": True,
+            "created_at": datetime.now(),
+        }
+        item = RoleListItem(**data)
+        dumped = item.model_dump()
+        assert "is_primary_team_role" in dumped
+        assert dumped["is_primary_team_role"] is True
+
+    def test_is_primary_team_role_defaults_false(self) -> None:
+        """Test that is_primary_team_role defaults to False when omitted."""
+        data = {
+            "id": uuid.uuid4(),
+            "name": "Minion",
+            "description": "A minion",
+            "team": Team.WEREWOLF,
+            "wake_order": 2,
+            "visibility": Visibility.OFFICIAL,
+            "vote_score": 0,
+            "use_count": 0,
+            "default_count": 1,
+            "min_count": 1,
+            "max_count": 1,
+            "created_at": datetime.now(),
+        }
+        item = RoleListItem(**data)
+        assert item.is_primary_team_role is False
+
 
 class TestRoleListResponseSchema:
     """Tests for RoleListResponse schema."""

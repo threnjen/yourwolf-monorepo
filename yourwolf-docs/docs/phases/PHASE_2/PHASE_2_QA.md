@@ -18,10 +18,13 @@
 | # | Step | Expected |
 |---|------|----------|
 | 1 | Set Players to 3 | Input accepts value; role count label updates to "0 / 6" |
-| 2 | Set Players to 0 | Input clamps or rejects — cannot go below 3 |
-| 3 | Set Players to 21 | Input clamps or rejects — cannot exceed 20 |
-| 4 | Set Center Cards to 0 | Accepted; role count label shows "0 / {players}" |
-| 5 | Set Center Cards to 6 | Input clamps or rejects — cannot exceed 5 |
+| 2 | Set Players to 0, then click away | Input clamps to 3 on blur |
+| 3 | Set Players to 21, then click away | Input clamps to 20 on blur |
+| 4 | Clear Players field and type "4" | Displayed value is "4" while typing (no mid-edit clamp) |
+| 5 | Set Center Cards to 0 | Accepted; role count label shows "0 / {players}" |
+| 6 | Set Center Cards to 6, then click away | Input clamps to 5 on blur |
+| 7 | Clear Timer, type "100", then click away | Displayed value is "100" while typing; clamps to 100 on blur (within 60–1800) |
+| 8 | Clear Timer, type "1", then click away | Input clamps to 60 on blur |
 
 ### 1.3 Role Selection
 | # | Step | Expected |
@@ -69,6 +72,32 @@
 | 4 | Remove Tanner | Both Tanner and Apprentice Tanner removed (cascade); counter decrements by 2 |
 | 5 | Select Tanner manually, then Apprentice Tanner | Tanner count unchanged (already selected); Apprentice Tanner added |
 | 6 | Observe RECOMMENDS dependencies (e.g., Minion → Werewolf) | No auto-selection occurs; only REQUIRES dependencies trigger auto-select |
+
+### 1.8 Primary Team Role Validation
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Select only Minion (werewolf team, non-primary) + village roles = exact count | Click "Start Game" → error: "Missing primary role for werewolf team" |
+| 2 | Add Werewolf to selection | Error clears; Start Game becomes valid (if count matches) |
+| 3 | Select only Squire (werewolf team, non-primary) + village roles | Click "Start Game" → error: "Missing primary role for werewolf team" |
+| 4 | Backend: POST `/api/games` with Minion only on wolf team | 400; error mentions "werewolf" team requires primary role |
+| 5 | Backend: POST `/api/games` with Werewolf + Minion | Succeeds (primary role present) |
+
+### 1.9 Start Game Error Messages
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Select fewer roles than players + center, click "Start Game" | Error: "Not enough roles selected — need X more" |
+| 2 | Select more roles than players + center, click "Start Game" | Error: "Too many roles selected — remove X" |
+| 3 | Select correct count but no primary wolf role, click "Start Game" | Error: "Missing primary role for werewolf team" |
+| 4 | Adjust selection to valid state | Error clears automatically |
+| 5 | Button is always clickable | Button is not disabled; validation occurs on click |
+
+### 1.10 Dependency Recommendations Panel
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Select Minion without Werewolf | Warning panel appears: "Minion works best with Werewolf in the game" |
+| 2 | Add Werewolf to selection | Warning for Minion clears |
+| 3 | Select role with no recommendations | No warnings panel visible |
+| 4 | Warning panel uses amber/yellow styling | Distinct from red error styling |
 
 ---
 

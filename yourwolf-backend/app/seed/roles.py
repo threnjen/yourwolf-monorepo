@@ -44,6 +44,7 @@ ROLES_DATA = [
         "default_count": 2,
         "min_count": 1,
         "max_count": 2,
+        "is_primary_team_role": True,
         "ability_steps": [
             {
                 "order": 1,
@@ -393,6 +394,7 @@ ROLES_DATA = [
         "wake_target": "player.self",
         "description": "You are a werewolf. You may look at one other player's card.",
         "votes": 1,
+        "is_primary_team_role": True,
         "ability_steps": [
             {
                 "order": 1,
@@ -553,6 +555,7 @@ ROLES_DATA = [
         "wake_target": "team.werewolf",
         "description": "You don't wake with wolves, but they see your thumb.",
         "votes": 1,
+        "is_primary_team_role": True,
         "ability_steps": [
             {
                 "order": 1,
@@ -578,6 +581,7 @@ ROLES_DATA = [
         "wake_target": "player.self",
         "description": "Swap the center wolf card with another player's card.",
         "votes": 1,
+        "is_primary_team_role": True,
         "ability_steps": [
             {
                 "order": 1,
@@ -956,6 +960,7 @@ def seed_roles(db: Session) -> int:
             default_count=role_data.get("default_count", 1),
             min_count=role_data.get("min_count", 1),
             max_count=role_data.get("max_count", 1),
+            is_primary_team_role=role_data.get("is_primary_team_role", False),
             visibility=Visibility.OFFICIAL,
             is_locked=True,
             creator_id=None,  # Official roles have no creator

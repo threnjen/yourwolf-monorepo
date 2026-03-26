@@ -340,6 +340,7 @@ def seeded_roles(db_session: Session) -> list[Role]:
             wake_target=wake_target,
             visibility=Visibility.OFFICIAL,
             is_locked=True,
+            is_primary_team_role=(name == "Werewolf"),
         )
         db_session.add(role)
         roles.append(role)
@@ -441,24 +442,34 @@ def seeded_roles_with_deps(db_session: Session) -> dict[str, Any]:
     db_session.flush()
 
     # Create roles with card counts
-    # (name, team, wake_order, wake_target, default_count, min_count, max_count)
+    # (name, team, wake_order, wake_target, default_count, min_count, max_count, is_primary_team_role)
     roles_data = [
-        ("Werewolf", Team.WEREWOLF, 1, "team.werewolf", 2, 1, 2),
-        ("Seer", Team.VILLAGE, 4, "player.self", 1, 1, 1),
-        ("Insomniac", Team.VILLAGE, 9, "player.self", 1, 1, 1),
-        ("Robber", Team.VILLAGE, 3, "player.self", 1, 1, 1),
-        ("Troublemaker", Team.VILLAGE, 5, "player.self", 1, 1, 1),
-        ("Mason", Team.VILLAGE, 3, "player.self", 2, 2, 2),
-        ("Villager", Team.VILLAGE, None, None, 3, 1, 3),
-        ("Minion", Team.WEREWOLF, 2, "player.self", 1, 1, 1),
-        ("Tanner", Team.NEUTRAL, None, None, 1, 1, 1),
-        ("Apprentice Tanner", Team.NEUTRAL, 2, "player.self", 1, 1, 1),
-        ("Beholder", Team.VILLAGE, 4, "player.self", 1, 1, 1),
+        ("Werewolf", Team.WEREWOLF, 1, "team.werewolf", 2, 1, 2, True),
+        ("Seer", Team.VILLAGE, 4, "player.self", 1, 1, 1, False),
+        ("Insomniac", Team.VILLAGE, 9, "player.self", 1, 1, 1, False),
+        ("Robber", Team.VILLAGE, 3, "player.self", 1, 1, 1, False),
+        ("Troublemaker", Team.VILLAGE, 5, "player.self", 1, 1, 1, False),
+        ("Mason", Team.VILLAGE, 3, "player.self", 2, 2, 2, False),
+        ("Villager", Team.VILLAGE, None, None, 3, 1, 3, False),
+        ("Minion", Team.WEREWOLF, 2, "player.self", 1, 1, 1, False),
+        ("Tanner", Team.NEUTRAL, None, None, 1, 1, 1, False),
+        ("Apprentice Tanner", Team.NEUTRAL, 2, "player.self", 1, 1, 1, False),
+        ("Beholder", Team.VILLAGE, 4, "player.self", 1, 1, 1, False),
+        ("Squire", Team.WEREWOLF, 2, "player.self", 1, 1, 1, False),
     ]
 
     roles = []
     role_map: dict[str, Role] = {}
-    for name, team, wake_order, wake_target, dcount, minc, maxc in roles_data:
+    for (
+        name,
+        team,
+        wake_order,
+        wake_target,
+        dcount,
+        minc,
+        maxc,
+        is_primary,
+    ) in roles_data:
         role = Role(
             id=uuid.uuid4(),
             name=name,
@@ -471,6 +482,7 @@ def seeded_roles_with_deps(db_session: Session) -> dict[str, Any]:
             default_count=dcount,
             min_count=minc,
             max_count=maxc,
+            is_primary_team_role=is_primary,
         )
         db_session.add(role)
         roles.append(role)

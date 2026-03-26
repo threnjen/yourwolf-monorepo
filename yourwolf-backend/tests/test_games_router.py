@@ -337,10 +337,10 @@ class TestDependencyValidationEndpoint:
         self, client: TestClient, seeded_roles_with_deps: dict[str, Any]
     ) -> None:
         role_map = seeded_roles_with_deps["role_map"]
-        # Minion without Werewolf — should warn but succeed
+        # Beholder without Seer — should warn but succeed
         role_ids = [
-            str(role_map["Minion"].id),
-            str(role_map["Seer"].id),
+            str(role_map["Beholder"].id),
+            str(role_map["Werewolf"].id),
             str(role_map["Robber"].id),
             str(role_map["Troublemaker"].id),
             str(role_map["Insomniac"].id),
@@ -357,7 +357,7 @@ class TestDependencyValidationEndpoint:
         assert response.status_code == 201
         data = response.json()
         assert len(data["warnings"]) == 1
-        assert "Minion" in data["warnings"][0]
+        assert "Beholder" in data["warnings"][0]
 
     def test_response_includes_warnings_field(
         self, client: TestClient, seeded_roles: list[Role]

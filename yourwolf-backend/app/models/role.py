@@ -139,6 +139,11 @@ class Role(Base):
         default=1,
         nullable=False,
     )
+    is_primary_team_role: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

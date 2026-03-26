@@ -80,6 +80,35 @@ class TestRoleModel:
         roles = db_session.query(Role).all()
         assert len(roles) == len(visibilities)
 
+    def test_role_is_primary_team_role_defaults_false(
+        self, db_session: Session
+    ) -> None:
+        """Test that is_primary_team_role defaults to False."""
+        role = Role(
+            name="Minion",
+            description="A minion",
+            team=Team.WEREWOLF,
+        )
+        db_session.add(role)
+        db_session.commit()
+        db_session.refresh(role)
+
+        assert role.is_primary_team_role is False
+
+    def test_role_is_primary_team_role_set_true(self, db_session: Session) -> None:
+        """Test that is_primary_team_role can be set to True and persists."""
+        role = Role(
+            name="Werewolf",
+            description="A werewolf",
+            team=Team.WEREWOLF,
+            is_primary_team_role=True,
+        )
+        db_session.add(role)
+        db_session.commit()
+        db_session.refresh(role)
+
+        assert role.is_primary_team_role is True
+
     def test_role_card_count_custom(self, db_session: Session) -> None:
         """Test creating a role with custom card counts."""
         role = Role(

@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
@@ -78,6 +78,15 @@ const errorStyles: React.CSSProperties = {
   marginBottom: theme.spacing.md,
 };
 
+const warningStyles: React.CSSProperties = {
+  backgroundColor: `${theme.colors.warning}20`,
+  border: `1px solid ${theme.colors.warning}`,
+  borderRadius: theme.borderRadius.md,
+  padding: theme.spacing.md,
+  color: theme.colors.warning,
+  marginBottom: theme.spacing.md,
+};
+
 const quantityBtnStyles: React.CSSProperties = {
   width: '28px',
   height: '28px',
@@ -109,9 +118,13 @@ export function GameSetupPage(): React.ReactElement {
   const [playerCount, setPlayerCount] = useState(5);
   const [centerCount, setCenterCount] = useState(3);
   const [timerSeconds, setTimerSeconds] = useState(300);
+  const [playerCountInput, setPlayerCountInput] = useState('5');
+  const [centerCountInput, setCenterCountInput] = useState('3');
+  const [timerSecondsInput, setTimerSecondsInput] = useState('300');
   const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const roleMap = useMemo(() => {
     const map: Record<string, RoleListItem> = {};
@@ -137,7 +150,57 @@ export function GameSetupPage(): React.ReactElement {
   }, [selectedRoleCounts]);
 
   const totalCardsNeeded = playerCount + centerCount;
-  const canStart = totalSelectedCards === totalCardsNeeded && !submitting;
+
+  const currentValidationError = useMemo((): string | null => {
+    if (totalSelectedCards < totalCardsNeeded) {
+      return `Not enough roles selected — need ${totalCardsNeeded - totalSelectedCards} more`;
+    }
+    if (totalSelectedCards > totalCardsNeeded) {
+      return `Too many roles selected — remove ${totalSelectedCards - totalCardsNeeded}`;
+    }
+    // Check primary team role for non-village/non-neutral teams
+    const teamsWithPrimary: Record<string, boolean> = {};
+    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
+      if (count <= 0) continue;
+      const role = roleMap[roleId];
+      if (!role || role.team === 'village' || role.team === 'neutral') continue;
+      if (!(role.team in teamsWithPrimary)) {
+        teamsWithPrimary[role.team] = false;
+      }
+      if (role.is_primary_team_role) {
+        teamsWithPrimary[role.team] = true;
+      }
+    }
+    for (const [team, hasPrimary] of Object.entries(teamsWithPrimary)) {
+      if (!hasPrimary) {
+        return `Missing primary role for ${team} team`;
+      }
+    }
+    return null;
+  }, [totalSelectedCards, totalCardsNeeded, selectedRoleCounts, roleMap]);
+
+  const canStart = currentValidationError === null && !submitting;
+
+  const recommendationWarnings = useMemo(() => {
+    const warnings: string[] = [];
+    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
+      if (count <= 0) continue;
+      const role = roleMap[roleId];
+      if (!role) continue;
+      for (const dep of role.dependencies) {
+        if (dep.dependency_type !== 'recommends') continue;
+        if (selectedRoleCounts[dep.required_role_id] > 0) continue;
+        warnings.push(`${role.name} works best with ${dep.required_role_name} in the game`);
+      }
+    }
+    return warnings;
+  }, [selectedRoleCounts, roleMap]);
+
+  useEffect(() => {
+    if (canStart) {
+      setValidationError(null);
+    }
+  }, [canStart]);
 
   const removeRoleWithCascade = useCallback(
     (counts: Record<string, number>, roleId: string): Record<string, number> => {
@@ -210,10 +273,14 @@ export function GameSetupPage(): React.ReactElement {
   );
 
   const handleStartGame = async () => {
-    if (!canStart) return;
+    if (currentValidationError) {
+      setValidationError(currentValidationError);
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
+    setValidationError(null);
     try {
       const game = await gamesApi.create({
         player_count: playerCount,
@@ -258,12 +325,13 @@ export function GameSetupPage(): React.ReactElement {
             type="number"
             min={3}
             max={20}
-            value={playerCount}
-            onChange={(e) =>
-              setPlayerCount(
-                Math.max(3, Math.min(20, parseInt(e.target.value) || 3)),
-              )
-            }
+            value={playerCountInput}
+            onChange={(e) => setPlayerCountInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(3, Math.min(20, parseInt(playerCountInput) || 3));
+              setPlayerCount(v);
+              setPlayerCountInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>
@@ -274,12 +342,13 @@ export function GameSetupPage(): React.ReactElement {
             type="number"
             min={0}
             max={5}
-            value={centerCount}
-            onChange={(e) =>
-              setCenterCount(
-                Math.max(0, Math.min(5, parseInt(e.target.value) || 0)),
-              )
-            }
+            value={centerCountInput}
+            onChange={(e) => setCenterCountInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(0, Math.min(5, parseInt(centerCountInput) || 0));
+              setCenterCount(v);
+              setCenterCountInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>
@@ -291,12 +360,13 @@ export function GameSetupPage(): React.ReactElement {
             min={60}
             max={1800}
             step={30}
-            value={timerSeconds}
-            onChange={(e) =>
-              setTimerSeconds(
-                Math.max(60, Math.min(1800, parseInt(e.target.value) || 60)),
-              )
-            }
+            value={timerSecondsInput}
+            onChange={(e) => setTimerSecondsInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(60, Math.min(1800, parseInt(timerSecondsInput) || 60));
+              setTimerSeconds(v);
+              setTimerSecondsInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>
@@ -383,10 +453,21 @@ export function GameSetupPage(): React.ReactElement {
         })}
       </div>
 
+      {/* Recommendation Warnings */}
+      {recommendationWarnings.length > 0 && (
+        <div style={warningStyles}>
+          <ul style={{margin: 0, paddingLeft: '1.2em'}}>
+            {recommendationWarnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Start Button */}
       <button
         onClick={handleStartGame}
-        disabled={!canStart}
+        disabled={submitting}
         style={{
           ...buttonStyle,
           opacity: canStart ? 1 : 0.5,
@@ -395,6 +476,7 @@ export function GameSetupPage(): React.ReactElement {
       >
         {submitting ? 'Creating Game...' : 'Start Game'}
       </button>
+      {validationError && <div style={{...errorStyles, marginTop: theme.spacing.md}}>{validationError}</div>}
     </div>
   );
 }

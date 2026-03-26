@@ -574,10 +574,10 @@ class TestDependencyValidation:
         role_map = seeded_roles_with_deps["role_map"]
         service = GameService(db_session)
 
-        # Minion recommends Werewolf, but no Werewolf included
+        # Beholder recommends Seer, but no Seer included
         role_ids = [
-            role_map["Minion"].id,
-            role_map["Seer"].id,
+            role_map["Beholder"].id,
+            role_map["Werewolf"].id,
             role_map["Robber"].id,
             role_map["Troublemaker"].id,
             role_map["Insomniac"].id,
@@ -596,8 +596,8 @@ class TestDependencyValidation:
 
         assert game.id is not None
         assert len(game.warnings) == 1
-        assert "Minion" in game.warnings[0]
-        assert "Werewolf" in game.warnings[0]
+        assert "Beholder" in game.warnings[0]
+        assert "Seer" in game.warnings[0]
 
     def test_no_warnings_when_recommends_satisfied(
         self, db_session: Session, seeded_roles_with_deps: dict[str, Any]
@@ -606,13 +606,13 @@ class TestDependencyValidation:
         role_map = seeded_roles_with_deps["role_map"]
         service = GameService(db_session)
 
-        # Minion + Werewolf both present
+        # Beholder + Seer both present
         role_ids = [
-            role_map["Minion"].id,
-            role_map["Werewolf"].id,
+            role_map["Beholder"].id,
             role_map["Werewolf"].id,
             role_map["Seer"].id,
             role_map["Robber"].id,
+            role_map["Troublemaker"].id,
             role_map["Villager"].id,
             role_map["Villager"].id,
             role_map["Villager"].id,
@@ -627,3 +627,136 @@ class TestDependencyValidation:
         )
 
         assert game.warnings == []
+
+
+class TestPrimaryTeamRoleValidation:
+    """Tests for primary team role enforcement in game creation."""
+
+    def test_rejects_game_with_only_minion_no_primary_wolf(
+        self, db_session: Session, seeded_roles_with_deps: dict[str, Any]
+    ) -> None:
+        """Game creation fails when Minion is selected without any primary wolf."""
+        role_map = seeded_roles_with_deps["role_map"]
+        service = GameService(db_session)
+
+        role_ids = [
+            role_map["Minion"].id,
+            role_map["Seer"].id,
+            role_map["Robber"].id,
+            role_map["Troublemaker"].id,
+            role_map["Insomniac"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+        ]
+
+        with pytest.raises(ValueError, match="(?i)werewolf"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_accepts_game_with_werewolf_and_minion(
+        self, db_session: Session, seeded_roles_with_deps: dict[str, Any]
+    ) -> None:
+        """Game creation succeeds when Werewolf (primary) + Minion are present."""
+        role_map = seeded_roles_with_deps["role_map"]
+        service = GameService(db_session)
+
+        role_ids = [
+            role_map["Werewolf"].id,
+            role_map["Minion"].id,
+            role_map["Seer"].id,
+            role_map["Robber"].id,
+            role_map["Troublemaker"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+        ]
+
+        game = service.create_game(
+            GameSessionCreate(
+                player_count=5,
+                center_card_count=3,
+                role_ids=role_ids,
+            )
+        )
+
+        assert game.id is not None
+
+    def test_rejects_game_with_only_squire_no_primary_wolf(
+        self, db_session: Session, seeded_roles_with_deps: dict[str, Any]
+    ) -> None:
+        """Game creation fails when Squire is selected without any primary wolf."""
+        role_map = seeded_roles_with_deps["role_map"]
+        service = GameService(db_session)
+
+        role_ids = [
+            role_map["Squire"].id,
+            role_map["Seer"].id,
+            role_map["Robber"].id,
+            role_map["Troublemaker"].id,
+            role_map["Insomniac"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+        ]
+
+        with pytest.raises(ValueError, match="(?i)werewolf"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_rejects_multiple_teams_each_missing_primary(
+        self, db_session: Session, seeded_roles_with_deps: dict[str, Any]
+    ) -> None:
+        """Error names all teams missing a primary role."""
+        role_map = seeded_roles_with_deps["role_map"]
+        service = GameService(db_session)
+
+        # Create a non-primary vampire role for a second bad team
+        from app.models.role import Visibility
+
+        vampire_minion = Role(
+            name="Vampire Minion",
+            description="A vampire supporter",
+            team=Team("vampire"),
+            visibility=Visibility.OFFICIAL,
+            is_locked=True,
+            is_primary_team_role=False,
+        )
+        db_session.add(vampire_minion)
+        db_session.commit()
+        db_session.refresh(vampire_minion)
+
+        # Squire (werewolf, non-primary) + Vampire Minion (vampire, non-primary)
+        role_ids = [
+            role_map["Squire"].id,
+            vampire_minion.id,
+            role_map["Seer"].id,
+            role_map["Robber"].id,
+            role_map["Troublemaker"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+            role_map["Villager"].id,
+        ]
+
+        with pytest.raises(ValueError) as exc_info:
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+        error_msg = str(exc_info.value).lower()
+        assert "werewolf" in error_msg
+        assert "vampire" in error_msg

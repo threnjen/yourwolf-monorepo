@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.game_role import GameRole
 from app.models.game_session import GamePhase, GameSession
-from app.models.role import Role
+from app.models.role import Role, Team
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.schemas.game import (
     GameRoleResponse,
@@ -81,6 +81,26 @@ class GameService:
                     f"'{role.name}' allows at most {role.max_count} "
                     f"card(s), but {count} provided"
                 )
+        if errors:
+            raise ValueError("; ".join(errors))
+
+        # Validate primary team roles
+        teams_with_primary: dict[Team, bool] = {}
+        for role in role_map.values():
+            if role.team in (Team.VILLAGE, Team.NEUTRAL):
+                continue
+            if role.team not in teams_with_primary:
+                teams_with_primary[role.team] = False
+            if role.is_primary_team_role:
+                teams_with_primary[role.team] = True
+
+        for team, has_primary in teams_with_primary.items():
+            if not has_primary:
+                errors.append(
+                    f"'{team.value}' team requires at least one primary role "
+                    f"(e.g., Werewolf)"
+                )
+
         if errors:
             raise ValueError("; ".join(errors))
 

@@ -67,6 +67,7 @@ class RoleBase(BaseModel):
     default_count: int = Field(default=1, ge=1, le=10)
     min_count: int = Field(default=1, ge=1, le=10)
     max_count: int = Field(default=1, ge=1, le=10)
+    is_primary_team_role: bool = Field(default=False)
 
     @model_validator(mode="after")
     def validate_card_counts(self) -> "RoleBase":
@@ -124,6 +125,7 @@ class RoleUpdate(BaseModel):
     default_count: int | None = Field(default=None, ge=1, le=10)
     min_count: int | None = Field(default=None, ge=1, le=10)
     max_count: int | None = Field(default=None, ge=1, le=10)
+    is_primary_team_role: bool | None = None
 
 
 class RoleDependencyResponse(BaseModel):
@@ -170,6 +172,7 @@ class RoleListItem(BaseModel):
     default_count: int
     min_count: int
     max_count: int
+    is_primary_team_role: bool = False
     created_at: datetime
     dependencies: list[RoleDependencyResponse] = Field(default_factory=list)
 
