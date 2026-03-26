@@ -23,7 +23,6 @@ const phaseTitleStyles: React.CSSProperties = {
   fontSize: '2rem',
   fontWeight: 700,
   color: theme.colors.text,
-  textTransform: 'uppercase',
 };
 
 const primaryButtonStyle: React.CSSProperties = {
@@ -194,7 +193,7 @@ export function GameFacilitatorPage(): React.ReactElement {
   const {gameId} = useParams<{gameId: string}>();
   const navigate = useNavigate();
   const {game, loading, error, refetch} = useGame(gameId!);
-  const {script} = useNightScript(gameId!, game?.phase === 'night');
+  const {script, loading: scriptLoading, error: scriptError} = useNightScript(gameId!, game?.phase === 'night');
   const [actionError, setActionError] = React.useState<string | null>(null);
 
   if (loading) {
@@ -233,7 +232,7 @@ export function GameFacilitatorPage(): React.ReactElement {
     <div style={containerStyles}>
       {/* Phase Header */}
       <div style={phaseHeaderStyles}>
-        <h1 style={phaseTitleStyles}>{game.phase} Phase</h1>
+        <h1 style={phaseTitleStyles}>{game.phase.toUpperCase()} Phase</h1>
         <div style={{color: theme.colors.textMuted}}>
           {game.player_count} Players
         </div>
@@ -263,6 +262,14 @@ export function GameFacilitatorPage(): React.ReactElement {
       {/* Phase-specific content */}
       {game.phase === 'setup' && (
         <SetupPhaseView game={game} onStart={handleStartGame} />
+      )}
+
+      {game.phase === 'night' && scriptLoading && (
+        <div style={loadingStyles}>Loading night script...</div>
+      )}
+
+      {game.phase === 'night' && scriptError && (
+        <div style={errorStyles}>{scriptError}</div>
       )}
 
       {game.phase === 'night' && script && (

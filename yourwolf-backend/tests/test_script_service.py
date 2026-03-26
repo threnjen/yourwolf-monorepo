@@ -70,7 +70,7 @@ class TestGenerateNightScript:
         script = script_service.generate_night_script(game)
 
         assert script.actions[0].instruction == "Everyone, close your eyes."
-        assert script.actions[-1].instruction == "Everyone, wake up!"
+        assert script.actions[-1].instruction == "Everyone, open your eyes."
 
     def test_script_has_positive_total_duration(
         self, db_session: Session, seeded_roles: list[Role]

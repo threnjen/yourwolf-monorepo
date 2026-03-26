@@ -35,7 +35,7 @@ Each agent produces structured output — plan documents, implementation summari
 
 ---
 
-## Available Agents (11)
+## Available Agents (12)
 
 ### Planning & Implementation
 
@@ -51,6 +51,12 @@ Each agent produces structured output — plan documents, implementation summari
 |-------|-------|---------|
 | **Test Writer** | Opus | Bootstrap a test suite from scratch for untested code |
 | **Test Analyst** | Opus | Evaluate an existing test suite for redundancy, coverage gaps, and consolidation opportunities |
+
+### QA
+
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| **QA Writer** | Opus | Write manual QA documents — auto-detects Pre-Implementation Skeleton (plan only) or Release QA Plan (plan + implementation + review) based on available documents |
 
 ### Code Quality
 
@@ -81,10 +87,10 @@ Each agent produces structured output — plan documents, implementation summari
 > Give it a problem statement or spec. It scans the codebase for context, asks targeted questions, then writes a structured plan with numbered acceptance criteria, architecture analysis, edge-case identification, and a test strategy to `dev/active/[task-name]/`. It will not create any files until you explicitly approve.
 
 **Implementer** (full tool access — reads and writes code)
-> Give it an approved plan. It implements each acceptance criterion incrementally using Red-Green-Refactor TDD, and produces a traceable implementation summary showing what was done and where.
+> Give it an approved plan. It implements each acceptance criterion incrementally using Red-Green-Refactor TDD and writes a structured implementation record (`[task-name]-implementation.md`) to `dev/active/[task-name]/`. This file lists every changed file with rationale, maps changes back to acceptance criteria, and highlights focus areas for the Reviewer.
 
-**Reviewer** (read-only — does not modify code)
-> Give it a plan and implementation to review. It checks traceability, hunts for bugs and edge cases, flags inconsistencies, and produces a prioritized issue table. It has access to PR tools and can pull Copilot review comments. It will NOT fix anything — only report.
+**Reviewer** (read-only — does not modify code unless approved)
+> Give it a plan and implementation to review. It checks traceability, hunts for bugs and edge cases, flags inconsistencies, and produces a prioritized issue table. It has access to PR tools and can pull Copilot review comments. After the review (and any approved fixes), it writes a review record (`[task-name]-review.md`) to `dev/active/[task-name]/` capturing the verdict, all issues found, fixes applied, and remaining concerns.
 
 **Test Writer** (writes test code only — does not modify source)
 > Give it a module or directory to cover. It scans the codebase, proposes a test plan, and after your approval writes working test files and configuration. It verifies the suite passes before finishing.
@@ -103,6 +109,9 @@ Each agent produces structured output — plan documents, implementation summari
 
 **Web Researcher** (read-only — uses fetch)
 > Give it a problem or topic. It generates multiple search query variations, searches across GitHub issues, Stack Overflow, Reddit, forums, and docs, and compiles a structured findings report with sources.
+
+**QA Writer** (document-only — does not modify code)
+> Give it a task folder. It auto-detects its mode from the available documents: with only plan docs, it produces a **Pre-Implementation QA Skeleton** — a high-level checklist of anticipated manual testing areas. With plan + implementation + review + code/tests, it produces a full **Release QA Plan** — an execution-ready checklist with concrete steps, expected results, and coverage gap analysis. If a skeleton already exists, the Release mode expands it into the final plan. Output goes to `dev/active/[task-name]/[task-name]-qa.md`.
 
 **Infrastructure Auditor** (document-only — does not modify files)
 > Give it infrastructure files to audit. It evaluates Dockerfiles, CI/CD pipelines, IaC templates, build scripts, and config files for security, best practices, consistency, and operational risk. Produces a structured report.
@@ -123,10 +132,12 @@ The core development pipeline — plan, build, review, ship.
 | Step | Agent | Prompt | Attachments |
 |------|-------|--------|-------------|
 | 1 | **Planner** | Describe the feature in detail | Spec docs (optional) |
-| 2 | **Implementer** | "Implement the plan" | Planner docs output (`dev/active/[task-name]/`) |
-| 3 | **Reviewer** | "Review the implementation" | Planner docs output |
-| 4 | — | Push to GitHub and open PR with Copilot review | — |
-| 5 | **Reviewer** | "Pull the PR Copilot review comments and address problems" | Planner docs output |
+| 2 | **QA Writer** | "Write a QA skeleton for this feature" | Planner docs output (`dev/active/[task-name]/`) |
+| 3 | **Implementer** | "Implement the plan" | Planner docs output |
+| 4 | **Reviewer** | "Review the implementation" | Planner docs output, Implementer record, QA skeleton (`[task-name]-qa.md`) |
+| 5 | — | Push to GitHub and open PR with Copilot review | — |
+| 6 | **Reviewer** | "Pull the PR Copilot review comments and address problems" | Planner docs output, Implementer record |
+| 7 | **QA Writer** | "Write the release QA plan for this feature" | All task docs in `dev/active/[task-name]/` |
 
 ### Pipeline 2: Test Suite Bootstrap
 
@@ -147,7 +158,7 @@ For projects where tests have grown unwieldy — analyze, plan reductions, execu
 | 1 | **Test Analyst** | "Analyze the test suite in `[test directory]`" | None (reads test files) |
 | 2 | **Planner** | "Create a plan to implement the test reduction recommendations" | Test Analyst docs output (`dev/active/[task-name]/`) |
 | 3 | **Implementer** | "Implement the plan" | Planner docs output |
-| 4 | **Reviewer** | "Review the test changes" | Planner docs output, Test Analyst docs output |
+| 4 | **Reviewer** | "Review the test changes" | Planner docs output, Test Analyst docs output, Implementer record |
 
 ### Pipeline 4: Code Quality Improvement
 
@@ -158,7 +169,7 @@ Audit the codebase, plan fixes, implement, and review.
 | 1 | **Code Auditor** | "Audit the codebase" (or specify a directory) | None (reads codebase) |
 | 2 | **Planner** | "Create a plan to address the audit findings" | Code Auditor report (`dev/active/[audit-name]/`) |
 | 3 | **Implementer** | "Implement the plan" | Planner docs output |
-| 4 | **Reviewer** | "Review the implementation" | Planner docs output, Code Auditor report |
+| 4 | **Reviewer** | "Review the implementation" | Planner docs output, Code Auditor report, Implementer record |
 
 ### Pipeline 5: Refactoring
 
@@ -199,7 +210,7 @@ Audit infrastructure files, plan fixes, and implement.
 | 1 | **Infrastructure Auditor** | "Audit infrastructure files" | None |
 | 2 | **Planner** | "Create a plan to address the infrastructure findings" | Infrastructure Auditor report (`dev/active/[audit-name]/`) |
 | 3 | **Implementer** | "Implement the plan" | Planner docs output |
-| 4 | **Reviewer** | "Review the implementation" | Planner docs output, Infrastructure Auditor report |
+| 4 | **Reviewer** | "Review the implementation" | Planner docs output, Infrastructure Auditor report, Implementer record |
 
 ---
 
@@ -237,7 +248,19 @@ dev/active/[audit-name]/
 └── [audit-name]-summary.md  # Executive summary with priority actions
 ```
 
-The **Reviewer** appends its review to the relevant task directory. The **Implementer** tracks its progress in the same location.
+The **Implementer** writes an implementation record to the same directory:
+
+```
+dev/active/[task-name]/
+└── [task-name]-implementation.md   # Files changed, AC traceability, reviewer focus areas
+```
+
+The **Reviewer** writes a review record to the same directory:
+
+```
+dev/active/[task-name]/
+└── [task-name]-review.md   # Verdict, issues found, fixes applied, remaining concerns
+```
 
 ---
 

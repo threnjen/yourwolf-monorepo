@@ -110,7 +110,7 @@ class ScriptService:
             NarratorAction(
                 order=order,
                 role_name="Narrator",
-                instruction="Everyone, wake up!",
+                instruction="Everyone, open your eyes.",
                 duration_seconds=3,
                 requires_player_action=False,
             )

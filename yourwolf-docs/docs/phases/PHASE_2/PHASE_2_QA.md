@@ -30,7 +30,7 @@
 | 2 | Click same card again | Card deselects; border removed; counter decrements |
 | 3 | Select exactly players + center roles | "Start Game" button becomes enabled (full opacity, pointer cursor) |
 | 4 | Select fewer than required | "Start Game" button remains disabled (0.5 opacity, not-allowed cursor) |
-| 5 | Select more than required | No enforcement in UI — backend validates on create |
+| 5 | Select more than required | "Start Game" button remains disabled (exact count required) |
 
 ### 1.4 Game Creation
 | # | Step | Expected |
@@ -113,7 +113,7 @@
 ### 3.1 Create Game
 | # | Action | Expected |
 |---|--------|----------|
-| 1 | POST `/api/games` with valid role_ids | 200; returns GameSessionResponse with phase="setup" |
+| 1 | POST `/api/games` with valid role_ids | 201; returns GameSessionResponse with phase="setup" |
 | 2 | POST `/api/games` with wrong role count | 400; descriptive error about role count mismatch |
 | 3 | POST `/api/games` with invalid role UUIDs | 404 or 400; no crash |
 
@@ -127,7 +127,7 @@
 | # | Action | Expected |
 |---|--------|----------|
 | 1 | GET `/api/games/{id}/script` on night-phase game | 200; NightScript with actions sorted by wake order |
-| 2 | Actions include opening/closing | First action is "Everyone, close your eyes."; last is "open your eyes" |
+| 2 | Actions include opening/closing | First action is "Everyone, close your eyes."; last is "Everyone, open your eyes." |
 | 3 | Waking roles only | Non-waking roles (e.g., Villager) do not appear in actions |
 
 ### 3.4 Advance Phase
