@@ -40,6 +40,36 @@ export interface Role {
   win_conditions: WinCondition[];
 }
 
+export interface AbilityStepDraft {
+  order: number;
+  modifier: StepModifier;
+  is_required: boolean;
+  parameters: Record<string, unknown>;
+  condition_type?: string;
+  condition_params?: Record<string, unknown>;
+  ability_type: string;
+  ability_name: string;
+}
+
+export interface WinConditionDraft {
+  condition_type: string;
+  condition_params?: Record<string, unknown>;
+  is_primary: boolean;
+  overrides_team: boolean;
+}
+
+export interface RoleDraft {
+  id: string;
+  name: string;
+  description: string;
+  team: Team;
+  wake_order: number | null;
+  wake_target: string | null;
+  votes: number;
+  ability_steps: AbilityStepDraft[];
+  win_conditions: WinConditionDraft[];
+}
+
 export interface RoleDependency {
   id?: string;
   required_role_id: string;
