@@ -50,15 +50,10 @@ def upgrade() -> None:
         ),
     )
 
-    # Create dependencytype enum
-    dependency_type_enum = sa.Enum(
-        "REQUIRES",
-        "RECOMMENDS",
-        name="dependencytype",
-    )
-    dependency_type_enum.create(op.get_bind(), checkfirst=True)
-
     # Create role_dependencies table
+    # Note: the dependencytype enum is created automatically by op.create_table
+    # via Base.metadata (which imports the RoleDependency model in env.py).
+    # Do NOT create it explicitly — that causes a duplicate type error.
     op.create_table(
         "role_dependencies",
         sa.Column("id", UUID(as_uuid=True), nullable=False),

@@ -86,6 +86,12 @@ const officialBadgeStyles: React.CSSProperties = {
   gap: '4px',
 };
 
+const copyCountBadgeStyles: React.CSSProperties = {
+  fontSize: '0.75rem',
+  color: theme.colors.textMuted,
+  fontWeight: 500,
+};
+
 export function RoleCard({role}: RoleCardProps) {
   const teamColor = getTeamColor(role.team);
   const isOfficial = role.visibility === 'official';
@@ -142,6 +148,14 @@ export function RoleCard({role}: RoleCardProps) {
 
           {role.wake_order !== undefined && role.wake_order !== null && (
             <span style={wakeOrderStyles}>Wake Order: {role.wake_order}</span>
+          )}
+
+          {role.max_count > 1 && (
+            <span style={copyCountBadgeStyles}>
+              {role.min_count === role.max_count
+                ? `×${role.max_count}`
+                : `×${role.min_count}–${role.max_count}`}
+            </span>
           )}
         </div>
       </div>

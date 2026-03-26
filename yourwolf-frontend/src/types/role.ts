@@ -40,6 +40,13 @@ export interface Role {
   win_conditions: WinCondition[];
 }
 
+export interface RoleDependency {
+  id?: string;
+  required_role_id: string;
+  required_role_name: string;
+  dependency_type: 'requires' | 'recommends';
+}
+
 export interface RoleListItem {
   id: string;
   name: string;
@@ -49,5 +56,9 @@ export interface RoleListItem {
   visibility: Visibility;
   vote_score: number;
   use_count: number;
+  default_count: number;
+  min_count: number;
+  max_count: number;
+  dependencies: RoleDependency[];
   created_at: string;
 }

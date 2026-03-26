@@ -21,6 +21,10 @@ export function createMockRole(overrides: Partial<RoleListItem> = {}): RoleListI
     visibility: 'official' as Visibility,
     vote_score: 5,
     use_count: 0,
+    default_count: 1,
+    min_count: 1,
+    max_count: 1,
+    dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
     ...overrides,
   };
@@ -42,6 +46,10 @@ export function createMockRoles(count: number = 5): RoleListItem[] {
     visibility: visibilities[i % visibilities.length],
     vote_score: i * 2,
     use_count: 0,
+    default_count: 1,
+    min_count: 1,
+    max_count: 1,
+    dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   }));
 }
@@ -63,6 +71,10 @@ export function createMockOfficialRole(
     visibility: 'official',
     vote_score: 0,
     use_count: 0,
+    default_count: 1,
+    min_count: 1,
+    max_count: 1,
+    dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   };
 }

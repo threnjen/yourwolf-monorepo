@@ -171,6 +171,7 @@ class RoleListItem(BaseModel):
     min_count: int
     max_count: int
     created_at: datetime
+    dependencies: list[RoleDependencyResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

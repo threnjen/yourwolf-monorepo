@@ -46,6 +46,30 @@
 | 2 | Set timer to 1800 | Accepted (maximum) |
 | 3 | Set timer to 30 | Input should clamp or reject — below 60 minimum |
 
+### 1.6 Multi-Copy Role Selection
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Click Werewolf (default_count=2) | Card highlights; counter increments by 2 |
+| 2 | Click Werewolf again | Card deselects; counter decrements by 2 |
+| 3 | Click Villager (default_count=3, max=3) | Counter increments by 3; + button disabled |
+| 4 | Click – on Villager (count=3) | Count decreases to 2 |
+| 5 | Click + on Villager (count=2) | Count increases to 3 |
+| 6 | Click – on Villager until count=1, then – again | Role removed entirely (below min_count) |
+| 7 | Click Mason (min=max=2) | Card highlights; counter increments by 2; no +/– buttons visible |
+| 8 | Click Mason again | Card deselects; counter decrements by 2 |
+| 9 | Observe multi-copy role cards | Copy count badge visible (e.g., "×1–3" for Villager, "×2" for Mason) |
+| 10 | Observe single-copy role cards | No copy count badge |
+
+### 1.7 Role Dependency Auto-Selection
+| # | Step | Expected |
+|---|------|----------|
+| 1 | Select Apprentice Tanner | Apprentice Tanner and Tanner both appear selected; counter increments by 2 |
+| 2 | Remove Apprentice Tanner | Only Apprentice Tanner deselected; Tanner remains; counter decrements by 1 |
+| 3 | Select Apprentice Tanner again | Both selected again |
+| 4 | Remove Tanner | Both Tanner and Apprentice Tanner removed (cascade); counter decrements by 2 |
+| 5 | Select Tanner manually, then Apprentice Tanner | Tanner count unchanged (already selected); Apprentice Tanner added |
+| 6 | Observe RECOMMENDS dependencies (e.g., Minion → Werewolf) | No auto-selection occurs; only REQUIRES dependencies trigger auto-select |
+
 ---
 
 ## 2. Game Facilitator Page (`/games/:gameId`)
@@ -164,4 +188,4 @@
 
 ---
 
-*Last updated: March 2, 2026*
+*Last updated: March 26, 2026*

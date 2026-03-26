@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
 import {gamesApi} from '../api/games';
 import {theme} from '../styles/theme';
+import type {RoleListItem} from '../types/role';
 
 const containerStyles: React.CSSProperties = {
   width: '100%',
@@ -77,6 +78,30 @@ const errorStyles: React.CSSProperties = {
   marginBottom: theme.spacing.md,
 };
 
+const quantityBtnStyles: React.CSSProperties = {
+  width: '28px',
+  height: '28px',
+  border: `1px solid ${theme.colors.secondary}`,
+  borderRadius: theme.borderRadius.sm,
+  backgroundColor: theme.colors.surface,
+  color: theme.colors.text,
+  fontSize: '16px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+};
+
+const quantityBadgeStyles: React.CSSProperties = {
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  color: theme.colors.text,
+  minWidth: '20px',
+  textAlign: 'center',
+};
+
 export function GameSetupPage(): React.ReactElement {
   const navigate = useNavigate();
   const {roles, loading} = useRoles();
@@ -84,20 +109,105 @@ export function GameSetupPage(): React.ReactElement {
   const [playerCount, setPlayerCount] = useState(5);
   const [centerCount, setCenterCount] = useState(3);
   const [timerSeconds, setTimerSeconds] = useState(300);
-  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const totalCardsNeeded = playerCount + centerCount;
-  const canStart = selectedRoleIds.length === totalCardsNeeded && !submitting;
+  const roleMap = useMemo(() => {
+    const map: Record<string, RoleListItem> = {};
+    for (const role of roles) {
+      map[role.id] = role;
+    }
+    return map;
+  }, [roles]);
 
-  const toggleRole = (roleId: string) => {
-    setSelectedRoleIds((prev) =>
-      prev.includes(roleId)
-        ? prev.filter((id) => id !== roleId)
-        : [...prev, roleId],
-    );
-  };
+  const totalSelectedCards = useMemo(
+    () => Object.values(selectedRoleCounts).reduce((sum, c) => sum + c, 0),
+    [selectedRoleCounts],
+  );
+
+  const selectedRoleIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
+      for (let i = 0; i < count; i++) {
+        ids.push(roleId);
+      }
+    }
+    return ids;
+  }, [selectedRoleCounts]);
+
+  const totalCardsNeeded = playerCount + centerCount;
+  const canStart = totalSelectedCards === totalCardsNeeded && !submitting;
+
+  const removeRoleWithCascade = useCallback(
+    (counts: Record<string, number>, roleId: string): Record<string, number> => {
+      const next = {...counts};
+      delete next[roleId];
+
+      // Cascade-remove any selected role that REQUIRES the removed role
+      for (const [otherId, otherCount] of Object.entries(next)) {
+        if (otherCount <= 0) continue;
+        const otherRole = roleMap[otherId];
+        if (!otherRole) continue;
+        const requiresRemoved = otherRole.dependencies.some(
+          (dep) => dep.dependency_type === 'requires' && dep.required_role_id === roleId,
+        );
+        if (requiresRemoved) {
+          delete next[otherId];
+        }
+      }
+      return next;
+    },
+    [roleMap],
+  );
+
+  const selectRole = useCallback(
+    (roleId: string) => {
+      setSelectedRoleCounts((prev) => {
+        if (prev[roleId] && prev[roleId] > 0) {
+          // Deselect: remove with cascade
+          return removeRoleWithCascade(prev, roleId);
+        }
+
+        // Select: add at default_count
+        const role = roleMap[roleId];
+        if (!role) return prev;
+
+        const next = {...prev, [roleId]: role.default_count};
+
+        // Auto-select REQUIRES dependencies
+        for (const dep of role.dependencies) {
+          if (dep.dependency_type !== 'requires') continue;
+          if (next[dep.required_role_id] && next[dep.required_role_id] > 0) continue;
+          const requiredRole = roleMap[dep.required_role_id];
+          if (!requiredRole) continue;
+          next[dep.required_role_id] = requiredRole.default_count;
+        }
+
+        return next;
+      });
+    },
+    [roleMap, removeRoleWithCascade],
+  );
+
+  const adjustCount = useCallback(
+    (roleId: string, delta: number) => {
+      setSelectedRoleCounts((prev) => {
+        const role = roleMap[roleId];
+        if (!role) return prev;
+        const current = prev[roleId] || 0;
+        const newCount = current + delta;
+
+        if (newCount > role.max_count) return prev;
+        if (newCount < role.min_count) {
+          return removeRoleWithCascade(prev, roleId);
+        }
+
+        return {...prev, [roleId]: newCount};
+      });
+    },
+    [roleMap, removeRoleWithCascade],
+  );
 
   const handleStartGame = async () => {
     if (!canStart) return;
@@ -195,7 +305,7 @@ export function GameSetupPage(): React.ReactElement {
       {/* Role Selection */}
       <div style={{marginBottom: theme.spacing.md}}>
         <h2 style={{color: theme.colors.text, fontSize: '1.4rem'}}>
-          Select Roles ({selectedRoleIds.length} / {totalCardsNeeded})
+          Select Roles ({totalSelectedCards} / {totalCardsNeeded})
         </h2>
         <p style={subtitleStyles}>
           You need exactly {totalCardsNeeded} roles ({playerCount} players +{' '}
@@ -204,23 +314,73 @@ export function GameSetupPage(): React.ReactElement {
       </div>
 
       <div style={roleGridStyles}>
-        {roles.map((role) => (
-          <div
-            key={role.id}
-            onClick={() => toggleRole(role.id)}
-            style={{
-              opacity: selectedRoleIds.includes(role.id) ? 1 : 0.5,
-              border: selectedRoleIds.includes(role.id)
-                ? `2px solid ${theme.colors.primary}`
-                : '2px solid transparent',
-              borderRadius: theme.borderRadius.md,
-              cursor: 'pointer',
-              transition: 'opacity 0.2s ease',
-            }}
-          >
-            <RoleCard role={role} />
-          </div>
-        ))}
+        {roles.map((role) => {
+          const count = selectedRoleCounts[role.id] || 0;
+          const isSelected = count > 0;
+          const showQuantityControls =
+            isSelected && role.min_count !== role.max_count;
+
+          return (
+            <div
+              key={role.id}
+              data-role-id={role.id}
+              onClick={() => selectRole(role.id)}
+              style={{
+                opacity: isSelected ? 1 : 0.5,
+                border: isSelected
+                  ? `2px solid ${theme.colors.primary}`
+                  : '2px solid transparent',
+                borderRadius: theme.borderRadius.md,
+                cursor: 'pointer',
+                transition: 'opacity 0.2s ease',
+                position: 'relative',
+              }}
+            >
+              <RoleCard role={role} />
+              {isSelected && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: theme.spacing.sm,
+                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                    backgroundColor: theme.colors.surfaceLight,
+                    borderBottomLeftRadius: theme.borderRadius.md,
+                    borderBottomRightRadius: theme.borderRadius.md,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {showQuantityControls && (
+                    <button
+                      aria-label={`Decrease ${role.name} count`}
+                      onClick={() => adjustCount(role.id, -1)}
+                      style={quantityBtnStyles}
+                    >
+                      −
+                    </button>
+                  )}
+                  <span style={quantityBadgeStyles}>×{count}</span>
+                  {showQuantityControls && (
+                    <button
+                      aria-label={`Increase ${role.name} count`}
+                      onClick={() => adjustCount(role.id, 1)}
+                      disabled={count >= role.max_count}
+                      style={{
+                        ...quantityBtnStyles,
+                        opacity: count >= role.max_count ? 0.4 : 1,
+                        cursor:
+                          count >= role.max_count ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Start Button */}

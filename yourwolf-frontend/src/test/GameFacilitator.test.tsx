@@ -196,7 +196,7 @@ describe('GameFacilitatorPage', () => {
       mockGamesApi.getById
         .mockResolvedValueOnce(game)
         .mockResolvedValueOnce(advancedGame);
-      mockGamesApi.advancePhase.mockResolvedValue(undefined);
+      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
       renderFacilitator();
 
       await waitFor(() => {
@@ -228,7 +228,7 @@ describe('GameFacilitatorPage', () => {
       mockGamesApi.getById
         .mockResolvedValueOnce(game)
         .mockResolvedValueOnce(advancedGame);
-      mockGamesApi.advancePhase.mockResolvedValue(undefined);
+      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
       renderFacilitator();
 
       await waitFor(() => {

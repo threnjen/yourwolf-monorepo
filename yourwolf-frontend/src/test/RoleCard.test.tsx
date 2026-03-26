@@ -91,6 +91,26 @@ describe('RoleCard', () => {
     });
   });
 
+  describe('copy count badge', () => {
+    it('renders range badge for multi-copy role with different min/max', () => {
+      const role = createMockRole({min_count: 1, max_count: 3});
+      render(<RoleCard role={role} />);
+      expect(screen.getByText('×1–3')).toBeInTheDocument();
+    });
+
+    it('renders fixed badge for multi-copy role with same min/max', () => {
+      const role = createMockRole({min_count: 2, max_count: 2});
+      render(<RoleCard role={role} />);
+      expect(screen.getByText('×2')).toBeInTheDocument();
+    });
+
+    it('does not render badge for single-copy role', () => {
+      const role = createMockRole({min_count: 1, max_count: 1});
+      render(<RoleCard role={role} />);
+      expect(screen.queryByText(/×/)).not.toBeInTheDocument();
+    });
+  });
+
   describe('interactions', () => {
     it('applies hover styles on mouse enter', () => {
       const role = createMockRole();

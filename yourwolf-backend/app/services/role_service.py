@@ -3,7 +3,7 @@
 import math
 from uuid import UUID
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
@@ -66,11 +66,51 @@ class RoleService:
         pages = math.ceil(total / limit) if total > 0 else 1
         offset = (page - 1) * limit
 
-        # Get paginated results
-        roles = query.order_by(Role.name).offset(offset).limit(limit).all()
+        # Get paginated results with eager-loaded dependencies
+        roles = (
+            query.options(
+                selectinload(Role.dependencies).selectinload(
+                    RoleDependency.required_role
+                ),
+            )
+            .order_by(Role.name)
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        items = []
+        for r in roles:
+            dependencies = [
+                RoleDependencyResponse(
+                    id=dep.id,
+                    required_role_id=dep.required_role_id,
+                    required_role_name=(
+                        dep.required_role.name if dep.required_role else "Unknown"
+                    ),
+                    dependency_type=dep.dependency_type,
+                )
+                for dep in r.dependencies
+            ]
+            item = RoleListItem(
+                id=r.id,
+                name=r.name,
+                description=r.description,
+                team=r.team,
+                wake_order=r.wake_order,
+                visibility=r.visibility,
+                vote_score=r.vote_score,
+                use_count=r.use_count,
+                default_count=r.default_count,
+                min_count=r.min_count,
+                max_count=r.max_count,
+                created_at=r.created_at,
+                dependencies=dependencies,
+            )
+            items.append(item)
 
         return RoleListResponse(
-            items=[RoleListItem.model_validate(r) for r in roles],
+            items=items,
             total=total,
             page=page,
             limit=limit,

@@ -439,6 +439,33 @@ class TestUpdateRole:
         assert data["description"] == original_description
 
 
+class TestListRolesWithDependencies:
+    """Tests for dependencies in list endpoint response."""
+
+    def test_list_roles_includes_dependencies(
+        self,
+        client: TestClient,
+        seeded_roles_with_deps: dict,
+    ) -> None:
+        """Test that list endpoint returns dependencies for each role."""
+        response = client.get("/api/roles/official?limit=50")
+        assert response.status_code == 200
+        data = response.json()
+        items_by_name = {item["name"]: item for item in data["items"]}
+
+        # Apprentice Tanner should have a REQUIRES dependency on Tanner
+        at = items_by_name["Apprentice Tanner"]
+        assert "dependencies" in at
+        assert len(at["dependencies"]) == 1
+        dep = at["dependencies"][0]
+        assert dep["required_role_name"] == "Tanner"
+        assert dep["dependency_type"] == "requires"
+
+        # Villager has no dependencies
+        villager = items_by_name["Villager"]
+        assert villager["dependencies"] == []
+
+
 class TestDeleteRole:
     """Tests for DELETE /api/roles/{role_id} endpoint."""
 
