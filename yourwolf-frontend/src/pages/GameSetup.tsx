@@ -169,11 +169,11 @@ export function GameSetupPage(): React.ReactElement {
           return removeRoleWithCascade(prev, roleId);
         }
 
-        // Select: add at default_count
+        // Select: add at min_count
         const role = roleMap[roleId];
         if (!role) return prev;
 
-        const next = {...prev, [roleId]: role.default_count};
+        const next = {...prev, [roleId]: role.min_count};
 
         // Auto-select REQUIRES dependencies
         for (const dep of role.dependencies) {
@@ -181,7 +181,7 @@ export function GameSetupPage(): React.ReactElement {
           if (next[dep.required_role_id] && next[dep.required_role_id] > 0) continue;
           const requiredRole = roleMap[dep.required_role_id];
           if (!requiredRole) continue;
-          next[dep.required_role_id] = requiredRole.default_count;
+          next[dep.required_role_id] = requiredRole.min_count;
         }
 
         return next;

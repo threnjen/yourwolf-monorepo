@@ -33,6 +33,10 @@ describe('Role types', () => {
         visibility: 'official',
         vote_score: 0,
         use_count: 0,
+        default_count: 1,
+        min_count: 1,
+        max_count: 1,
+        dependencies: [],
         created_at: '2025-01-01T00:00:00Z',
       };
 
@@ -51,6 +55,10 @@ describe('Role types', () => {
         visibility: 'public',
         vote_score: 5,
         use_count: 10,
+        default_count: 1,
+        min_count: 1,
+        max_count: 1,
+        dependencies: [],
         created_at: '2025-01-01T00:00:00Z',
       };
 
@@ -67,6 +75,10 @@ describe('Role types', () => {
         visibility: 'official',
         vote_score: 10,
         use_count: 5,
+        default_count: 1,
+        min_count: 1,
+        max_count: 1,
+        dependencies: [],
         created_at: '2025-01-01T00:00:00Z',
       };
 

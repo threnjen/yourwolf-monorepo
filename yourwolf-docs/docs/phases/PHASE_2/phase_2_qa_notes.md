@@ -1,0 +1,2 @@
+- Need a distinction between "major" roles on "Bad" teams, and minor roles. The game must have at least 1 card in a "major" role for any given bad team. For example, if the only bad team is "Werewolf", there must be at least one card that is a kind of Werewolf. You cannot start a game with only a "Minion" on the werewolf team.
+- Does our code support the ability to create different bad teams? It should.

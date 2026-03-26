@@ -91,7 +91,7 @@ describe('GameSetupPage', () => {
   });
 
   describe('multi-copy role selection', () => {
-    it('clicking a role with default_count=2 adds 2 to the total count', () => {
+    it('clicking a multi-copy role adds min_count to the total', () => {
       const werewolf: RoleListItem = {
         ...createMockOfficialRole('Werewolf', 'werewolf', 1),
         default_count: 2,
@@ -104,7 +104,7 @@ describe('GameSetupPage', () => {
       fireEvent.click(
         screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!,
       );
-      expect(screen.getByText(/2 \//)).toBeInTheDocument();
+      expect(screen.getByText(/1 \//)).toBeInTheDocument();
     });
 
     it('clicking an already-selected role removes it', () => {
@@ -149,9 +149,11 @@ describe('GameSetupPage', () => {
       renderGameSetup();
 
       fireEvent.click(screen.getByText('Villager').closest('[data-role-id]')!);
-      // starts at 3
-      fireEvent.click(screen.getByLabelText('Decrease Villager count'));
+      // starts at 1 (min_count), increment to 2 first
+      fireEvent.click(screen.getByLabelText('Increase Villager count'));
       expect(screen.getByText(/2 \//)).toBeInTheDocument();
+      fireEvent.click(screen.getByLabelText('Decrease Villager count'));
+      expect(screen.getByText(/1 \//)).toBeInTheDocument();
     });
 
     it('+ button disabled at max_count', () => {
@@ -165,6 +167,9 @@ describe('GameSetupPage', () => {
       renderGameSetup();
 
       fireEvent.click(screen.getByText('Villager').closest('[data-role-id]')!);
+      // starts at 1, increment to max (3)
+      fireEvent.click(screen.getByLabelText('Increase Villager count'));
+      fireEvent.click(screen.getByLabelText('Increase Villager count'));
       const plusBtn = screen.getByLabelText('Increase Villager count');
       expect(plusBtn).toBeDisabled();
     });
@@ -316,7 +321,7 @@ describe('GameSetupPage', () => {
       expect(screen.getByText(/1 \//)).toBeInTheDocument();
     });
 
-    it('auto-selects multi-copy dependency at its default_count', () => {
+    it('auto-selects multi-copy dependency at its min_count', () => {
       const werewolf: RoleListItem = {
         ...createMockOfficialRole('Werewolf', 'werewolf', 1),
         default_count: 2,
@@ -340,8 +345,8 @@ describe('GameSetupPage', () => {
       fireEvent.click(
         screen.getByText('Minion').closest('[data-role-id]')!,
       );
-      // Minion=1 + Werewolf=2 (its default_count) = 3 total
-      expect(screen.getByText(/3 \//)).toBeInTheDocument();
+      // Minion=1 + Werewolf=1 (its min_count) = 2 total
+      expect(screen.getByText(/2 \//)).toBeInTheDocument();
     });
   });
 
@@ -371,8 +376,9 @@ describe('GameSetupPage', () => {
       fireEvent.change(screen.getByLabelText('Players'), {target: {value: '3'}});
       fireEvent.change(screen.getByLabelText('Center Cards'), {target: {value: '0'}});
 
-      // Select Werewolf (2) + Seer (1) = 3 cards = totalCardsNeeded
+      // Select Werewolf (starts at 1), use + to get to 2, then add Seer (1) = 3 total
       fireEvent.click(screen.getByText('Werewolf').closest('[data-role-id]')!);
+      fireEvent.click(screen.getByLabelText('Increase Werewolf count'));
       fireEvent.click(screen.getByText('Seer').closest('[data-role-id]')!);
 
       fireEvent.click(screen.getByText('Start Game'));
