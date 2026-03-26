@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.game_session import GamePhase
@@ -182,16 +183,17 @@ class TestStartGame:
 
         assert result is None
 
-    def test_returns_none_if_not_in_setup_phase(
+    def test_raises_400_if_not_in_setup_phase(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
         service = GameService(db_session)
         game = self._create_game(service, seeded_roles)
         service.start_game(game.id)
 
-        result = service.start_game(game.id)
+        with pytest.raises(HTTPException) as exc_info:
+            service.start_game(game.id)
 
-        assert result is None
+        assert exc_info.value.status_code == 400
 
 
 class TestAdvancePhase:
@@ -241,7 +243,7 @@ class TestAdvancePhase:
 
         assert game.ended_at is not None
 
-    def test_does_not_advance_past_complete(
+    def test_raises_400_when_already_complete(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
         service = GameService(db_session)
@@ -250,8 +252,10 @@ class TestAdvancePhase:
         for _ in range(4):
             game = service.advance_phase(game.id)
 
-        game = service.advance_phase(game.id)
-        assert game.phase == GamePhase.COMPLETE
+        with pytest.raises(HTTPException) as exc_info:
+            service.advance_phase(game.id)
+
+        assert exc_info.value.status_code == 400
 
     def test_returns_none_for_nonexistent_game(
         self, db_session: Session, seeded_roles: list[Role]

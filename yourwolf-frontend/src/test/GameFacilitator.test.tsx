@@ -3,7 +3,7 @@ import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {GameFacilitatorPage} from '../pages/GameFacilitator';
 import {gamesApi} from '../api/games';
-import {createMockGameSession} from './mocks';
+import {createMockGameSession, createMockNightScript} from './mocks';
 
 vi.mock('../api/games', () => ({
   gamesApi: {
@@ -126,6 +126,146 @@ describe('GameFacilitatorPage', () => {
       await waitFor(() => {
         expect(screen.getByRole('alert')).toHaveTextContent('Cannot advance');
       });
+    });
+  });
+
+  describe('discussion phase', () => {
+    it('renders Skip to Voting button and timer display', async () => {
+      const game = createMockGameSession({phase: 'discussion'});
+      mockGamesApi.getById.mockResolvedValue(game);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip to Voting')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('timer-display')).toHaveTextContent('5:00');
+    });
+
+    it('clicking Skip to Voting calls advancePhase', async () => {
+      const game = createMockGameSession({phase: 'discussion'});
+      const advancedGame = createMockGameSession({phase: 'voting'});
+      mockGamesApi.getById
+        .mockResolvedValueOnce(game)
+        .mockResolvedValueOnce(advancedGame);
+      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip to Voting')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Skip to Voting'));
+
+      await waitFor(() => {
+        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
+      });
+    });
+  });
+
+  describe('night phase', () => {
+    it('renders ScriptReader with night script content', async () => {
+      const game = createMockGameSession({phase: 'night'});
+      const script = createMockNightScript();
+      mockGamesApi.getById.mockResolvedValue(game);
+      mockGamesApi.getNightScript.mockResolvedValue(script);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Everyone, close your eyes.'),
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('voting phase', () => {
+    it('renders Reveal Results button', async () => {
+      const game = createMockGameSession({phase: 'voting'});
+      mockGamesApi.getById.mockResolvedValue(game);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Reveal Results')).toBeInTheDocument();
+      });
+    });
+
+    it('clicking Reveal Results calls advancePhase', async () => {
+      const game = createMockGameSession({phase: 'voting'});
+      const advancedGame = createMockGameSession({phase: 'resolution'});
+      mockGamesApi.getById
+        .mockResolvedValueOnce(game)
+        .mockResolvedValueOnce(advancedGame);
+      mockGamesApi.advancePhase.mockResolvedValue(undefined);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Reveal Results')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Reveal Results'));
+
+      await waitFor(() => {
+        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
+      });
+    });
+  });
+
+  describe('resolution phase', () => {
+    it('renders Complete Game button', async () => {
+      const game = createMockGameSession({phase: 'resolution'});
+      mockGamesApi.getById.mockResolvedValue(game);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Complete Game')).toBeInTheDocument();
+      });
+    });
+
+    it('clicking Complete Game calls advancePhase', async () => {
+      const game = createMockGameSession({phase: 'resolution'});
+      const advancedGame = createMockGameSession({phase: 'complete'});
+      mockGamesApi.getById
+        .mockResolvedValueOnce(game)
+        .mockResolvedValueOnce(advancedGame);
+      mockGamesApi.advancePhase.mockResolvedValue(undefined);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Complete Game')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Complete Game'));
+
+      await waitFor(() => {
+        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
+      });
+    });
+  });
+
+  describe('complete phase', () => {
+    it('renders Game Over heading and New Game button', async () => {
+      const game = createMockGameSession({phase: 'complete'});
+      mockGamesApi.getById.mockResolvedValue(game);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Game Over')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('New Game')).toBeInTheDocument();
+    });
+
+    it('does not render Leave Game button', async () => {
+      const game = createMockGameSession({phase: 'complete'});
+      mockGamesApi.getById.mockResolvedValue(game);
+      renderFacilitator();
+
+      await waitFor(() => {
+        expect(screen.getByText('Game Over')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Leave Game')).not.toBeInTheDocument();
     });
   });
 });

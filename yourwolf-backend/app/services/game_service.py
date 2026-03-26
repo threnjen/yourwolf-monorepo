@@ -7,6 +7,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.game_role import GameRole
@@ -153,11 +154,19 @@ class GameService:
             Updated game session or None if not found / wrong phase.
         """
         game = self.get_game_with_roles(game_id)
-        if not game or game.phase != GamePhase.SETUP:
-            logger.error(
-                "Cannot start game %s: not found or not in setup phase", game_id
-            )
+        if not game:
+            logger.error("Cannot start game %s: not found", game_id)
             return None
+        if game.phase != GamePhase.SETUP:
+            logger.error(
+                "Cannot start game %s: not in setup phase (current: %s)",
+                game_id,
+                game.phase.value,
+            )
+            raise HTTPException(
+                status_code=400,
+                detail="Game cannot be started: not in setup phase",
+            )
 
         game_roles = list(game.game_roles)
         random.shuffle(game_roles)
@@ -208,6 +217,13 @@ class GameService:
         if not game:
             logger.error("Cannot advance phase for game %s: not found", game_id)
             return None
+
+        if game.phase == GamePhase.COMPLETE:
+            logger.error("Cannot advance game %s: already in complete phase", game_id)
+            raise HTTPException(
+                status_code=400,
+                detail="Game cannot be advanced: already in complete phase",
+            )
 
         current_index = self.PHASE_ORDER.index(game.phase)
         if current_index < len(self.PHASE_ORDER) - 1:

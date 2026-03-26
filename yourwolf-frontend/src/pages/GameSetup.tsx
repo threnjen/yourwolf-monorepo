@@ -142,36 +142,51 @@ export function GameSetupPage(): React.ReactElement {
       {/* Configuration */}
       <div style={configGridStyles}>
         <div>
-          <label style={labelStyles}>Players</label>
+          <label htmlFor="player-count" style={labelStyles}>Players</label>
           <input
+            id="player-count"
             type="number"
             min={3}
             max={20}
             value={playerCount}
-            onChange={(e) => setPlayerCount(parseInt(e.target.value) || 3)}
+            onChange={(e) =>
+              setPlayerCount(
+                Math.max(3, Math.min(20, parseInt(e.target.value) || 3)),
+              )
+            }
             style={inputStyle}
           />
         </div>
         <div>
-          <label style={labelStyles}>Center Cards</label>
+          <label htmlFor="center-count" style={labelStyles}>Center Cards</label>
           <input
+            id="center-count"
             type="number"
             min={0}
             max={5}
             value={centerCount}
-            onChange={(e) => setCenterCount(parseInt(e.target.value) || 0)}
+            onChange={(e) =>
+              setCenterCount(
+                Math.max(0, Math.min(5, parseInt(e.target.value) || 0)),
+              )
+            }
             style={inputStyle}
           />
         </div>
         <div>
-          <label style={labelStyles}>Discussion Timer (seconds)</label>
+          <label htmlFor="timer-seconds" style={labelStyles}>Discussion Timer (seconds)</label>
           <input
+            id="timer-seconds"
             type="number"
             min={60}
             max={1800}
             step={30}
             value={timerSeconds}
-            onChange={(e) => setTimerSeconds(parseInt(e.target.value) || 60)}
+            onChange={(e) =>
+              setTimerSeconds(
+                Math.max(60, Math.min(1800, parseInt(e.target.value) || 60)),
+              )
+            }
             style={inputStyle}
           />
         </div>

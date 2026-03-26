@@ -119,6 +119,21 @@ class TestStartGameEndpoint:
 
         assert response.status_code == 404
 
+    def test_returns_400_when_game_already_started(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        create_resp = client.post(
+            "/api/games",
+            json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
+        )
+        game_id = create_resp.json()["id"]
+        client.post(f"/api/games/{game_id}/start")
+
+        response = client.post(f"/api/games/{game_id}/start")
+
+        assert response.status_code == 400
+
 
 class TestAdvancePhaseEndpoint:
     """Tests for POST /api/games/{id}/advance."""
@@ -136,6 +151,23 @@ class TestAdvancePhaseEndpoint:
 
         assert response.status_code == 200
         assert response.json()["phase"] == "discussion"
+
+    def test_returns_400_when_game_already_complete(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        create_resp = client.post(
+            "/api/games",
+            json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
+        )
+        game_id = create_resp.json()["id"]
+        client.post(f"/api/games/{game_id}/start")
+        for _ in range(4):
+            client.post(f"/api/games/{game_id}/advance")
+
+        response = client.post(f"/api/games/{game_id}/advance")
+
+        assert response.status_code == 400
 
 
 class TestGetNightScriptEndpoint:
