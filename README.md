@@ -47,7 +47,8 @@ Detailed planning and specifications are in the [docs/](docs/) folder:
 | Document | Description |
 |----------|-------------|
 | [ROADMAP.md](docs/ROADMAP.md) | Development phases and timeline |
-| [DOCKER.md](docs/DOCKER.md) | Docker commands: start stack, run tests, reset DB |
+| [PROJECT_SETUP.md](docs/PROJECT_SETUP.md) | One-time installation of tools and dependencies |
+| [LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) | Running the stack, migrations, tests, troubleshooting |
 | [DATA_MODELS.md](docs/DATA_MODELS.md) | Database schemas and relationships |
 | [ABILITIES.md](docs/ABILITIES.md) | Ability primitive reference |
 | [SEED_ROLES.md](docs/SEED_ROLES.md) | 30 official base roles |
@@ -79,7 +80,7 @@ docker compose up --build
 # API Docs: http://localhost:8000/docs
 ```
 
-See [DOCKER.md](docs/DOCKER.md) for the full command reference, including how to run tests, reset the database, and access logs.
+See [PROJECT_SETUP.md](docs/PROJECT_SETUP.md) for first-time installation and [LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for the full command reference.
 
 ## Repository Structure
 
