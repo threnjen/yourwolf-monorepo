@@ -43,6 +43,14 @@ describe('Sidebar', () => {
       expect(rolesLink).toHaveAttribute('href', '/roles');
     });
 
+    it('has New Role link', () => {
+      renderSidebar();
+
+      const newRoleLink = screen.getByRole('link', {name: /New Role/i});
+      expect(newRoleLink).toBeInTheDocument();
+      expect(newRoleLink).toHaveAttribute('href', '/roles/new');
+    });
+
     it('displays Home icon', () => {
       renderSidebar();
 

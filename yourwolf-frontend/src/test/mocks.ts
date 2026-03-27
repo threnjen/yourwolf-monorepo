@@ -1,4 +1,4 @@
-import {RoleListItem, Team, Visibility} from '../types/role';
+import {RoleListItem, Team, Visibility, Ability, AbilityStepDraft, WinConditionDraft, RoleDraft} from '../types/role';
 import type {
   GameSession,
   GameSessionListItem,
@@ -187,6 +187,42 @@ export function createMockNightScript(
     game_session_id: 'game-uuid-1234',
     actions: defaultActions,
     total_duration_seconds: 23,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a mock Ability for testing.
+ */
+export function createMockAbility(overrides: Partial<Ability> = {}): Ability {
+  return {
+    id: 'ability-uuid-1',
+    type: 'view_card',
+    name: 'View Card',
+    description: 'Look at another player\'s card',
+    parameters_schema: {},
+    is_active: true,
+    created_at: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a mock RoleDraft for testing.
+ */
+export function createMockDraft(overrides: Partial<RoleDraft> = {}): RoleDraft {
+  return {
+    id: 'draft-uuid-1',
+    name: 'Test Draft Role',
+    description: 'A test draft role',
+    team: 'village' as Team,
+    wake_order: null,
+    wake_target: null,
+    votes: 1,
+    ability_steps: [] as AbilityStepDraft[],
+    win_conditions: [] as WinConditionDraft[],
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }

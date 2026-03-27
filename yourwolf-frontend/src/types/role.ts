@@ -41,6 +41,7 @@ export interface Role {
 }
 
 export interface AbilityStepDraft {
+  id: string;
   order: number;
   modifier: StepModifier;
   is_required: boolean;
@@ -52,6 +53,7 @@ export interface AbilityStepDraft {
 }
 
 export interface WinConditionDraft {
+  id: string;
   condition_type: string;
   condition_params?: Record<string, unknown>;
   is_primary: boolean;
@@ -68,6 +70,30 @@ export interface RoleDraft {
   votes: number;
   ability_steps: AbilityStepDraft[];
   win_conditions: WinConditionDraft[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ValidationResult {
+  is_valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface NameCheckResult {
+  name: string;
+  is_available: boolean;
+  message: string;
+}
+
+export interface Ability {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  parameters_schema: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface RoleDependency {

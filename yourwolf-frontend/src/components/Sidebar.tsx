@@ -59,6 +59,7 @@ export function Sidebar() {
       <nav style={navStyles}>
         <NavItem to="/" icon="🏠" label="Home" />
         <NavItem to="/roles" icon="🎭" label="Roles" />
+        <NavItem to="/roles/new" icon="✏️" label="New Role" />
         <NavItem to="/games/new" icon="🎮" label="New Game" />
       </nav>
     </aside>
