@@ -368,8 +368,12 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         # Replace with two new conditions
         update_data = RoleUpdate(
             win_conditions=[
-                WinConditionCreate(condition_type="self_dies", is_primary=True, overrides_team=True),
-                WinConditionCreate(condition_type="team_wins", is_primary=False, overrides_team=False),
+                WinConditionCreate(
+                    condition_type="self_dies", is_primary=True, overrides_team=True
+                ),
+                WinConditionCreate(
+                    condition_type="team_wins", is_primary=False, overrides_team=False
+                ),
             ]
         )
         result = service.update_role(sample_unlocked_role.id, update_data)
@@ -402,7 +406,9 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         )
         db_session.commit()
 
-        result = service.update_role(sample_unlocked_role.id, RoleUpdate(ability_steps=[]))
+        result = service.update_role(
+            sample_unlocked_role.id, RoleUpdate(ability_steps=[])
+        )
         assert result is not None
         assert result.ability_steps == []
 
@@ -427,7 +433,9 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         )
         db_session.commit()
 
-        result = service.update_role(sample_unlocked_role.id, RoleUpdate(win_conditions=[]))
+        result = service.update_role(
+            sample_unlocked_role.id, RoleUpdate(win_conditions=[])
+        )
         assert result is not None
         assert result.win_conditions == []
 
@@ -463,6 +471,56 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         assert result.name == "Name Only Update"
         assert len(result.ability_steps) == 1
         assert result.ability_steps[0].id == original_step_id
+
+    def test_update_role_skips_unknown_ability_type(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+        sample_ability,
+    ) -> None:
+        """Steps with an unknown ability_type are silently skipped during replacement."""
+        from app.models.ability_step import AbilityStep
+
+        service = RoleService(db_session)
+
+        # Seed one step
+        db_session.add(
+            AbilityStep(
+                id=uuid.uuid4(),
+                role_id=sample_unlocked_role.id,
+                ability_id=sample_ability.id,
+                order=1,
+                modifier="none",
+                is_required=True,
+                parameters={},
+            )
+        )
+        db_session.commit()
+
+        # Replace with two steps — one valid, one with a nonexistent ability_type
+        update_data = RoleUpdate(
+            ability_steps=[
+                AbilityStepCreateInRole(
+                    ability_type=sample_ability.type,
+                    order=1,
+                    modifier="none",
+                    is_required=True,
+                    parameters={},
+                ),
+                AbilityStepCreateInRole(
+                    ability_type="nonexistent_ability",
+                    order=2,
+                    modifier="none",
+                    is_required=True,
+                    parameters={},
+                ),
+            ]
+        )
+        result = service.update_role(sample_unlocked_role.id, update_data)
+        assert result is not None
+        # Only the valid step is created; the unknown one is silently skipped
+        assert len(result.ability_steps) == 1
+        assert result.ability_steps[0].ability_type == sample_ability.type
 
     def test_update_role_omitting_win_conditions_leaves_them_unchanged(
         self,

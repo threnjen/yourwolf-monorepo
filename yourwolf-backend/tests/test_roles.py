@@ -603,6 +603,72 @@ class TestUpdateRoleStepsAndConditions:
         types = {wc["condition_type"] for wc in data["win_conditions"]}
         assert types == {"self_dies", "team_wins"}
 
+    def test_update_role_combined_steps_and_conditions(
+        self,
+        client: TestClient,
+        sample_unlocked_role: Role,
+        sample_ability: Ability,
+    ) -> None:
+        """PUT with both ability_steps and win_conditions replaces both in one request."""
+        update_data = {
+            "ability_steps": [
+                {
+                    "ability_type": sample_ability.type,
+                    "order": 1,
+                    "modifier": "none",
+                    "is_required": True,
+                    "parameters": {},
+                }
+            ],
+            "win_conditions": [
+                {
+                    "condition_type": "self_dies",
+                    "is_primary": True,
+                    "overrides_team": True,
+                },
+            ],
+        }
+        response = client.put(
+            f"/api/roles/{sample_unlocked_role.id}",
+            json=update_data,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["ability_steps"]) == 1
+        assert data["ability_steps"][0]["ability_type"] == sample_ability.type
+        assert len(data["win_conditions"]) == 1
+        assert data["win_conditions"][0]["condition_type"] == "self_dies"
+
+    def test_update_role_partial_leaves_win_conditions_unchanged(
+        self,
+        client: TestClient,
+        sample_unlocked_role: Role,
+        db_session,
+    ) -> None:
+        """PUT with only scalar fields does not touch existing win conditions."""
+        from app.models.win_condition import WinCondition
+
+        wc = WinCondition(
+            id=uuid.uuid4(),
+            role_id=sample_unlocked_role.id,
+            condition_type="team_wins",
+            is_primary=True,
+            overrides_team=False,
+        )
+        db_session.add(wc)
+        db_session.commit()
+        original_wc_id = wc.id
+
+        response = client.put(
+            f"/api/roles/{sample_unlocked_role.id}",
+            json={"name": "Name Only"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Name Only"
+        assert len(data["win_conditions"]) == 1
+        assert data["win_conditions"][0]["id"] == str(original_wc_id)
+
     def test_update_role_partial_leaves_steps_unchanged(
         self,
         client: TestClient,
@@ -613,6 +679,7 @@ class TestUpdateRoleStepsAndConditions:
         # sample_role_with_steps is locked, so use an unlocked copy
         from app.models.role import Role as RoleModel, Team, Visibility
         from app.models.ability_step import AbilityStep
+
         unlocked = RoleModel(
             id=uuid.uuid4(),
             name="Partial Update Role",
@@ -624,6 +691,7 @@ class TestUpdateRoleStepsAndConditions:
         db_session.add(unlocked)
         db_session.flush()
         from app.models.ability_step import StepModifier
+
         step = AbilityStep(
             id=uuid.uuid4(),
             role_id=unlocked.id,
