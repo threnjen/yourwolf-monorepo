@@ -1,6 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import {gamesApi} from '../api/games';
 import type {GameSession, NightScript} from '../types/game';
+import {useFetch} from './useFetch';
 
 interface UseGameResult {
   game: GameSession | null;
@@ -10,28 +11,12 @@ interface UseGameResult {
 }
 
 export function useGame(gameId: string): UseGameResult {
-  const [game, setGame] = useState<GameSession | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetcher = useCallback(() => gamesApi.getById(gameId), [gameId]);
+  const {data, loading, error, refetch} = useFetch(fetcher, {
+    errorMessage: 'Failed to load game',
+  });
 
-  const fetchGame = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await gamesApi.getById(gameId);
-      setGame(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load game');
-    } finally {
-      setLoading(false);
-    }
-  }, [gameId]);
-
-  useEffect(() => {
-    fetchGame();
-  }, [fetchGame]);
-
-  return {game, loading, error, refetch: fetchGame};
+  return {game: data, loading, error, refetch};
 }
 
 interface UseNightScriptResult {

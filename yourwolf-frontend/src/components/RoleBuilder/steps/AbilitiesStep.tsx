@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {RoleDraft, AbilityStepDraft, StepModifier} from '../../../types/role';
 import {useAbilities} from '../../../hooks/useAbilities';
 import {theme} from '../../../styles/theme';
+import {selectStyles} from '../../../styles/shared';
 
 interface AbilitiesStepProps {
   draft: RoleDraft;
@@ -72,15 +73,6 @@ const stepNameStyles: React.CSSProperties = {
   flex: 1,
   color: theme.colors.text,
   fontSize: '0.9rem',
-};
-
-const selectStyles: React.CSSProperties = {
-  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-  borderRadius: theme.borderRadius.sm,
-  border: `1px solid ${theme.colors.secondary}`,
-  backgroundColor: theme.colors.surface,
-  color: theme.colors.text,
-  fontSize: '0.85rem',
 };
 
 const iconButtonStyles: React.CSSProperties = {

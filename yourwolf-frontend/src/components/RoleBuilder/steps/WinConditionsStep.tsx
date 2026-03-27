@@ -1,5 +1,6 @@
 import {RoleDraft, WinConditionDraft} from '../../../types/role';
 import {theme} from '../../../styles/theme';
+import {selectStyles} from '../../../styles/shared';
 
 interface WinConditionsStepProps {
   draft: RoleDraft;
@@ -24,15 +25,6 @@ const conditionItemStyles: React.CSSProperties = {
   borderRadius: theme.borderRadius.sm,
   marginBottom: theme.spacing.sm,
   flexWrap: 'wrap',
-};
-
-const selectStyles: React.CSSProperties = {
-  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-  borderRadius: theme.borderRadius.sm,
-  border: `1px solid ${theme.colors.secondary}`,
-  backgroundColor: theme.colors.surface,
-  color: theme.colors.text,
-  fontSize: '0.9rem',
 };
 
 const labelStyles: React.CSSProperties = {

@@ -1,18 +1,10 @@
 import {RoleDraft, ValidationResult, Team} from '../../../types/role';
-import {theme} from '../../../styles/theme';
+import {theme, TEAM_COLORS} from '../../../styles/theme';
 
 interface ReviewStepProps {
   draft: RoleDraft;
   validation: ValidationResult | null;
 }
-
-const TEAM_COLORS: Record<Team, string> = {
-  village: theme.colors.village,
-  werewolf: theme.colors.werewolf,
-  vampire: theme.colors.vampire,
-  alien: theme.colors.alien,
-  neutral: theme.colors.neutral,
-};
 
 const sectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,
@@ -60,16 +52,7 @@ const descriptionStyles: React.CSSProperties = {
   lineHeight: 1.6,
 };
 
-const stepItemStyles: React.CSSProperties = {
-  display: 'flex',
-  gap: theme.spacing.sm,
-  padding: `${theme.spacing.xs} 0`,
-  borderBottom: `1px solid ${theme.colors.surfaceLight}`,
-  fontSize: '0.9rem',
-  color: theme.colors.text,
-};
-
-const wcItemStyles: React.CSSProperties = {
+const listItemStyles: React.CSSProperties = {
   display: 'flex',
   gap: theme.spacing.sm,
   padding: `${theme.spacing.xs} 0`,
@@ -130,7 +113,7 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
         ) : (
           <div>
             {draft.ability_steps.map((step, index) => (
-              <div key={step.id} style={stepItemStyles}>
+              <div key={step.id} style={listItemStyles}>
                 <span style={{color: theme.colors.textMuted, minWidth: '20px'}}>{step.order}.</span>
                 <span>{step.ability_name}</span>
                 {step.modifier !== 'none' && (
@@ -149,7 +132,7 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
         ) : (
           <div>
             {draft.win_conditions.map((wc, index) => (
-              <div key={wc.id} style={wcItemStyles}>
+              <div key={wc.id} style={listItemStyles}>
                 <span>{wc.condition_type}</span>
                 {wc.is_primary && (
                   <span style={{color: theme.colors.primaryLight, fontSize: '0.8rem'}}>(primary)</span>

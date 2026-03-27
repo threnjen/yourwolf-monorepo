@@ -39,5 +39,18 @@ export const theme = {
   },
 } as const;
 
+export type TeamColor = 'village' | 'werewolf' | 'vampire' | 'alien' | 'neutral';
+
+export const TEAM_COLORS: Record<TeamColor, string> = {
+  village: theme.colors.village,
+  werewolf: theme.colors.werewolf,
+  vampire: theme.colors.vampire,
+  alien: theme.colors.alien,
+  neutral: theme.colors.neutral,
+};
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export type Theme = typeof theme;
-export type TeamColor = keyof typeof theme.colors;

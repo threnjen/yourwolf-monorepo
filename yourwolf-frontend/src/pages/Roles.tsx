@@ -1,49 +1,12 @@
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
 import {theme} from '../styles/theme';
-
-const containerStyles: React.CSSProperties = {
-  width: '100%',
-};
-
-const headerStyles: React.CSSProperties = {
-  marginBottom: theme.spacing.lg,
-};
-
-const titleStyles: React.CSSProperties = {
-  fontSize: '2rem',
-  fontWeight: 700,
-  color: theme.colors.text,
-  marginBottom: theme.spacing.xs,
-};
-
-const subtitleStyles: React.CSSProperties = {
-  fontSize: '1rem',
-  color: theme.colors.textMuted,
-};
+import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, loadingStyles, errorStyles} from '../styles/shared';
 
 const gridStyles: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
   gap: theme.spacing.lg,
-};
-
-const loadingStyles: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  minHeight: '200px',
-  color: theme.colors.textMuted,
-  fontSize: '1.1rem',
-};
-
-const errorStyles: React.CSSProperties = {
-  backgroundColor: `${theme.colors.error}20`,
-  border: `1px solid ${theme.colors.error}`,
-  borderRadius: theme.borderRadius.md,
-  padding: theme.spacing.lg,
-  color: theme.colors.error,
-  textAlign: 'center',
 };
 
 const emptyStyles: React.CSSProperties = {
@@ -66,7 +29,7 @@ export function Roles() {
 
   if (loading) {
     return (
-      <div style={containerStyles}>
+      <div style={pageContainerStyles}>
         <div style={loadingStyles}>
           <span>Loading roles...</span>
         </div>
@@ -76,7 +39,7 @@ export function Roles() {
 
   if (error) {
     return (
-      <div style={containerStyles}>
+      <div style={pageContainerStyles}>
         <div style={errorStyles}>
           <p>
             <strong>Error loading roles:</strong> {error}
@@ -90,10 +53,10 @@ export function Roles() {
   }
 
   return (
-    <div style={containerStyles}>
-      <header style={headerStyles}>
-        <h1 style={titleStyles}>Official Roles</h1>
-        <p style={subtitleStyles}>
+    <div style={pageContainerStyles}>
+      <header style={pageHeaderStyles}>
+        <h1 style={pageTitleStyles}>Official Roles</h1>
+        <p style={pageSubtitleStyles}>
           Browse all official One Night Ultimate Werewolf roles
         </p>
       </header>

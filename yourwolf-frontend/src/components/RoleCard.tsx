@@ -1,23 +1,16 @@
 import {RoleListItem, Team} from '../types/role';
-import {theme} from '../styles/theme';
+import {theme, TEAM_COLORS, capitalize} from '../styles/theme';
 
 interface RoleCardProps {
   role: RoleListItem;
 }
 
 function getTeamColor(team: Team): string {
-  const colors: Record<Team, string> = {
-    village: theme.colors.village,
-    werewolf: theme.colors.werewolf,
-    vampire: theme.colors.vampire,
-    alien: theme.colors.alien,
-    neutral: theme.colors.neutral,
-  };
-  return colors[team];
+  return TEAM_COLORS[team];
 }
 
 function getTeamLabel(team: Team): string {
-  return team.charAt(0).toUpperCase() + team.slice(1);
+  return capitalize(team);
 }
 
 const cardStyles: React.CSSProperties = {

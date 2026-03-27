@@ -1,6 +1,7 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useCallback} from 'react';
 import {abilitiesApi} from '../api/abilities';
 import {Ability} from '../types/role';
+import {useFetch} from './useFetch';
 
 interface UseAbilitiesResult {
   abilities: Ability[];
@@ -9,26 +10,11 @@ interface UseAbilitiesResult {
 }
 
 export function useAbilities(): UseAbilitiesResult {
-  const [abilities, setAbilities] = useState<Ability[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetcher = useCallback(() => abilitiesApi.list(), []);
+  const {data, loading, error} = useFetch(fetcher, {
+    initialData: [],
+    errorMessage: 'Failed to fetch abilities',
+  });
 
-  const fetchAbilities = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await abilitiesApi.list();
-      setAbilities(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch abilities');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAbilities();
-  }, [fetchAbilities]);
-
-  return {abilities, loading, error};
+  return {abilities: data ?? [], loading, error};
 }

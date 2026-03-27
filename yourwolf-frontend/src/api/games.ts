@@ -22,8 +22,8 @@ interface GameListResponse {
 
 export const gamesApi = {
   create: async (data: GameSessionCreate): Promise<GameSession> => {
-    const response = await apiClient.post<GameSession>('/games', data);
-    return response.data;
+    const {data: game} = await apiClient.post<GameSession>('/games', data);
+    return game;
   },
 
   list: async (params?: GameListParams): Promise<GameSessionListItem[]> => {

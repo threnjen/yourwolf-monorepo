@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {theme} from '../styles/theme';
 
 interface TimerProps {
@@ -7,15 +7,20 @@ interface TimerProps {
   autoStart?: boolean;
 }
 
+const CIRCLE_RADIUS = 45;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS; // ~283
+const WARNING_THRESHOLD_SECONDS = 30;
+
 export function Timer({
   seconds,
   onComplete,
   autoStart = true,
-}: TimerProps): React.ReactElement {
+}: TimerProps) {
   const [remaining, setRemaining] = useState(seconds);
   const [isRunning, setIsRunning] = useState(autoStart);
 
-  const stableOnComplete = useCallback(onComplete, [onComplete]);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     if (!isRunning || remaining <= 0) return;
@@ -24,7 +29,7 @@ export function Timer({
       setRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          stableOnComplete();
+          onCompleteRef.current();
           return 0;
         }
         return prev - 1;
@@ -32,7 +37,7 @@ export function Timer({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRunning, remaining, stableOnComplete]);
+  }, [isRunning, remaining]);
 
   const formatTime = (s: number): string => {
     const mins = Math.floor(s / 60);
@@ -67,9 +72,9 @@ export function Timer({
             cy="50"
             r="45"
             fill="none"
-            stroke={remaining < 30 ? theme.colors.error : theme.colors.primary}
+            stroke={remaining < WARNING_THRESHOLD_SECONDS ? theme.colors.error : theme.colors.primary}
             strokeWidth="8"
-            strokeDasharray={`${progress * 283} 283`}
+            strokeDasharray={`${progress * CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`}
             strokeLinecap="round"
             data-testid="progress-circle"
           />
@@ -83,7 +88,7 @@ export function Timer({
             fontSize: '48px',
             fontWeight: 'bold',
             color:
-              remaining < 30 ? theme.colors.error : theme.colors.text,
+              remaining < WARNING_THRESHOLD_SECONDS ? theme.colors.error : theme.colors.text,
           }}
           data-testid="timer-display"
         >
@@ -108,7 +113,7 @@ export function Timer({
           {isRunning ? 'Pause' : 'Resume'}
         </button>
         <button
-          onClick={stableOnComplete}
+          onClick={onComplete}
           style={{
             padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
             backgroundColor: theme.colors.primary,
