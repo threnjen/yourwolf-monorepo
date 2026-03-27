@@ -34,7 +34,7 @@ describe('abilitiesApi', () => {
 
       const result = await abilitiesApi.list();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/abilities/');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/abilities');
       expect(result).toEqual(mockAbilities);
     });
 

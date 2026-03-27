@@ -43,7 +43,7 @@ export const rolesApi = {
   },
 
   create: async (draft: RoleDraft): Promise<Role> => {
-    const {data} = await apiClient.post<Role>('/roles/', draftToPayload(draft));
+    const {data} = await apiClient.post<Role>('/roles', draftToPayload(draft));
     return data;
   },
 };

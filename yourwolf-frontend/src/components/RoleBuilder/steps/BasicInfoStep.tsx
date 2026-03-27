@@ -85,6 +85,7 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
   const [nameStatus, setNameStatus] = useState<NameStatus>('idle');
   const [localName, setLocalName] = useState(draft.name);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nameCheckIdRef = useRef(0);
 
   // Sync localName when draft.name changes externally (e.g., draft restore)
   useEffect(() => {
@@ -103,12 +104,18 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
       clearTimeout(debounceRef.current);
     }
 
+    const requestId = ++nameCheckIdRef.current;
+
     debounceRef.current = setTimeout(async () => {
       try {
         const result = await rolesApi.checkName(localName.trim());
-        setNameStatus(result.is_available ? 'available' : 'taken');
+        if (requestId === nameCheckIdRef.current) {
+          setNameStatus(result.is_available ? 'available' : 'taken');
+        }
       } catch {
-        setNameStatus('idle');
+        if (requestId === nameCheckIdRef.current) {
+          setNameStatus('idle');
+        }
       }
     }, 500);
 

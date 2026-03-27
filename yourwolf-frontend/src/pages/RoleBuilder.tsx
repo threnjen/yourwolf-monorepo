@@ -58,6 +58,7 @@ export function RoleBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const validateIdRef = useRef(0);
 
   const handleDraftChange = useCallback((updatedDraft: RoleDraft) => {
     setDraft(updatedDraft);
@@ -67,13 +68,19 @@ export function RoleBuilderPage() {
       clearTimeout(debounceRef.current);
     }
 
+    const requestId = ++validateIdRef.current;
+
     debounceRef.current = setTimeout(async () => {
       try {
         const result = await rolesApi.validate(updatedDraft);
-        setValidation(result);
+        if (requestId === validateIdRef.current) {
+          setValidation(result);
+        }
       } catch {
-        // Validation failure shouldn't block navigation
-        setValidation({is_valid: false, errors: ['Validation service unavailable'], warnings: []});
+        if (requestId === validateIdRef.current) {
+          // Validation failure shouldn't block navigation
+          setValidation({is_valid: false, errors: ['Validation service unavailable'], warnings: []});
+        }
       }
     }, 1000);
   }, []);

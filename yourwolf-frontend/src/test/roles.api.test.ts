@@ -225,14 +225,14 @@ describe('rolesApi', () => {
   });
 
   describe('create', () => {
-    it('posts draft to /roles/', async () => {
+    it('posts draft to /roles', async () => {
       const draft = createMockDraft({name: 'New Role', team: 'village'});
       const createdRole = createMockRole({id: 'new-id', name: 'New Role'});
       mockApiClient.post.mockResolvedValue({data: createdRole});
 
       const result = await rolesApi.create(draft);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/roles/', expect.objectContaining({
+      expect(mockApiClient.post).toHaveBeenCalledWith('/roles', expect.objectContaining({
         name: 'New Role',
         team: 'village',
       }));

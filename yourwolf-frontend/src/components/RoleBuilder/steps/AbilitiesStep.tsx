@@ -113,11 +113,24 @@ function getTabStyles(isActive: boolean): React.CSSProperties {
 }
 
 export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
-  const {abilities, loading} = useAbilities();
+  const {abilities, loading, error} = useAbilities();
   const [activeCategory, setActiveCategory] = useState<string>('card');
 
   const activeTypes = ABILITY_CATEGORIES.find((c) => c.id === activeCategory)?.types ?? [];
   const paletteAbilities = abilities.filter((a) => activeTypes.includes(a.type));
+
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: theme.spacing.md,
+          color: theme.colors.error,
+        }}
+      >
+        Failed to load abilities: {error}
+      </div>
+    );
+  }
 
   function handleAddAbility(abilityType: string, abilityName: string) {
     const nextOrder = draft.ability_steps.length + 1;
@@ -136,7 +149,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
   function handleRemoveStep(index: number) {
     const updated = draft.ability_steps
       .filter((_, i) => i !== index)
-      .map((step, i) => ({...step, order: i + 1}));
+      .map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
     onChange({...draft, ability_steps: updated});
   }
 
@@ -144,7 +157,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
     if (index === 0) return;
     const steps = [...draft.ability_steps];
     [steps[index - 1], steps[index]] = [steps[index], steps[index - 1]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1}));
+    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
     onChange({...draft, ability_steps: renumbered});
   }
 
@@ -152,7 +165,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
     if (index === draft.ability_steps.length - 1) return;
     const steps = [...draft.ability_steps];
     [steps[index], steps[index + 1]] = [steps[index + 1], steps[index]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1}));
+    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
     onChange({...draft, ability_steps: renumbered});
   }
 

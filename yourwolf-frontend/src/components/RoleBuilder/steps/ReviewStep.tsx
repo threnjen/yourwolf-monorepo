@@ -130,7 +130,7 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
         ) : (
           <div>
             {draft.ability_steps.map((step, index) => (
-              <div key={index} style={stepItemStyles}>
+              <div key={step.id} style={stepItemStyles}>
                 <span style={{color: theme.colors.textMuted, minWidth: '20px'}}>{step.order}.</span>
                 <span>{step.ability_name}</span>
                 {step.modifier !== 'none' && (
@@ -149,7 +149,7 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
         ) : (
           <div>
             {draft.win_conditions.map((wc, index) => (
-              <div key={index} style={wcItemStyles}>
+              <div key={wc.id} style={wcItemStyles}>
                 <span>{wc.condition_type}</span>
                 {wc.is_primary && (
                   <span style={{color: theme.colors.primaryLight, fontSize: '0.8rem'}}>(primary)</span>

@@ -38,7 +38,7 @@ describe('Sidebar', () => {
     it('has Roles link', () => {
       renderSidebar();
 
-      const rolesLink = screen.getByRole('link', {name: /^🎭/});
+      const rolesLink = screen.getByRole('link', {name: /Roles/i});
       expect(rolesLink).toBeInTheDocument();
       expect(rolesLink).toHaveAttribute('href', '/roles');
     });
