@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {rolesApi} from '../api/roles';
-import {createMockRoles, createMockRole} from './mocks';
+import {createMockRoles, createMockRole, createMockDraft} from './mocks';
 import {RoleListItem} from '../types/role';
 
 // Mock the API client module
@@ -174,6 +174,69 @@ describe('rolesApi', () => {
 
       expect(result.id).toBe('role-123');
       expect(result.name).toBeDefined();
+    });
+  });
+
+  describe('validate', () => {
+    it('posts draft to /roles/validate', async () => {
+      const draft = createMockDraft({name: 'My Role'});
+      const validationResult = {is_valid: true, errors: [], warnings: []};
+      mockApiClient.post.mockResolvedValue({data: validationResult});
+
+      const result = await rolesApi.validate(draft);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/roles/validate', expect.objectContaining({
+        name: 'My Role',
+      }));
+      expect(result).toEqual(validationResult);
+    });
+
+    it('returns validation errors from backend', async () => {
+      const draft = createMockDraft({name: ''});
+      const validationResult = {is_valid: false, errors: ['Name is required'], warnings: []};
+      mockApiClient.post.mockResolvedValue({data: validationResult});
+
+      const result = await rolesApi.validate(draft);
+
+      expect(result.is_valid).toBe(false);
+      expect(result.errors).toContain('Name is required');
+    });
+  });
+
+  describe('checkName', () => {
+    it('gets /roles/check-name with name param', async () => {
+      const nameCheckResult = {name: 'Werewolf', is_available: false, message: 'Name is taken'};
+      mockApiClient.get.mockResolvedValue({data: nameCheckResult});
+
+      const result = await rolesApi.checkName('Werewolf');
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles/check-name', {params: {name: 'Werewolf'}});
+      expect(result).toEqual(nameCheckResult);
+    });
+
+    it('returns available for unique name', async () => {
+      const nameCheckResult = {name: 'MyUniqueRole', is_available: true, message: 'Name is available'};
+      mockApiClient.get.mockResolvedValue({data: nameCheckResult});
+
+      const result = await rolesApi.checkName('MyUniqueRole');
+
+      expect(result.is_available).toBe(true);
+    });
+  });
+
+  describe('create', () => {
+    it('posts draft to /roles/', async () => {
+      const draft = createMockDraft({name: 'New Role', team: 'village'});
+      const createdRole = createMockRole({id: 'new-id', name: 'New Role'});
+      mockApiClient.post.mockResolvedValue({data: createdRole});
+
+      const result = await rolesApi.create(draft);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/roles/', expect.objectContaining({
+        name: 'New Role',
+        team: 'village',
+      }));
+      expect(result).toEqual(createdRole);
     });
   });
 });

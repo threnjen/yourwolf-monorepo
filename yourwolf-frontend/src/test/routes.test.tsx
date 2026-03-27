@@ -9,6 +9,18 @@ vi.mock('../hooks/useRoles', () => ({
   useRoles: vi.fn(),
 }));
 
+// Mock rolesApi to avoid actual API calls from RoleBuilderPage
+vi.mock('../api/roles', () => ({
+  rolesApi: {
+    list: vi.fn(),
+    listOfficial: vi.fn(),
+    getById: vi.fn(),
+    validate: vi.fn().mockResolvedValue({is_valid: true, errors: [], warnings: []}),
+    checkName: vi.fn(),
+    create: vi.fn(),
+  },
+}));
+
 const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
 
 function renderRoutes(initialRoute: string = '/') {
@@ -43,6 +55,14 @@ describe('AppRoutes', () => {
       renderRoutes('/roles');
 
       expect(screen.getByText('Official Roles')).toBeInTheDocument();
+    });
+  });
+
+  describe('role builder route', () => {
+    it('renders RoleBuilder page at "/roles/new" path', () => {
+      renderRoutes('/roles/new');
+
+      expect(screen.getByText(/Create New Role/i)).toBeInTheDocument();
     });
   });
 });

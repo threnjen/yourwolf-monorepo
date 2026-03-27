@@ -15,6 +15,8 @@ const makeDraft = (id: string, name: string): RoleDraft => ({
   votes: 1,
   ability_steps: [],
   win_conditions: [],
+  created_at: '2025-01-01T00:00:00Z',
+  updated_at: '2025-01-01T00:00:00Z',
 });
 
 // Simple localStorage mock

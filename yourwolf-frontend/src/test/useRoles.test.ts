@@ -14,7 +14,7 @@ vi.mock('../api/roles', () => ({
   },
 }));
 
-const mockRolesApi = rolesApi as {
+const mockRolesApi = rolesApi as unknown as {
   list: ReturnType<typeof vi.fn>;
   listOfficial: ReturnType<typeof vi.fn>;
   getById: ReturnType<typeof vi.fn>;
