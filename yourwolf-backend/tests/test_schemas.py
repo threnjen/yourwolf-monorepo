@@ -4,8 +4,6 @@ import uuid
 from datetime import datetime
 
 import pytest
-from pydantic import ValidationError
-
 from app.models.role import Team, Visibility
 from app.models.role_dependency import DependencyType
 from app.schemas.ability import AbilityRead
@@ -19,6 +17,7 @@ from app.schemas.role import (
     RoleUpdate,
     WinConditionCreate,
 )
+from pydantic import ValidationError
 
 
 class TestRoleCreateSchema:

@@ -2,8 +2,6 @@
 
 import uuid
 
-from sqlalchemy.orm import Session
-
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
 from app.schemas.role import (
@@ -13,6 +11,7 @@ from app.schemas.role import (
     WinConditionCreate,
 )
 from app.services.role_service import RoleService
+from sqlalchemy.orm import Session
 
 
 class TestRoleServiceListRoles:

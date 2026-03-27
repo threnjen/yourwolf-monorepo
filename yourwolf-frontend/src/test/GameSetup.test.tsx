@@ -49,42 +49,76 @@ describe('GameSetupPage', () => {
 
   describe('input clamping', () => {
     describe('playerCount', () => {
-      it('clamps value below minimum (2) up to 3', () => {
+      it('does not clamp on change — allows typing freely', () => {
         renderGameSetup();
         const input = screen.getByLabelText('Players');
         fireEvent.change(input, {target: {value: '2'}});
+        expect(input).toHaveValue(2);
+      });
+
+      it('clamps value below minimum up to 3 on blur', () => {
+        renderGameSetup();
+        const input = screen.getByLabelText('Players');
+        fireEvent.change(input, {target: {value: '2'}});
+        fireEvent.blur(input);
         expect(input).toHaveValue(3);
       });
 
-      it('clamps value above maximum (21) down to 20', () => {
+      it('clamps value above maximum down to 20 on blur', () => {
         renderGameSetup();
         const input = screen.getByLabelText('Players');
         fireEvent.change(input, {target: {value: '21'}});
+        fireEvent.blur(input);
         expect(input).toHaveValue(20);
+      });
+
+      it('clamps empty input to minimum on blur', () => {
+        renderGameSetup();
+        const input = screen.getByLabelText('Players');
+        fireEvent.change(input, {target: {value: ''}});
+        fireEvent.blur(input);
+        expect(input).toHaveValue(3);
       });
     });
 
     describe('centerCount', () => {
-      it('clamps value below minimum (-1) up to 0', () => {
+      it('does not clamp on change', () => {
         renderGameSetup();
         const input = screen.getByLabelText('Center Cards');
         fireEvent.change(input, {target: {value: '-1'}});
+        expect(input).toHaveValue(-1);
+      });
+
+      it('clamps value below minimum up to 0 on blur', () => {
+        renderGameSetup();
+        const input = screen.getByLabelText('Center Cards');
+        fireEvent.change(input, {target: {value: '-1'}});
+        fireEvent.blur(input);
         expect(input).toHaveValue(0);
       });
 
-      it('clamps value above maximum (6) down to 5', () => {
+      it('clamps value above maximum down to 5 on blur', () => {
         renderGameSetup();
         const input = screen.getByLabelText('Center Cards');
         fireEvent.change(input, {target: {value: '6'}});
+        fireEvent.blur(input);
         expect(input).toHaveValue(5);
       });
     });
 
     describe('timerSeconds', () => {
-      it('clamps value below minimum (30) up to 60', () => {
+      it('allows mid-edit without clamping', () => {
+        renderGameSetup();
+        const input = screen.getByLabelText('Discussion Timer (seconds)');
+        fireEvent.change(input, {target: {value: '1'}});
+        expect(input).toHaveValue(1);
+      });
+
+      it('clamps value below minimum up to 60 on blur', () => {
         renderGameSetup();
         const input = screen.getByLabelText('Discussion Timer (seconds)');
         fireEvent.change(input, {target: {value: '30'}});
+        fireEvent.blur(input);
         expect(input).toHaveValue(60);
       });
     });
@@ -369,11 +403,13 @@ describe('GameSetupPage', () => {
 
       // Set player=2, center=1 so total=3
       fireEvent.change(screen.getByLabelText('Players'), {target: {value: '3'}});
+      fireEvent.blur(screen.getByLabelText('Players'));
       fireEvent.change(screen.getByLabelText('Center Cards'), {target: {value: '0'}});
+      fireEvent.blur(screen.getByLabelText('Center Cards'));
 
       // Select Werewolf (2) + Seer (1) = 3 cards = totalCardsNeeded
-      fireEvent.click(screen.getByText('Werewolf').closest('[data-role-id]')!);
-      fireEvent.click(screen.getByText('Seer').closest('[data-role-id]')!);
+      fireEvent.click(screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!);
+      fireEvent.click(screen.getByRole('heading', {name: 'Seer'}).closest('[data-role-id]')!);
 
       fireEvent.click(screen.getByText('Start Game'));
 

@@ -4,10 +4,9 @@ import uuid
 from typing import Any
 
 import pytest
+from app.models.role import Role
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
-from app.models.role import Role
 
 
 class TestCreateGameEndpoint:

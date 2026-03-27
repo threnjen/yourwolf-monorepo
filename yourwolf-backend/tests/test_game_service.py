@@ -4,13 +4,12 @@ import uuid
 from typing import Any
 
 import pytest
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
 from app.models.game_session import GamePhase
 from app.models.role import Role
 from app.schemas.game import GameSessionCreate
 from app.services.game_service import GameService
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 
 class TestCreateGame:

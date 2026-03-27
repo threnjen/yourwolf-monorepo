@@ -4,10 +4,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-
 from app.models.role import Team, Visibility
 from app.models.role_dependency import DependencyType
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class WinConditionBase(BaseModel):

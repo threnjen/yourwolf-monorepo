@@ -1,11 +1,10 @@
 """Ability endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models.ability import Ability
 from app.schemas.ability import AbilityRead
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

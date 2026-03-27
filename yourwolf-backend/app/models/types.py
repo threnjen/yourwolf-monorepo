@@ -1,9 +1,10 @@
 """Custom SQLAlchemy types for cross-database compatibility."""
 
+import uuid as uuid_module
+
 from sqlalchemy import JSON, String, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
-import uuid as uuid_module
 
 
 class JSONB(TypeDecorator):

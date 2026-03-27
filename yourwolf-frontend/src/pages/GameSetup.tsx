@@ -109,6 +109,9 @@ export function GameSetupPage(): React.ReactElement {
   const [playerCount, setPlayerCount] = useState(5);
   const [centerCount, setCenterCount] = useState(3);
   const [timerSeconds, setTimerSeconds] = useState(300);
+  const [playerCountInput, setPlayerCountInput] = useState('5');
+  const [centerCountInput, setCenterCountInput] = useState('3');
+  const [timerSecondsInput, setTimerSecondsInput] = useState('300');
   const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -258,12 +261,13 @@ export function GameSetupPage(): React.ReactElement {
             type="number"
             min={3}
             max={20}
-            value={playerCount}
-            onChange={(e) =>
-              setPlayerCount(
-                Math.max(3, Math.min(20, parseInt(e.target.value) || 3)),
-              )
-            }
+            value={playerCountInput}
+            onChange={(e) => setPlayerCountInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(3, Math.min(20, parseInt(playerCountInput) || 3));
+              setPlayerCount(v);
+              setPlayerCountInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>
@@ -274,12 +278,13 @@ export function GameSetupPage(): React.ReactElement {
             type="number"
             min={0}
             max={5}
-            value={centerCount}
-            onChange={(e) =>
-              setCenterCount(
-                Math.max(0, Math.min(5, parseInt(e.target.value) || 0)),
-              )
-            }
+            value={centerCountInput}
+            onChange={(e) => setCenterCountInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(0, Math.min(5, parseInt(centerCountInput) || 0));
+              setCenterCount(v);
+              setCenterCountInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>
@@ -291,12 +296,13 @@ export function GameSetupPage(): React.ReactElement {
             min={60}
             max={1800}
             step={30}
-            value={timerSeconds}
-            onChange={(e) =>
-              setTimerSeconds(
-                Math.max(60, Math.min(1800, parseInt(e.target.value) || 60)),
-              )
-            }
+            value={timerSecondsInput}
+            onChange={(e) => setTimerSecondsInput(e.target.value)}
+            onBlur={() => {
+              const v = Math.max(60, Math.min(1800, parseInt(timerSecondsInput) || 60));
+              setTimerSeconds(v);
+              setTimerSecondsInput(String(v));
+            }}
             style={inputStyle}
           />
         </div>

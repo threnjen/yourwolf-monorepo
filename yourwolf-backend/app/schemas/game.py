@@ -3,9 +3,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-
 from app.models.game_session import GamePhase
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class GameSessionCreate(BaseModel):

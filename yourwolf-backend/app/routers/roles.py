@@ -2,18 +2,12 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models.role import Team, Visibility
-from app.schemas.role import (
-    RoleCreate,
-    RoleListResponse,
-    RoleRead,
-    RoleUpdate,
-)
+from app.schemas.role import RoleCreate, RoleListResponse, RoleRead, RoleUpdate
 from app.services.role_service import RoleService
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

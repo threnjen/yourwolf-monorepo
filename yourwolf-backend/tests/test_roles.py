@@ -2,11 +2,10 @@
 
 import uuid
 
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
 from app.models.ability import Ability
 from app.models.role import Role
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 
 class TestListRoles:
@@ -677,8 +676,9 @@ class TestUpdateRoleStepsAndConditions:
     ) -> None:
         """PUT with only scalar fields does not touch existing ability steps."""
         # sample_role_with_steps is locked, so use an unlocked copy
-        from app.models.role import Role as RoleModel, Team, Visibility
         from app.models.ability_step import AbilityStep
+        from app.models.role import Role as RoleModel
+        from app.models.role import Team, Visibility
 
         unlocked = RoleModel(
             id=uuid.uuid4(),
