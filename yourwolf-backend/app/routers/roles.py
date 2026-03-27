@@ -4,7 +4,14 @@ from uuid import UUID
 
 from app.database import get_db
 from app.models.role import Team, Visibility
-from app.schemas.role import RoleCreate, RoleListResponse, RoleRead, RoleUpdate
+from app.schemas.role import (
+    RoleCreate,
+    RoleListResponse,
+    RoleNameCheckResponse,
+    RoleRead,
+    RoleUpdate,
+    RoleValidationResponse,
+)
 from app.services.role_service import RoleService
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -65,6 +72,70 @@ async def list_official_roles(
         visibility=Visibility.OFFICIAL,
         page=page,
         limit=limit,
+    )
+
+
+@router.post("/validate", response_model=RoleValidationResponse)
+async def validate_role(
+    role_data: RoleCreate,
+    exclude_role_id: UUID | None = Query(
+        default=None,
+        description="Role UUID to exclude from duplicate name check (for edits)",
+    ),
+    db: Session = Depends(get_db),
+) -> RoleValidationResponse:
+    """Dry-run validate a role without persisting it.
+
+    Args:
+        role_data: Role creation data to validate.
+        exclude_role_id: Optional role UUID to exclude from duplicate name check.
+        db: Database session.
+
+    Returns:
+        Validation result with errors and warnings.
+    """
+    service = RoleService(db)
+    errors = service.validate_role(role_data, exclude_role_id)
+    warnings = service.get_warnings(role_data)
+    return RoleValidationResponse(
+        is_valid=len(errors) == 0,
+        errors=errors,
+        warnings=warnings,
+    )
+
+
+@router.get("/check-name", response_model=RoleNameCheckResponse)
+async def check_role_name(
+    name: str = Query(
+        ..., min_length=1, description="Role name to check for availability"
+    ),
+    db: Session = Depends(get_db),
+) -> RoleNameCheckResponse:
+    """Check whether a role name is available (not used by a public or official role).
+
+    Args:
+        name: Role name to check.
+        db: Database session.
+
+    Returns:
+        Name availability result with message.
+    """
+    name = name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Role name must not be empty or whitespace only.",
+        )
+    service = RoleService(db)
+    is_duplicate = service.check_duplicate_name(name)
+    if is_duplicate:
+        message = f"'{name}' is already taken by a public or official role."
+    else:
+        message = f"'{name}' is available."
+    return RoleNameCheckResponse(
+        name=name,
+        is_available=not is_duplicate,
+        message=message,
     )
 
 

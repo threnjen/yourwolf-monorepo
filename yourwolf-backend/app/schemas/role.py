@@ -203,6 +203,22 @@ class RoleListResponse(BaseModel):
     pages: int
 
 
+class RoleValidationResponse(BaseModel):
+    """Response schema for POST /validate dry-run endpoint."""
+
+    is_valid: bool
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class RoleNameCheckResponse(BaseModel):
+    """Response schema for GET /check-name duplicate check endpoint."""
+
+    name: str
+    is_available: bool
+    message: str
+
+
 # Update forward references
 RoleCreate.model_rebuild()
 RoleUpdate.model_rebuild()

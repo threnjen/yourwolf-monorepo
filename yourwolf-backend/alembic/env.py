@@ -7,15 +7,8 @@ from alembic import context
 # Import the app configuration and models
 from app.config import settings
 from app.database import Base
-from app.models import (
-    Ability,  # noqa: F401 - Import all models for metadata
-    AbilityStep,
-    GameRole,
-    GameSession,
-    Role,
-    User,
-    WinCondition,
-)
+from app.models import Ability  # noqa: F401 - Import all models for metadata
+from app.models import AbilityStep, GameRole, GameSession, Role, User, WinCondition
 from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object
