@@ -1,14 +1,14 @@
-import streamlit as st
-import sys
 import os
+import sys
 from enum import Enum
+
+import streamlit as st
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.abilities import Ability
 from app.card import Card
-
-from app.definitions import AbilityType, AbilityPhase, Target, Team
+from app.definitions import AbilityPhase, AbilityType, Target, Team
 from app.win import WinCondition
 
 st.set_page_config(layout="wide")

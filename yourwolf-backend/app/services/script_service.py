@@ -2,13 +2,12 @@
 
 import logging
 
-from sqlalchemy.orm import Session, joinedload
-
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.game_role import GameRole
 from app.models.game_session import GameSession
 from app.models.role import Role
 from app.schemas.game import NarratorAction, NightScript
+from sqlalchemy.orm import Session, joinedload
 
 logger = logging.getLogger(__name__)
 

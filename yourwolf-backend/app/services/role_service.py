@@ -3,8 +3,6 @@
 import math
 from uuid import UUID
 
-from sqlalchemy.orm import Session, joinedload, selectinload
-
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
@@ -20,6 +18,7 @@ from app.schemas.role import (
     RoleUpdate,
     WinConditionRead,
 )
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 
 class RoleService:
@@ -298,9 +297,9 @@ class RoleService:
         if new_steps is not None:
             # synchronize_session="fetch" required: "evaluate" raises
             # UnmappedInstanceError when related objects are in the session
-            self.db.query(AbilityStep).filter(
-                AbilityStep.role_id == role.id
-            ).delete(synchronize_session="fetch")
+            self.db.query(AbilityStep).filter(AbilityStep.role_id == role.id).delete(
+                synchronize_session="fetch"
+            )
             for step_data in new_steps:
                 ability = (
                     self.db.query(Ability)
@@ -322,9 +321,9 @@ class RoleService:
 
         if new_wcs is not None:
             # synchronize_session="fetch" required: same reason as above
-            self.db.query(WinCondition).filter(
-                WinCondition.role_id == role.id
-            ).delete(synchronize_session="fetch")
+            self.db.query(WinCondition).filter(WinCondition.role_id == role.id).delete(
+                synchronize_session="fetch"
+            )
             for wc_data in new_wcs:
                 wc = WinCondition(
                     role_id=role.id,

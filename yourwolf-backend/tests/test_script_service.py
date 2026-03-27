@@ -1,13 +1,12 @@
 """Tests for ScriptService."""
 
-from sqlalchemy.orm import Session
-
 from app.models.game_role import GameRole
 from app.models.game_session import GamePhase, GameSession
 from app.models.role import Role
 from app.schemas.game import GameSessionCreate
 from app.services.game_service import GameService
 from app.services.script_service import ScriptService
+from sqlalchemy.orm import Session
 
 
 def _create_and_start_game_deterministic(

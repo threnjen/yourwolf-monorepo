@@ -89,7 +89,6 @@ export interface RoleListItem {
   default_count: number;
   min_count: number;
   max_count: number;
-  is_primary_team_role: boolean;
   dependencies: RoleDependency[];
   created_at: string;
 }

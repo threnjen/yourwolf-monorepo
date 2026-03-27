@@ -1,18 +1,19 @@
-import sys
 import os
-from enum import Enum
 import re
-from pydantic import BaseModel
+import sys
+from enum import Enum
 from typing import Any
+
+from pydantic import BaseModel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from pydantic.fields import FieldInfo
+from typing import Optional, Type, Union, get_args, get_origin
+
+import streamlit as st
 from app.card import Card
 from app.definitions import OrCondition
-
-from typing import Optional, Union, get_origin, get_args, Type
-import streamlit as st
+from pydantic.fields import FieldInfo
 
 primitives = (bool, str, int, float, type(None))
 
@@ -124,7 +125,7 @@ def add_single_object(
     required: bool = True,
     parent_is_list: bool = False,
     parent_is_dict: bool = False,
-    suffix: str = ""
+    suffix: str = "",
 ):
     if field_type == int:
         pass
@@ -135,7 +136,9 @@ def add_single_object(
     elif issubclass(field_type, Enum):
         create_enum_interface(field_name, field_type, False, required)
     elif issubclass(field_type, BaseModel):
-        create_object_interface(field_type, parent_is_list, parent_is_dict, required, field_name)
+        create_object_interface(
+            field_type, parent_is_list, parent_is_dict, required, field_name
+        )
     elif field_type == str:
         create_text_input(field_name)
     else:
@@ -151,7 +154,9 @@ def handle_iterable(
 ):
     print(f"Handling iterable {field_name}, {field_type}")
     if iterable_type == dict:
-        print(f"\nAdding a row button which will read {format_field_name(f"{field_name}_set")}")
+        print(
+            f"\nAdding a row button which will read {format_field_name(f"{field_name}_set")}"
+        )
         create_row_add_button(f"{field_name}_set")
     else:
         print(f"\nAdding a row button which will read {format_field_name(field_name)}")
@@ -160,14 +165,16 @@ def handle_iterable(
         print(f"field_type[1]: {get_args(field_type)[1]}")
     except:
         print(f"field_type[1] failed. field_type[0]: {get_args(field_type)[0]}")
-    if is_required: # and f"{field_name}_counter" not in st.session_state:
+    if is_required:  # and f"{field_name}_counter" not in st.session_state:
         print("Field is required")
         modify_session_state_counter(f"{field_name}_counter", 1)
     # else:
     print(f"Current counter is {st.session_state[f'{field_name}_counter']}")
     for j in range(st.session_state[f"{field_name}_counter"]):
         field_required = is_field_required(field_type)
-        print(f"Iterating through j to range session state for {field_name}_{j} and type {field_type}")
+        print(
+            f"Iterating through j to range session state for {field_name}_{j} and type {field_type}"
+        )
         # with cols[j]:
         try:
             new_object_type = get_args(field_type)[1]
@@ -181,7 +188,7 @@ def handle_iterable(
             )
         except:
             new_object_type = get_args(field_type)[0]
-            if j >0:
+            if j > 0:
                 st.write("AND")
             add_single_object(
                 new_object_type,
@@ -190,7 +197,10 @@ def handle_iterable(
                 parent_is_list=True,
             )
 
-def handle_single_object_field(field_name: str, field: FieldInfo,  parent_is_list: bool, parent_is_dict: bool):
+
+def handle_single_object_field(
+    field_name: str, field: FieldInfo, parent_is_list: bool, parent_is_dict: bool
+):
     parent_is_iterable = parent_is_list or parent_is_dict
     field_type = field.annotation
     field_required = field.is_required()
@@ -238,9 +248,13 @@ def create_object_interface(
         print(f"i :{i}, field name: {field_name}, field type: {field_info.annotation}")
         if parent_is_list:
             with cols[i]:
-                handle_single_object_field(field_name, field_info, parent_is_list, parent_is_dict)
+                handle_single_object_field(
+                    field_name, field_info, parent_is_list, parent_is_dict
+                )
         else:
-            handle_single_object_field(field_name, field_info, parent_is_list, parent_is_dict)
+            handle_single_object_field(
+                field_name, field_info, parent_is_list, parent_is_dict
+            )
         # field_name = field_info[0]
         # field = field_info[1]
         # field_type = field.annotation

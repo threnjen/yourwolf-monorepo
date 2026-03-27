@@ -2,11 +2,10 @@
 
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from app.database import Base
 from app.models.types import JSONB, UUID
+from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class WinCondition(Base):

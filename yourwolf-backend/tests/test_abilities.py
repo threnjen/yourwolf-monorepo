@@ -2,10 +2,9 @@
 
 import uuid
 
+from app.models.ability import Ability
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
-from app.models.ability import Ability
 
 
 class TestListAbilities:

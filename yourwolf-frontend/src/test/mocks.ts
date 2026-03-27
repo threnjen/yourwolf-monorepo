@@ -24,7 +24,6 @@ export function createMockRole(overrides: Partial<RoleListItem> = {}): RoleListI
     default_count: 1,
     min_count: 1,
     max_count: 1,
-    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -50,7 +49,6 @@ export function createMockRoles(count: number = 5): RoleListItem[] {
     default_count: 1,
     min_count: 1,
     max_count: 1,
-    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   }));
@@ -76,7 +74,6 @@ export function createMockOfficialRole(
     default_count: 1,
     min_count: 1,
     max_count: 1,
-    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   };
@@ -87,7 +84,7 @@ export function createMockOfficialRole(
  */
 export const sampleOfficialRoles: RoleListItem[] = [
   createMockOfficialRole('Villager', 'village'),
-  {...createMockOfficialRole('Werewolf', 'werewolf', 1), is_primary_team_role: true},
+  createMockOfficialRole('Werewolf', 'werewolf', 1),
   createMockOfficialRole('Seer', 'village', 4),
   createMockOfficialRole('Robber', 'village', 4),
   createMockOfficialRole('Troublemaker', 'village', 5),

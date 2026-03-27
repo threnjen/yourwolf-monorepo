@@ -2,9 +2,6 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.models.game_session import GamePhase
 from app.schemas.game import (
@@ -15,6 +12,8 @@ from app.schemas.game import (
 )
 from app.services.game_service import GameService
 from app.services.script_service import ScriptService
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 

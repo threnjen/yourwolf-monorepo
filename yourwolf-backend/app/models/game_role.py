@@ -2,12 +2,11 @@
 
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from app.database import Base
 from app.models.role import Team
 from app.models.types import UUID
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class GameRole(Base):

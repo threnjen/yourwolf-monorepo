@@ -3,10 +3,9 @@
 from collections.abc import Generator
 from typing import Any
 
+from app.config import settings
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-
-from app.config import settings
 
 # Create database engine
 engine = create_engine(

@@ -1,12 +1,10 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
 import {gamesApi} from '../api/games';
 import {theme} from '../styles/theme';
-import type {RoleListItem, Team} from '../types/role';
-
-const TEAM_ORDER: Team[] = ['village', 'werewolf', 'vampire', 'alien', 'neutral'];
+import type {RoleListItem} from '../types/role';
 
 const containerStyles: React.CSSProperties = {
   width: '100%',
@@ -57,16 +55,7 @@ const roleGridStyles: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
   gap: theme.spacing.md,
-};
-
-const teamSectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,
-};
-
-const teamHeadingStyles: React.CSSProperties = {
-  fontSize: '1.1rem',
-  fontWeight: 600,
-  marginBottom: theme.spacing.md,
 };
 
 const buttonStyle: React.CSSProperties = {
@@ -86,15 +75,6 @@ const errorStyles: React.CSSProperties = {
   borderRadius: theme.borderRadius.md,
   padding: theme.spacing.md,
   color: theme.colors.error,
-  marginBottom: theme.spacing.md,
-};
-
-const warningStyles: React.CSSProperties = {
-  backgroundColor: `${theme.colors.warning}20`,
-  border: `1px solid ${theme.colors.warning}`,
-  borderRadius: theme.borderRadius.md,
-  padding: theme.spacing.md,
-  color: theme.colors.warning,
   marginBottom: theme.spacing.md,
 };
 
@@ -135,7 +115,6 @@ export function GameSetupPage(): React.ReactElement {
   const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   const roleMap = useMemo(() => {
     const map: Record<string, RoleListItem> = {};
@@ -143,17 +122,6 @@ export function GameSetupPage(): React.ReactElement {
       map[role.id] = role;
     }
     return map;
-  }, [roles]);
-
-  const groupedRoles = useMemo(() => {
-    const byTeam: Record<string, RoleListItem[]> = {};
-    for (const role of roles) {
-      if (!byTeam[role.team]) byTeam[role.team] = [];
-      byTeam[role.team].push(role);
-    }
-    return TEAM_ORDER
-      .filter((team) => byTeam[team]?.length > 0)
-      .map((team) => ({ team, roles: byTeam[team] }));
   }, [roles]);
 
   const totalSelectedCards = useMemo(
@@ -172,57 +140,7 @@ export function GameSetupPage(): React.ReactElement {
   }, [selectedRoleCounts]);
 
   const totalCardsNeeded = playerCount + centerCount;
-
-  const currentValidationError = useMemo((): string | null => {
-    if (totalSelectedCards < totalCardsNeeded) {
-      return `Not enough roles selected — need ${totalCardsNeeded - totalSelectedCards} more`;
-    }
-    if (totalSelectedCards > totalCardsNeeded) {
-      return `Too many roles selected — remove ${totalSelectedCards - totalCardsNeeded}`;
-    }
-    // Check primary team role for non-village/non-neutral teams
-    const teamsWithPrimary: Record<string, boolean> = {};
-    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
-      if (count <= 0) continue;
-      const role = roleMap[roleId];
-      if (!role || role.team === 'village' || role.team === 'neutral') continue;
-      if (!(role.team in teamsWithPrimary)) {
-        teamsWithPrimary[role.team] = false;
-      }
-      if (role.is_primary_team_role) {
-        teamsWithPrimary[role.team] = true;
-      }
-    }
-    for (const [team, hasPrimary] of Object.entries(teamsWithPrimary)) {
-      if (!hasPrimary) {
-        return `Missing primary role for ${team} team`;
-      }
-    }
-    return null;
-  }, [totalSelectedCards, totalCardsNeeded, selectedRoleCounts, roleMap]);
-
-  const canStart = currentValidationError === null && !submitting;
-
-  const recommendationWarnings = useMemo(() => {
-    const warnings: string[] = [];
-    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
-      if (count <= 0) continue;
-      const role = roleMap[roleId];
-      if (!role) continue;
-      for (const dep of role.dependencies) {
-        if (dep.dependency_type !== 'recommends') continue;
-        if (selectedRoleCounts[dep.required_role_id] > 0) continue;
-        warnings.push(`${role.name} works best with ${dep.required_role_name} in the game`);
-      }
-    }
-    return warnings;
-  }, [selectedRoleCounts, roleMap]);
-
-  useEffect(() => {
-    if (canStart) {
-      setValidationError(null);
-    }
-  }, [canStart]);
+  const canStart = totalSelectedCards === totalCardsNeeded && !submitting;
 
   const removeRoleWithCascade = useCallback(
     (counts: Record<string, number>, roleId: string): Record<string, number> => {
@@ -254,11 +172,11 @@ export function GameSetupPage(): React.ReactElement {
           return removeRoleWithCascade(prev, roleId);
         }
 
-        // Select: add at min_count
+        // Select: add at default_count
         const role = roleMap[roleId];
         if (!role) return prev;
 
-        const next = {...prev, [roleId]: role.min_count};
+        const next = {...prev, [roleId]: role.default_count};
 
         // Auto-select REQUIRES dependencies
         for (const dep of role.dependencies) {
@@ -266,7 +184,7 @@ export function GameSetupPage(): React.ReactElement {
           if (next[dep.required_role_id] && next[dep.required_role_id] > 0) continue;
           const requiredRole = roleMap[dep.required_role_id];
           if (!requiredRole) continue;
-          next[dep.required_role_id] = requiredRole.min_count;
+          next[dep.required_role_id] = requiredRole.default_count;
         }
 
         return next;
@@ -295,14 +213,10 @@ export function GameSetupPage(): React.ReactElement {
   );
 
   const handleStartGame = async () => {
-    if (currentValidationError) {
-      setValidationError(currentValidationError);
-      return;
-    }
+    if (!canStart) return;
 
     setSubmitting(true);
     setError(null);
-    setValidationError(null);
     try {
       const game = await gamesApi.create({
         player_count: playerCount,
@@ -405,101 +319,80 @@ export function GameSetupPage(): React.ReactElement {
         </p>
       </div>
 
-      {groupedRoles.map(({ team, roles: teamRoles }) => (
-        <div key={team} style={teamSectionStyles}>
-          <h3
-            data-testid={`team-heading-${team}`}
-            style={{ ...teamHeadingStyles, color: theme.colors[team] }}
-          >
-            {team.charAt(0).toUpperCase() + team.slice(1)}
-          </h3>
-          <div style={roleGridStyles}>
-            {teamRoles.map((role) => {
-              const count = selectedRoleCounts[role.id] || 0;
-              const isSelected = count > 0;
-              const showQuantityControls =
-                isSelected && role.min_count !== role.max_count;
+      <div style={roleGridStyles}>
+        {roles.map((role) => {
+          const count = selectedRoleCounts[role.id] || 0;
+          const isSelected = count > 0;
+          const showQuantityControls =
+            isSelected && role.min_count !== role.max_count;
 
-              return (
+          return (
+            <div
+              key={role.id}
+              data-role-id={role.id}
+              onClick={() => selectRole(role.id)}
+              style={{
+                opacity: isSelected ? 1 : 0.5,
+                border: isSelected
+                  ? `2px solid ${theme.colors.primary}`
+                  : '2px solid transparent',
+                borderRadius: theme.borderRadius.md,
+                cursor: 'pointer',
+                transition: 'opacity 0.2s ease',
+                position: 'relative',
+              }}
+            >
+              <RoleCard role={role} />
+              {isSelected && (
                 <div
-                  key={role.id}
-                  data-role-id={role.id}
-                  onClick={() => selectRole(role.id)}
                   style={{
-                    opacity: isSelected ? 1 : 0.5,
-                    border: isSelected
-                      ? `2px solid ${theme.colors.primary}`
-                      : '2px solid transparent',
-                    borderRadius: theme.borderRadius.md,
-                    cursor: 'pointer',
-                    transition: 'opacity 0.2s ease',
-                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: theme.spacing.sm,
+                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                    backgroundColor: theme.colors.surfaceLight,
+                    borderBottomLeftRadius: theme.borderRadius.md,
+                    borderBottomRightRadius: theme.borderRadius.md,
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <RoleCard role={role} />
-                  {isSelected && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: theme.spacing.sm,
-                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                        backgroundColor: theme.colors.surfaceLight,
-                        borderBottomLeftRadius: theme.borderRadius.md,
-                        borderBottomRightRadius: theme.borderRadius.md,
-                      }}
-                      onClick={(e) => e.stopPropagation()}
+                  {showQuantityControls && (
+                    <button
+                      aria-label={`Decrease ${role.name} count`}
+                      onClick={() => adjustCount(role.id, -1)}
+                      style={quantityBtnStyles}
                     >
-                      {showQuantityControls && (
-                        <button
-                          aria-label={`Decrease ${role.name} count`}
-                          onClick={() => adjustCount(role.id, -1)}
-                          style={quantityBtnStyles}
-                        >
-                          −
-                        </button>
-                      )}
-                      <span style={quantityBadgeStyles}>×{count}</span>
-                      {showQuantityControls && (
-                        <button
-                          aria-label={`Increase ${role.name} count`}
-                          onClick={() => adjustCount(role.id, 1)}
-                          disabled={count >= role.max_count}
-                          style={{
-                            ...quantityBtnStyles,
-                            opacity: count >= role.max_count ? 0.4 : 1,
-                            cursor:
-                              count >= role.max_count ? 'not-allowed' : 'pointer',
-                          }}
-                        >
-                          +
-                        </button>
-                      )}
-                    </div>
+                      −
+                    </button>
+                  )}
+                  <span style={quantityBadgeStyles}>×{count}</span>
+                  {showQuantityControls && (
+                    <button
+                      aria-label={`Increase ${role.name} count`}
+                      onClick={() => adjustCount(role.id, 1)}
+                      disabled={count >= role.max_count}
+                      style={{
+                        ...quantityBtnStyles,
+                        opacity: count >= role.max_count ? 0.4 : 1,
+                        cursor:
+                          count >= role.max_count ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      +
+                    </button>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
-      {/* Recommendation Warnings */}
-      {recommendationWarnings.length > 0 && (
-        <div style={warningStyles}>
-          <ul style={{margin: 0, paddingLeft: '1.2em'}}>
-            {recommendationWarnings.map((warning) => (
-              <li key={warning}>{warning}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* Start Button */}
       <button
         onClick={handleStartGame}
-        disabled={submitting}
+        disabled={!canStart}
         style={{
           ...buttonStyle,
           opacity: canStart ? 1 : 0.5,
@@ -508,7 +401,6 @@ export function GameSetupPage(): React.ReactElement {
       >
         {submitting ? 'Creating Game...' : 'Start Game'}
       </button>
-      {validationError && <div style={{...errorStyles, marginTop: theme.spacing.md}}>{validationError}</div>}
     </div>
   );
 }

@@ -1,10 +1,9 @@
 """FastAPI application entry point."""
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.config import settings
 from app.routers import abilities, games, health, roles
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="YourWolf API",

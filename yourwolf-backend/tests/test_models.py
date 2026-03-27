@@ -1,13 +1,12 @@
 """Tests for database models."""
 
 import pytest
-from sqlalchemy.orm import Session
-
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.models.win_condition import WinCondition
+from sqlalchemy.orm import Session
 
 
 class TestRoleModel:

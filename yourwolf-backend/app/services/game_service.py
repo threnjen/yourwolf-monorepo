@@ -7,9 +7,6 @@ from collections import Counter
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import HTTPException
-from sqlalchemy.orm import Session, joinedload
-
 from app.models.game_role import GameRole
 from app.models.game_session import GamePhase, GameSession
 from app.models.role import Role, Team
@@ -21,6 +18,8 @@ from app.schemas.game import (
     GameSessionPaginatedResponse,
     GameSessionResponse,
 )
+from fastapi import HTTPException
+from sqlalchemy.orm import Session, joinedload
 
 logger = logging.getLogger(__name__)
 

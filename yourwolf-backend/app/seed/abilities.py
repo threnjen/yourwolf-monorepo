@@ -2,9 +2,8 @@
 
 import logging
 
-from sqlalchemy.orm import Session
-
 from app.models.ability import Ability
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

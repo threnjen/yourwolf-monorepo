@@ -2,11 +2,10 @@
 
 import logging
 
-from sqlalchemy.orm import Session
-
 from app.database import SessionLocal
 from app.seed.abilities import seed_abilities
 from app.seed.roles import seed_role_dependencies, seed_roles
+from sqlalchemy.orm import Session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
