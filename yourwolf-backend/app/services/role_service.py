@@ -416,21 +416,24 @@ class RoleService:
 
         # AC5–AC7 — ability step validation
         if data.ability_steps:
-            # AC6 — first step modifier must be 'none'
-            if data.ability_steps[0].modifier != "none":
+            # AC6 — first step modifier must be 'none' (step with the lowest order)
+            first_step = min(data.ability_steps, key=lambda s: s.order)
+            if first_step.modifier != "none":
                 errors.append("The first ability step must have modifier 'none'.")
 
-            # AC5 — each ability_type must exist and be active
-            for step in data.ability_steps:
-                ability = (
-                    self.db.query(Ability)
-                    .filter(
-                        Ability.type == step.ability_type,
-                        Ability.is_active.is_(True),
-                    )
-                    .first()
+            # AC5 — each ability_type must exist and be active (batch query)
+            ability_types = {step.ability_type for step in data.ability_steps}
+            active_abilities = (
+                self.db.query(Ability)
+                .filter(
+                    Ability.type.in_(ability_types),
+                    Ability.is_active.is_(True),
                 )
-                if not ability:
+                .all()
+            )
+            active_ability_types = {ability.type for ability in active_abilities}
+            for step in data.ability_steps:
+                if step.ability_type not in active_ability_types:
                     errors.append(
                         f"Ability type '{step.ability_type}' is not a valid active ability."
                     )

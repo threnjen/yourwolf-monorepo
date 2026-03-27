@@ -5,11 +5,10 @@ import uuid
 import pytest
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
-from app.schemas.role import AbilityStepCreateInRole, RoleCreate, WinConditionCreate
+from app.schemas.role import RoleCreate
 from app.services.role_service import RoleService
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -448,4 +447,9 @@ class TestCheckNameEndpoint:
     def test_check_name_requires_name_param(self, client: TestClient) -> None:
         """AC2: Missing name query parameter returns 422."""
         response = client.get("/api/roles/check-name")
+        assert response.status_code == 422
+
+    def test_check_name_whitespace_only(self, client: TestClient) -> None:
+        """AC2: Whitespace-only name returns 422 after strip."""
+        response = client.get("/api/roles/check-name?name=++++")
         assert response.status_code == 422

@@ -121,6 +121,11 @@ async def check_role_name(
         Name availability result with message.
     """
     name = name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Role name must not be empty or whitespace only.",
+        )
     service = RoleService(db)
     is_duplicate = service.check_duplicate_name(name)
     if is_duplicate:
