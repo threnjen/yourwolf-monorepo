@@ -284,6 +284,243 @@ class TestRoleServiceUpdateRole:
         assert result.description == original_desc
 
 
+class TestRoleServiceUpdateRoleStepsAndConditions:
+    """Tests for step/condition replacement in RoleService.update_role."""
+
+    def test_update_role_replaces_ability_steps(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+        sample_abilities: list,
+    ) -> None:
+        """When ability_steps provided, all existing steps are deleted and replaced."""
+        import pytest
+        from app.models.ability_step import AbilityStep
+
+        service = RoleService(db_session)
+
+        # Seed two steps on the role
+        ability = sample_abilities[0]
+        for order in (1, 2):
+            db_session.add(
+                AbilityStep(
+                    id=uuid.uuid4(),
+                    role_id=sample_unlocked_role.id,
+                    ability_id=ability.id,
+                    order=order,
+                    modifier="none",
+                    is_required=True,
+                    parameters={},
+                )
+            )
+        db_session.commit()
+        original = service.get_role(sample_unlocked_role.id)
+        assert original is not None
+        assert len(original.ability_steps) == 2
+        original_ids = {s.id for s in original.ability_steps}
+
+        # Replace with a single new step using a different ability type
+        new_ability = sample_abilities[1]
+        update_data = RoleUpdate(
+            ability_steps=[
+                AbilityStepCreateInRole(
+                    ability_type=new_ability.type,
+                    order=1,
+                    modifier="none",
+                    is_required=True,
+                    parameters={},
+                )
+            ]
+        )
+        result = service.update_role(sample_unlocked_role.id, update_data)
+        assert result is not None
+        assert len(result.ability_steps) == 1
+        assert result.ability_steps[0].ability_type == new_ability.type
+        # New step has a different ID — old steps are gone
+        new_ids = {s.id for s in result.ability_steps}
+        assert new_ids.isdisjoint(original_ids)
+
+    def test_update_role_replaces_win_conditions(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+    ) -> None:
+        """When win_conditions provided, all existing conditions are deleted and replaced."""
+        from app.models.win_condition import WinCondition
+
+        service = RoleService(db_session)
+
+        # Seed one condition
+        db_session.add(
+            WinCondition(
+                id=uuid.uuid4(),
+                role_id=sample_unlocked_role.id,
+                condition_type="team_wins",
+                is_primary=True,
+                overrides_team=False,
+            )
+        )
+        db_session.commit()
+        original = service.get_role(sample_unlocked_role.id)
+        assert original is not None
+        assert len(original.win_conditions) == 1
+
+        # Replace with two new conditions
+        update_data = RoleUpdate(
+            win_conditions=[
+                WinConditionCreate(condition_type="self_dies", is_primary=True, overrides_team=True),
+                WinConditionCreate(condition_type="team_wins", is_primary=False, overrides_team=False),
+            ]
+        )
+        result = service.update_role(sample_unlocked_role.id, update_data)
+        assert result is not None
+        assert len(result.win_conditions) == 2
+        types = {wc.condition_type for wc in result.win_conditions}
+        assert types == {"self_dies", "team_wins"}
+
+    def test_update_role_clears_ability_steps_with_empty_list(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+        sample_ability,
+    ) -> None:
+        """ability_steps=[] deletes all existing steps (empty list != omitted)."""
+        from app.models.ability_step import AbilityStep
+
+        service = RoleService(db_session)
+
+        db_session.add(
+            AbilityStep(
+                id=uuid.uuid4(),
+                role_id=sample_unlocked_role.id,
+                ability_id=sample_ability.id,
+                order=1,
+                modifier="none",
+                is_required=True,
+                parameters={},
+            )
+        )
+        db_session.commit()
+
+        result = service.update_role(sample_unlocked_role.id, RoleUpdate(ability_steps=[]))
+        assert result is not None
+        assert result.ability_steps == []
+
+    def test_update_role_clears_win_conditions_with_empty_list(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+    ) -> None:
+        """win_conditions=[] deletes all existing conditions (empty list != omitted)."""
+        from app.models.win_condition import WinCondition
+
+        service = RoleService(db_session)
+
+        db_session.add(
+            WinCondition(
+                id=uuid.uuid4(),
+                role_id=sample_unlocked_role.id,
+                condition_type="team_wins",
+                is_primary=True,
+                overrides_team=False,
+            )
+        )
+        db_session.commit()
+
+        result = service.update_role(sample_unlocked_role.id, RoleUpdate(win_conditions=[]))
+        assert result is not None
+        assert result.win_conditions == []
+
+    def test_update_role_omitting_steps_leaves_them_unchanged(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+        sample_ability,
+    ) -> None:
+        """Omitting ability_steps from the update payload leaves existing steps intact."""
+        from app.models.ability_step import AbilityStep
+
+        service = RoleService(db_session)
+
+        step = AbilityStep(
+            id=uuid.uuid4(),
+            role_id=sample_unlocked_role.id,
+            ability_id=sample_ability.id,
+            order=1,
+            modifier="none",
+            is_required=True,
+            parameters={},
+        )
+        db_session.add(step)
+        db_session.commit()
+        original_step_id = step.id
+
+        # Update only the name — no ability_steps field
+        result = service.update_role(
+            sample_unlocked_role.id, RoleUpdate(name="Name Only Update")
+        )
+        assert result is not None
+        assert result.name == "Name Only Update"
+        assert len(result.ability_steps) == 1
+        assert result.ability_steps[0].id == original_step_id
+
+    def test_update_role_omitting_win_conditions_leaves_them_unchanged(
+        self,
+        db_session: Session,
+        sample_unlocked_role: Role,
+    ) -> None:
+        """Omitting win_conditions from the update payload leaves existing conditions intact."""
+        from app.models.win_condition import WinCondition
+
+        service = RoleService(db_session)
+
+        wc = WinCondition(
+            id=uuid.uuid4(),
+            role_id=sample_unlocked_role.id,
+            condition_type="team_wins",
+            is_primary=True,
+            overrides_team=False,
+        )
+        db_session.add(wc)
+        db_session.commit()
+        original_wc_id = wc.id
+
+        result = service.update_role(
+            sample_unlocked_role.id, RoleUpdate(name="Name Only Update")
+        )
+        assert result is not None
+        assert len(result.win_conditions) == 1
+        assert result.win_conditions[0].id == original_wc_id
+
+
+class TestRoleServiceCreateRoleCreatorId:
+    """Tests for creator_id support in RoleService.create_role."""
+
+    def test_create_role_stores_creator_id(self, db_session: Session) -> None:
+        """creator_id passed in RoleCreate is stored on the role."""
+        service = RoleService(db_session)
+        creator_id = uuid.uuid4()
+        role_data = RoleCreate(
+            name="Owned Role",
+            description="Role with owner",
+            team=Team.VILLAGE,
+            creator_id=creator_id,
+        )
+        result = service.create_role(role_data)
+        assert result.creator_id == creator_id
+
+    def test_create_role_without_creator_id_is_null(self, db_session: Session) -> None:
+        """Omitting creator_id results in null on the created role."""
+        service = RoleService(db_session)
+        role_data = RoleCreate(
+            name="Anonymous Role",
+            description="Role without owner",
+            team=Team.VILLAGE,
+        )
+        result = service.create_role(role_data)
+        assert result.creator_id is None
+
+
 class TestRoleServiceDeleteRole:
     """Tests for RoleService.delete_role method."""
 
@@ -313,6 +550,20 @@ class TestRoleServiceDeleteRole:
             service.delete_role(sample_role.id)
         # Verify still exists
         assert service.get_role(sample_role.id) is not None
+
+    def test_delete_official_role_raises_permission_error(
+        self,
+        db_session: Session,
+        sample_official_role: Role,
+    ) -> None:
+        """Deleting an official role raises PermissionError regardless of lock state."""
+        import pytest
+
+        service = RoleService(db_session)
+        with pytest.raises(PermissionError, match="Cannot delete official roles"):
+            service.delete_role(sample_official_role.id)
+        # Verify still exists
+        assert service.get_role(sample_official_role.id) is not None
 
     def test_delete_role_not_found(self, db_session: Session) -> None:
         """Test deleting a nonexistent role returns False."""

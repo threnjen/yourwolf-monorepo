@@ -217,6 +217,7 @@ class RoleService:
             default_count=role_data.default_count,
             min_count=role_data.min_count,
             max_count=role_data.max_count,
+            creator_id=role_data.creator_id,
         )
         self.db.add(role)
         self.db.flush()  # Get the role ID
@@ -285,8 +286,54 @@ class RoleService:
 
         # Update fields that are provided
         update_data = role_data.model_dump(exclude_unset=True)
+
+        # Handle ability_steps replacement — pop before scalar setattr loop
+        new_steps = update_data.pop("ability_steps", None)
+        # Handle win_conditions replacement — pop before scalar setattr loop
+        new_wcs = update_data.pop("win_conditions", None)
+
         for field, value in update_data.items():
             setattr(role, field, value)
+
+        if new_steps is not None:
+            # synchronize_session="fetch" required: "evaluate" raises
+            # UnmappedInstanceError when related objects are in the session
+            self.db.query(AbilityStep).filter(
+                AbilityStep.role_id == role.id
+            ).delete(synchronize_session="fetch")
+            for step_data in new_steps:
+                ability = (
+                    self.db.query(Ability)
+                    .filter(Ability.type == step_data["ability_type"])
+                    .first()
+                )
+                if ability:
+                    step = AbilityStep(
+                        role_id=role.id,
+                        ability_id=ability.id,
+                        order=step_data["order"],
+                        modifier=StepModifier(step_data.get("modifier", "none")),
+                        is_required=step_data.get("is_required", True),
+                        parameters=step_data.get("parameters", {}),
+                        condition_type=step_data.get("condition_type"),
+                        condition_params=step_data.get("condition_params"),
+                    )
+                    self.db.add(step)
+
+        if new_wcs is not None:
+            # synchronize_session="fetch" required: same reason as above
+            self.db.query(WinCondition).filter(
+                WinCondition.role_id == role.id
+            ).delete(synchronize_session="fetch")
+            for wc_data in new_wcs:
+                wc = WinCondition(
+                    role_id=role.id,
+                    condition_type=wc_data["condition_type"],
+                    condition_params=wc_data.get("condition_params"),
+                    is_primary=wc_data.get("is_primary", True),
+                    overrides_team=wc_data.get("overrides_team", False),
+                )
+                self.db.add(wc)
 
         self.db.commit()
         self.db.refresh(role)
@@ -312,6 +359,10 @@ class RoleService:
         # Check if role is locked
         if role.is_locked:
             raise PermissionError(f"Role '{role.name}' is locked and cannot be deleted")
+
+        # Official roles cannot be deleted
+        if role.visibility == Visibility.OFFICIAL:
+            raise PermissionError("Cannot delete official roles")
 
         self.db.delete(role)
         self.db.commit()

@@ -96,6 +96,7 @@ class RoleCreate(RoleBase):
     """Schema for creating a role."""
 
     visibility: Visibility = Visibility.PRIVATE
+    creator_id: UUID | None = None
     ability_steps: list["AbilityStepCreateInRole"] = Field(default_factory=list)
     win_conditions: list[WinConditionCreate] = Field(default_factory=list)
 
@@ -126,6 +127,20 @@ class RoleUpdate(BaseModel):
     min_count: int | None = Field(default=None, ge=1, le=10)
     max_count: int | None = Field(default=None, ge=1, le=10)
     is_primary_team_role: bool | None = None
+    ability_steps: list["AbilityStepCreateInRole"] | None = Field(
+        default=None,
+        description=(
+            "When provided, fully replaces all existing ability steps. "
+            "None (field omitted) = no change; [] = delete all steps."
+        ),
+    )
+    win_conditions: list[WinConditionCreate] | None = Field(
+        default=None,
+        description=(
+            "When provided, fully replaces all existing win conditions. "
+            "None (field omitted) = no change; [] = delete all conditions."
+        ),
+    )
 
 
 class RoleDependencyResponse(BaseModel):
@@ -191,3 +206,4 @@ class RoleListResponse(BaseModel):
 
 # Update forward references
 RoleCreate.model_rebuild()
+RoleUpdate.model_rebuild()
