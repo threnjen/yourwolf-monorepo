@@ -151,4 +151,19 @@ describe('useDrafts', () => {
     const {result} = renderHook(() => useDrafts());
     expect(result.current.drafts).toEqual([]);
   });
+
+  // T11: handles localStorage quota exceeded gracefully
+  it('does not crash when localStorage.setItem throws (quota exceeded)', () => {
+    localStorageMock.setItem.mockImplementation(() => {
+      throw new DOMException('QuotaExceededError');
+    });
+
+    const {result} = renderHook(() => useDrafts());
+
+    act(() => {
+      result.current.saveDraft(makeDraft('1', 'Big Role'));
+    });
+
+    expect(result.current.drafts).toHaveLength(1);
+  });
 });

@@ -4,22 +4,20 @@ import {RoleDraft} from '../types/role';
 const STORAGE_KEY = 'yourwolf_drafts';
 
 export function useDrafts() {
-  const [drafts, setDrafts] = useState<RoleDraft[]>([]);
-
-  // Load from localStorage on mount only
-  useEffect(() => {
+  const [drafts, setDrafts] = useState<RoleDraft[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw !== null) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          setDrafts(parsed);
+          return parsed;
         }
       }
     } catch {
       // Corrupted data — fall back to empty array
     }
-  }, []);
+    return [];
+  });
 
   // Sync to localStorage whenever drafts change
   useEffect(() => {
