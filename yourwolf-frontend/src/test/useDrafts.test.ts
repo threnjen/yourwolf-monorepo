@@ -10,7 +10,7 @@ const makeDraft = (id: string, name: string): RoleDraft => ({
   name,
   description: 'A test role',
   team: 'village',
-  wake_order: null,
+  wake_order: 0,
   wake_target: null,
   votes: 1,
   is_primary_team_role: false,

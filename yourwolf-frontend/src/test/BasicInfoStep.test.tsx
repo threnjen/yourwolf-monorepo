@@ -214,5 +214,33 @@ describe('BasicInfoStep', () => {
       fireEvent.change(screen.getByLabelText(/votes/i), {target: {value: '2'}});
       expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({votes: 2}));
     });
+
+    it('clearing wake order sets it to 0 not null', () => {
+      render(<BasicInfoStep draft={createMockDraft({wake_order: 5})} onChange={mockOnChange} />);
+      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: ''}});
+      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({wake_order: 0}));
+    });
+  });
+
+  describe('wake order label and hint', () => {
+    it('renders wake order label with range hint (0–40)', () => {
+      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
+      expect(screen.getByText(/wake order \(0–40\)/i)).toBeInTheDocument();
+    });
+
+    it('shows does-not-wake hint when wake_order is 0', () => {
+      render(<BasicInfoStep draft={createMockDraft({wake_order: 0})} onChange={mockOnChange} />);
+      expect(screen.getByText('Does not wake up')).toBeInTheDocument();
+    });
+
+    it('hides does-not-wake hint when wake_order > 0', () => {
+      render(<BasicInfoStep draft={createMockDraft({wake_order: 5})} onChange={mockOnChange} />);
+      expect(screen.queryByText('Does not wake up')).not.toBeInTheDocument();
+    });
+
+    it('shows does-not-wake hint when wake_order is null (legacy)', () => {
+      render(<BasicInfoStep draft={createMockDraft({wake_order: null})} onChange={mockOnChange} />);
+      expect(screen.getByText('Does not wake up')).toBeInTheDocument();
+    });
   });
 });

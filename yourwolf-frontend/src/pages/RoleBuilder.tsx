@@ -13,7 +13,7 @@ function createEmptyDraft(): RoleDraft {
     name: '',
     description: '',
     team: 'village',
-    wake_order: null,
+    wake_order: 0,
     wake_target: null,
     votes: 1,
     is_primary_team_role: false,

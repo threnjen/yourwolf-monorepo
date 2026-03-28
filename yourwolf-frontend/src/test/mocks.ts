@@ -219,7 +219,7 @@ export function createMockDraft(overrides: Partial<RoleDraft> = {}): RoleDraft {
     name: 'Test Draft Role',
     description: 'A test draft role',
     team: 'village' as Team,
-    wake_order: null,
+    wake_order: 0,
     wake_target: null,
     votes: 1,
     is_primary_team_role: false,
