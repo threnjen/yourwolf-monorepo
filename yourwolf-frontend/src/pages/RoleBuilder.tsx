@@ -4,35 +4,8 @@ import {RoleDraft, ValidationResult} from '../types/role';
 import {rolesApi} from '../api/roles';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {theme} from '../styles/theme';
-
-const containerStyles: React.CSSProperties = {
-  width: '100%',
-};
-
-const headerStyles: React.CSSProperties = {
-  marginBottom: theme.spacing.lg,
-};
-
-const titleStyles: React.CSSProperties = {
-  fontSize: '2rem',
-  fontWeight: 700,
-  color: theme.colors.text,
-  marginBottom: theme.spacing.xs,
-};
-
-const subtitleStyles: React.CSSProperties = {
-  fontSize: '1rem',
-  color: theme.colors.textMuted,
-};
-
-const errorStyles: React.CSSProperties = {
-  backgroundColor: `${theme.colors.error}20`,
-  border: `1px solid ${theme.colors.error}`,
-  borderRadius: theme.borderRadius.md,
-  padding: theme.spacing.md,
-  color: theme.colors.error,
-  marginBottom: theme.spacing.md,
-};
+import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
+import {ErrorBanner} from '../components/ErrorBanner';
 
 function createEmptyDraft(): RoleDraft {
   const now = new Date().toISOString();
@@ -108,16 +81,14 @@ export function RoleBuilderPage() {
   }, [draft, navigate]);
 
   return (
-    <div style={containerStyles}>
-      <header style={headerStyles}>
-        <h1 style={titleStyles}>Create New Role</h1>
-        <p style={subtitleStyles}>Build a custom role by composing abilities and win conditions</p>
+    <div style={pageContainerStyles}>
+      <header style={pageHeaderStyles}>
+        <h1 style={pageTitleStyles}>Create New Role</h1>
+        <p style={pageSubtitleStyles}>Build a custom role by composing abilities and win conditions</p>
       </header>
 
       {saveError && (
-        <div style={errorStyles}>
-          <strong>Error creating role:</strong> {saveError}
-        </div>
+        <ErrorBanner message={`Error creating role: ${saveError}`} />
       )}
 
       <Wizard

@@ -1,5 +1,5 @@
 import {apiClient} from './client';
-import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult} from '../types/role';
+import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, Visibility} from '../types/role';
 
 interface RoleListParams {
   team?: string;
@@ -48,7 +48,33 @@ export const rolesApi = {
   },
 };
 
-function draftToPayload(draft: RoleDraft) {
+interface RoleCreatePayload {
+  name: string;
+  description: string;
+  team: Team;
+  wake_order: number | null;
+  wake_target: string | null;
+  votes: number;
+  visibility: Visibility;
+  creator_id: null;
+  ability_steps: {
+    ability_type: string;
+    order: number;
+    modifier: string;
+    is_required: boolean;
+    parameters: Record<string, unknown>;
+    condition_type?: string;
+    condition_params?: Record<string, unknown>;
+  }[];
+  win_conditions: {
+    condition_type: string;
+    condition_params: Record<string, unknown> | null;
+    is_primary: boolean;
+    overrides_team: boolean;
+  }[];
+}
+
+function draftToPayload(draft: RoleDraft): RoleCreatePayload {
   return {
     name: draft.name,
     description: draft.description,

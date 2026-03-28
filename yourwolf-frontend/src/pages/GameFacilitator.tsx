@@ -5,6 +5,8 @@ import {gamesApi} from '../api/games';
 import {Timer} from '../components/Timer';
 import {ScriptReader} from '../components/ScriptReader';
 import {theme} from '../styles/theme';
+import {loadingStyles, errorStyles} from '../styles/shared';
+import {ErrorBanner} from '../components/ErrorBanner';
 import type {GameSession, NightScript} from '../types/game';
 
 const containerStyles: React.CSSProperties = {
@@ -52,24 +54,6 @@ const centerTextStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,
 };
 
-const loadingStyles: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  minHeight: '200px',
-  color: theme.colors.textMuted,
-  fontSize: '1.1rem',
-};
-
-const errorStyles: React.CSSProperties = {
-  backgroundColor: `${theme.colors.error}20`,
-  border: `1px solid ${theme.colors.error}`,
-  borderRadius: theme.borderRadius.md,
-  padding: theme.spacing.lg,
-  color: theme.colors.error,
-  textAlign: 'center',
-};
-
 // --- Phase sub-components ---
 
 function SetupPhaseView({
@@ -78,7 +62,7 @@ function SetupPhaseView({
 }: {
   game: GameSession;
   onStart: () => void;
-}): React.ReactElement {
+}) {
   return (
     <div style={{textAlign: 'center'}}>
       <p style={centerTextStyles}>
@@ -99,7 +83,7 @@ function NightPhaseView({
 }: {
   script: NightScript;
   onComplete: () => void;
-}): React.ReactElement {
+}) {
   return <ScriptReader script={script} onComplete={onComplete} />;
 }
 
@@ -109,7 +93,7 @@ function DiscussionPhaseView({
 }: {
   timerSeconds: number;
   onComplete: () => void;
-}): React.ReactElement {
+}) {
   return (
     <div style={{textAlign: 'center'}}>
       <h2 style={{color: theme.colors.text, marginBottom: theme.spacing.lg}}>
@@ -132,7 +116,7 @@ function VotingPhaseView({
   onComplete,
 }: {
   onComplete: () => void;
-}): React.ReactElement {
+}) {
   return (
     <div style={{textAlign: 'center'}}>
       <h2 style={{color: theme.colors.text, marginBottom: theme.spacing.lg}}>
@@ -153,7 +137,7 @@ function ResolutionPhaseView({
   onComplete,
 }: {
   onComplete: () => void;
-}): React.ReactElement {
+}) {
   return (
     <div style={{textAlign: 'center'}}>
       <h2 style={{color: theme.colors.text, marginBottom: theme.spacing.lg}}>
@@ -173,7 +157,7 @@ function CompletePhaseView({
   onNewGame,
 }: {
   onNewGame: () => void;
-}): React.ReactElement {
+}) {
   return (
     <div style={{textAlign: 'center'}}>
       <h2 style={{color: theme.colors.text, marginBottom: theme.spacing.lg}}>
@@ -189,11 +173,26 @@ function CompletePhaseView({
 
 // --- Main Page ---
 
-export function GameFacilitatorPage(): React.ReactElement {
+export function GameFacilitatorPage() {
   const {gameId} = useParams<{gameId: string}>();
   const navigate = useNavigate();
-  const {game, loading, error, refetch} = useGame(gameId!);
-  const {script, loading: scriptLoading, error: scriptError} = useNightScript(gameId!, game?.phase === 'night');
+
+  if (!gameId) {
+    return <ErrorBanner message="Game not found" />;
+  }
+
+  return <GameFacilitatorContent gameId={gameId} navigate={navigate} />;
+}
+
+function GameFacilitatorContent({
+  gameId,
+  navigate,
+}: {
+  gameId: string;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const {game, loading, error, refetch} = useGame(gameId);
+  const {script, loading: scriptLoading, error: scriptError} = useNightScript(gameId, game?.phase === 'night');
   const [actionError, setActionError] = React.useState<string | null>(null);
 
   if (loading) {
@@ -209,7 +208,7 @@ export function GameFacilitatorPage(): React.ReactElement {
   const handleAdvancePhase = async () => {
     setActionError(null);
     try {
-      await gamesApi.advancePhase(gameId!);
+      await gamesApi.advancePhase(gameId);
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to advance phase';
@@ -220,7 +219,7 @@ export function GameFacilitatorPage(): React.ReactElement {
   const handleStartGame = async () => {
     setActionError(null);
     try {
-      await gamesApi.start(gameId!);
+      await gamesApi.start(gameId);
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game';
@@ -240,23 +239,7 @@ export function GameFacilitatorPage(): React.ReactElement {
 
       {/* Action error banner */}
       {actionError && (
-        <div style={errorStyles} role="alert">
-          <span>{actionError}</span>
-          <button
-            onClick={() => setActionError(null)}
-            style={{
-              marginLeft: theme.spacing.md,
-              background: 'none',
-              border: 'none',
-              color: theme.colors.error,
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-            aria-label="Dismiss error"
-          >
-            ×
-          </button>
-        </div>
+        <ErrorBanner message={actionError} onDismiss={() => setActionError(null)} />
       )}
 
       {/* Phase-specific content */}

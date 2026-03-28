@@ -20,7 +20,7 @@ const navButtonStyle: React.CSSProperties = {
 export function ScriptReader({
   script,
   onComplete,
-}: ScriptReaderProps): React.ReactElement {
+}: ScriptReaderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentAction = script.actions[currentIndex];
   const isLastAction = currentIndex === script.actions.length - 1;

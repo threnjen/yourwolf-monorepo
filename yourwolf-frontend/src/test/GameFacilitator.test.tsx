@@ -29,9 +29,26 @@ function renderFacilitator(gameId: string = 'game-123') {
   );
 }
 
+function renderFacilitatorWithoutParam() {
+  return render(
+    <MemoryRouter initialEntries={['/games/']}>
+      <Routes>
+        <Route path="/games/" element={<GameFacilitatorPage />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
 describe('GameFacilitatorPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('missing gameId', () => {
+    it('shows error when gameId param is missing', () => {
+      renderFacilitatorWithoutParam();
+      expect(screen.getByText('Game not found')).toBeInTheDocument();
+    });
   });
 
   describe('loading state', () => {

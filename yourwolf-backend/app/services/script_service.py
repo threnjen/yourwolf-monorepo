@@ -1,6 +1,7 @@
 """Night script generation service."""
 
 import logging
+from typing import Any
 
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.game_role import GameRole
@@ -251,7 +252,7 @@ class ScriptService:
 
         return None
 
-    def _view_card_instruction(self, role: Role, params: dict) -> str:
+    def _view_card_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate view_card instruction."""
         target = params.get("target", "player.other")
         count = params.get("count", 1)
@@ -268,7 +269,7 @@ class ScriptService:
             return f"You may look at {count} cards from the center."
         return "You may look at a card."
 
-    def _swap_card_instruction(self, role: Role, params: dict) -> str:
+    def _swap_card_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate swap_card instruction."""
         target_a = params.get("target_a", "")
         target_b = params.get("target_b", "")
@@ -282,18 +283,18 @@ class ScriptService:
             return "You may swap that center card with any player's card."
         return "You may swap two other players' cards."
 
-    def _take_card_instruction(self, role: Role, params: dict) -> str:
+    def _take_card_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate take_card instruction."""
         target = params.get("target", "player.other")
         if "center" in target:
             return "Take a card from the center."
         return "Take another player's card."
 
-    def _view_awake_instruction(self, role: Role, params: dict) -> str:
+    def _view_awake_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate view_awake instruction."""
         return "Look around and see who else is awake."
 
-    def _thumbs_up_instruction(self, role: Role, params: dict) -> str:
+    def _thumbs_up_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate thumbs_up instruction."""
         target = params.get("target", "")
 
@@ -309,24 +310,24 @@ class ScriptService:
             return "Everyone who viewed or moved a card tonight, put your thumb out."
         return "Put your thumb out."
 
-    def _no_view_instruction(self, role: Role, params: dict) -> str:
+    def _no_view_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate explicit_no_view instruction."""
         return "Do not look at your new card."
 
-    def _rotate_instruction(self, role: Role, params: dict) -> str:
+    def _rotate_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate rotate_all instruction."""
         direction = params.get("direction", "left")
         return f"You may move all player cards one position to the {direction}."
 
-    def _touch_instruction(self, role: Role, params: dict) -> str:
+    def _touch_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate touch instruction."""
         return "Reach out and tap the player next to you."
 
-    def _flip_card_instruction(self, role: Role, params: dict) -> str:
+    def _flip_card_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate flip_card instruction."""
         return "You may flip that player's card face up."
 
-    def _copy_role_instruction(self, role: Role, params: dict) -> str:
+    def _copy_role_instruction(self, role: Role, params: dict[str, Any]) -> str:
         """Generate copy_role instruction."""
         return "You are now that role for the rest of the game."
 

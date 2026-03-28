@@ -1,8 +1,8 @@
 """Ability endpoints."""
 
 from app.database import get_db
-from app.models.ability import Ability
 from app.schemas.ability import AbilityRead
+from app.services.ability_service import AbilityService
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -21,8 +21,8 @@ async def list_abilities(
     Returns:
         List of all available abilities.
     """
-    abilities = db.query(Ability).filter(Ability.is_active.is_(True)).all()
-    return [AbilityRead.model_validate(a) for a in abilities]
+    service = AbilityService(db)
+    return service.list_active_abilities()
 
 
 @router.get("/{ability_type}", response_model=AbilityRead)
@@ -42,10 +42,11 @@ async def get_ability_by_type(
     Raises:
         HTTPException: If ability not found.
     """
-    ability = db.query(Ability).filter(Ability.type == ability_type).first()
+    service = AbilityService(db)
+    ability = service.get_ability_by_type(ability_type)
     if not ability:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ability with type '{ability_type}' not found",
         )
-    return AbilityRead.model_validate(ability)
+    return ability

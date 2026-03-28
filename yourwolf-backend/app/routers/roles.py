@@ -181,7 +181,13 @@ async def create_role(
         Created role with full details.
     """
     service = RoleService(db)
-    return service.create_role(role_data)
+    try:
+        return service.create_role(role_data)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
 
 
 @router.put("/{role_id}", response_model=RoleRead)
@@ -210,7 +216,12 @@ async def update_role(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(e),
-        )
+        ) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
     if not role:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

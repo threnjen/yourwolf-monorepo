@@ -40,17 +40,7 @@ export interface Role {
   win_conditions: WinCondition[];
 }
 
-export interface AbilityStepDraft {
-  id: string;
-  order: number;
-  modifier: StepModifier;
-  is_required: boolean;
-  parameters: Record<string, unknown>;
-  condition_type?: string;
-  condition_params?: Record<string, unknown>;
-  ability_type: string;
-  ability_name: string;
-}
+export type AbilityStepDraft = AbilityStep;
 
 export interface WinConditionDraft {
   id: string;

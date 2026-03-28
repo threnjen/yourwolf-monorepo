@@ -1,10 +1,12 @@
 """Custom SQLAlchemy types for cross-database compatibility."""
 
 import uuid as uuid_module
+from typing import Any
 
 from sqlalchemy import JSON, String, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
+from sqlalchemy.engine.interfaces import Dialect
 
 
 class JSONB(TypeDecorator):
@@ -17,7 +19,7 @@ class JSONB(TypeDecorator):
     impl = JSON
     cache_ok = True
 
-    def load_dialect_impl(self, dialect):
+    def load_dialect_impl(self, dialect: Dialect) -> Any:
         """Load the appropriate dialect implementation."""
         if dialect.name == "postgresql":
             return dialect.type_descriptor(PostgresJSONB())
@@ -34,13 +36,15 @@ class UUID(TypeDecorator):
     impl = String(36)
     cache_ok = True
 
-    def load_dialect_impl(self, dialect):
+    def load_dialect_impl(self, dialect: Dialect) -> Any:
         """Load the appropriate dialect implementation."""
         if dialect.name == "postgresql":
             return dialect.type_descriptor(PostgresUUID(as_uuid=True))
         return dialect.type_descriptor(String(36))
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(
+        self, value: uuid_module.UUID | None, dialect: Dialect
+    ) -> uuid_module.UUID | str | None:
         """Convert UUID to string for storage."""
         if value is None:
             return value
@@ -50,7 +54,9 @@ class UUID(TypeDecorator):
             return str(value)
         return value
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(
+        self, value: str | uuid_module.UUID | None, dialect: Dialect
+    ) -> uuid_module.UUID | None:
         """Convert stored value back to UUID."""
         if value is None:
             return value

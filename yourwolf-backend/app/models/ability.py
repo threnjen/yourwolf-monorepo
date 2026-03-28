@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from app.database import Base
 from app.models.types import JSONB, UUID
@@ -46,7 +47,7 @@ class Ability(Base):
         Text,
         nullable=False,
     )
-    parameters_schema: Mapped[dict] = mapped_column(
+    parameters_schema: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         default=dict,
         nullable=False,

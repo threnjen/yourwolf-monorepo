@@ -1,30 +1,10 @@
-import React, {useState, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
+import {useGameSetup, PLAYER_COUNT_MIN, PLAYER_COUNT_MAX, CENTER_COUNT_MIN, CENTER_COUNT_MAX, TIMER_MIN_SECONDS, TIMER_MAX_SECONDS, TIMER_STEP_SECONDS} from '../hooks/useGameSetup';
 import {RoleCard} from '../components/RoleCard';
-import {gamesApi} from '../api/games';
 import {theme} from '../styles/theme';
-import type {RoleListItem} from '../types/role';
-
-const containerStyles: React.CSSProperties = {
-  width: '100%',
-};
-
-const headerStyles: React.CSSProperties = {
-  marginBottom: theme.spacing.lg,
-};
-
-const titleStyles: React.CSSProperties = {
-  fontSize: '2rem',
-  fontWeight: 700,
-  color: theme.colors.text,
-  marginBottom: theme.spacing.xs,
-};
-
-const subtitleStyles: React.CSSProperties = {
-  fontSize: '1rem',
-  color: theme.colors.textMuted,
-};
+import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
+import {ErrorBanner} from '../components/ErrorBanner';
 
 const configGridStyles: React.CSSProperties = {
   display: 'grid',
@@ -69,15 +49,6 @@ const buttonStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-const errorStyles: React.CSSProperties = {
-  backgroundColor: `${theme.colors.error}20`,
-  border: `1px solid ${theme.colors.error}`,
-  borderRadius: theme.borderRadius.md,
-  padding: theme.spacing.md,
-  color: theme.colors.error,
-  marginBottom: theme.spacing.md,
-};
-
 const quantityBtnStyles: React.CSSProperties = {
   width: '28px',
   height: '28px',
@@ -102,136 +73,32 @@ const quantityBadgeStyles: React.CSSProperties = {
   textAlign: 'center',
 };
 
-export function GameSetupPage(): React.ReactElement {
+export function GameSetupPage() {
   const navigate = useNavigate();
   const {roles, loading} = useRoles();
 
-  const [playerCount, setPlayerCount] = useState(5);
-  const [centerCount, setCenterCount] = useState(3);
-  const [timerSeconds, setTimerSeconds] = useState(300);
-  const [playerCountInput, setPlayerCountInput] = useState('5');
-  const [centerCountInput, setCenterCountInput] = useState('3');
-  const [timerSecondsInput, setTimerSecondsInput] = useState('300');
-  const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const roleMap = useMemo(() => {
-    const map: Record<string, RoleListItem> = {};
-    for (const role of roles) {
-      map[role.id] = role;
-    }
-    return map;
-  }, [roles]);
-
-  const totalSelectedCards = useMemo(
-    () => Object.values(selectedRoleCounts).reduce((sum, c) => sum + c, 0),
-    [selectedRoleCounts],
-  );
-
-  const selectedRoleIds = useMemo(() => {
-    const ids: string[] = [];
-    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
-      for (let i = 0; i < count; i++) {
-        ids.push(roleId);
-      }
-    }
-    return ids;
-  }, [selectedRoleCounts]);
-
-  const totalCardsNeeded = playerCount + centerCount;
-  const canStart = totalSelectedCards === totalCardsNeeded && !submitting;
-
-  const removeRoleWithCascade = useCallback(
-    (counts: Record<string, number>, roleId: string): Record<string, number> => {
-      const next = {...counts};
-      delete next[roleId];
-
-      // Cascade-remove any selected role that REQUIRES the removed role
-      for (const [otherId, otherCount] of Object.entries(next)) {
-        if (otherCount <= 0) continue;
-        const otherRole = roleMap[otherId];
-        if (!otherRole) continue;
-        const requiresRemoved = otherRole.dependencies.some(
-          (dep) => dep.dependency_type === 'requires' && dep.required_role_id === roleId,
-        );
-        if (requiresRemoved) {
-          delete next[otherId];
-        }
-      }
-      return next;
-    },
-    [roleMap],
-  );
-
-  const selectRole = useCallback(
-    (roleId: string) => {
-      setSelectedRoleCounts((prev) => {
-        if (prev[roleId] && prev[roleId] > 0) {
-          // Deselect: remove with cascade
-          return removeRoleWithCascade(prev, roleId);
-        }
-
-        // Select: add at default_count
-        const role = roleMap[roleId];
-        if (!role) return prev;
-
-        const next = {...prev, [roleId]: role.default_count};
-
-        // Auto-select REQUIRES dependencies
-        for (const dep of role.dependencies) {
-          if (dep.dependency_type !== 'requires') continue;
-          if (next[dep.required_role_id] && next[dep.required_role_id] > 0) continue;
-          const requiredRole = roleMap[dep.required_role_id];
-          if (!requiredRole) continue;
-          next[dep.required_role_id] = requiredRole.default_count;
-        }
-
-        return next;
-      });
-    },
-    [roleMap, removeRoleWithCascade],
-  );
-
-  const adjustCount = useCallback(
-    (roleId: string, delta: number) => {
-      setSelectedRoleCounts((prev) => {
-        const role = roleMap[roleId];
-        if (!role) return prev;
-        const current = prev[roleId] || 0;
-        const newCount = current + delta;
-
-        if (newCount > role.max_count) return prev;
-        if (newCount < role.min_count) {
-          return removeRoleWithCascade(prev, roleId);
-        }
-
-        return {...prev, [roleId]: newCount};
-      });
-    },
-    [roleMap, removeRoleWithCascade],
-  );
-
-  const handleStartGame = async () => {
-    if (!canStart) return;
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const game = await gamesApi.create({
-        player_count: playerCount,
-        center_card_count: centerCount,
-        discussion_timer_seconds: timerSeconds,
-        role_ids: selectedRoleIds,
-      });
-      navigate(`/games/${game.id}`);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to create game',
-      );
-      setSubmitting(false);
-    }
-  };
+  const {
+    playerCount,
+    setPlayerCount,
+    playerCountInput,
+    setPlayerCountInput,
+    centerCount,
+    setCenterCount,
+    centerCountInput,
+    setCenterCountInput,
+    setTimerSeconds,
+    timerSecondsInput,
+    setTimerSecondsInput,
+    selectedRoleCounts,
+    totalSelectedCards,
+    totalCardsNeeded,
+    canStart,
+    submitting,
+    error,
+    selectRole,
+    adjustCount,
+    handleStartGame,
+  } = useGameSetup(roles, navigate);
 
   if (loading) {
     return (
@@ -242,15 +109,15 @@ export function GameSetupPage(): React.ReactElement {
   }
 
   return (
-    <div style={containerStyles}>
-      <div style={headerStyles}>
-        <h1 style={titleStyles}>New Game Setup</h1>
-        <p style={subtitleStyles}>
+    <div style={pageContainerStyles}>
+      <div style={pageHeaderStyles}>
+        <h1 style={pageTitleStyles}>New Game Setup</h1>
+        <p style={pageSubtitleStyles}>
           Configure your game and select roles for all players and center cards.
         </p>
       </div>
 
-      {error && <div style={errorStyles}>{error}</div>}
+      {error && <ErrorBanner message={error} />}
 
       {/* Configuration */}
       <div style={configGridStyles}>
@@ -259,12 +126,12 @@ export function GameSetupPage(): React.ReactElement {
           <input
             id="player-count"
             type="number"
-            min={3}
-            max={20}
+            min={PLAYER_COUNT_MIN}
+            max={PLAYER_COUNT_MAX}
             value={playerCountInput}
             onChange={(e) => setPlayerCountInput(e.target.value)}
             onBlur={() => {
-              const v = Math.max(3, Math.min(20, parseInt(playerCountInput) || 3));
+              const v = Math.max(PLAYER_COUNT_MIN, Math.min(PLAYER_COUNT_MAX, parseInt(playerCountInput) || PLAYER_COUNT_MIN));
               setPlayerCount(v);
               setPlayerCountInput(String(v));
             }}
@@ -276,12 +143,12 @@ export function GameSetupPage(): React.ReactElement {
           <input
             id="center-count"
             type="number"
-            min={0}
-            max={5}
+            min={CENTER_COUNT_MIN}
+            max={CENTER_COUNT_MAX}
             value={centerCountInput}
             onChange={(e) => setCenterCountInput(e.target.value)}
             onBlur={() => {
-              const v = Math.max(0, Math.min(5, parseInt(centerCountInput) || 0));
+              const v = Math.max(CENTER_COUNT_MIN, Math.min(CENTER_COUNT_MAX, parseInt(centerCountInput) || CENTER_COUNT_MIN));
               setCenterCount(v);
               setCenterCountInput(String(v));
             }}
@@ -293,13 +160,13 @@ export function GameSetupPage(): React.ReactElement {
           <input
             id="timer-seconds"
             type="number"
-            min={60}
-            max={1800}
-            step={30}
+            min={TIMER_MIN_SECONDS}
+            max={TIMER_MAX_SECONDS}
+            step={TIMER_STEP_SECONDS}
             value={timerSecondsInput}
             onChange={(e) => setTimerSecondsInput(e.target.value)}
             onBlur={() => {
-              const v = Math.max(60, Math.min(1800, parseInt(timerSecondsInput) || 60));
+              const v = Math.max(TIMER_MIN_SECONDS, Math.min(TIMER_MAX_SECONDS, parseInt(timerSecondsInput) || TIMER_MIN_SECONDS));
               setTimerSeconds(v);
               setTimerSecondsInput(String(v));
             }}
@@ -313,7 +180,7 @@ export function GameSetupPage(): React.ReactElement {
         <h2 style={{color: theme.colors.text, fontSize: '1.4rem'}}>
           Select Roles ({totalSelectedCards} / {totalCardsNeeded})
         </h2>
-        <p style={subtitleStyles}>
+        <p style={pageSubtitleStyles}>
           You need exactly {totalCardsNeeded} roles ({playerCount} players +{' '}
           {centerCount} center)
         </p>

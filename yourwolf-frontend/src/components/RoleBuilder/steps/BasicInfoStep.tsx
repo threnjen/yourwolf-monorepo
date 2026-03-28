@@ -1,7 +1,7 @@
 import {useState, useEffect, useRef} from 'react';
 import {RoleDraft, Team} from '../../../types/role';
 import {rolesApi} from '../../../api/roles';
-import {theme} from '../../../styles/theme';
+import {theme, TEAM_COLORS, capitalize} from '../../../styles/theme';
 
 interface BasicInfoStepProps {
   draft: RoleDraft;
@@ -9,14 +9,6 @@ interface BasicInfoStepProps {
 }
 
 const TEAMS: Team[] = ['village', 'werewolf', 'vampire', 'alien', 'neutral'];
-
-const TEAM_COLORS: Record<Team, string> = {
-  village: theme.colors.village,
-  werewolf: theme.colors.werewolf,
-  vampire: theme.colors.vampire,
-  alien: theme.colors.alien,
-  neutral: theme.colors.neutral,
-};
 
 type NameStatus = 'idle' | 'checking' | 'available' | 'taken';
 
@@ -183,7 +175,7 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
               onClick={() => handleTeamChange(team)}
               type="button"
             >
-              {team.charAt(0).toUpperCase() + team.slice(1)}
+              {capitalize(team)}
             </button>
           ))}
         </div>

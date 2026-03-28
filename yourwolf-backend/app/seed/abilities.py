@@ -253,7 +253,7 @@ def seed_abilities(db: Session) -> int:
         )
 
         if existing:
-            logger.debug(f"Ability '{ability_data['type']}' already exists, skipping.")
+            logger.debug("Ability '%s' already exists, skipping.", ability_data["type"])
             continue
 
         # Create new ability
@@ -266,7 +266,7 @@ def seed_abilities(db: Session) -> int:
         )
         db.add(ability)
         created_count += 1
-        logger.info(f"Created ability: {ability_data['type']}")
+        logger.info("Created ability: %s", ability_data["type"])
 
     db.commit()
     return created_count

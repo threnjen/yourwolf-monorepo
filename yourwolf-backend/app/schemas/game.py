@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 from app.models.game_session import GamePhase
+from app.schemas.base import PaginatedResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -59,14 +60,10 @@ class GameSessionListResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class GameSessionPaginatedResponse(BaseModel):
+class GameSessionPaginatedResponse(PaginatedResponse[GameSessionListResponse]):
     """Paginated response for game session list."""
 
-    items: list[GameSessionListResponse]
-    total: int
-    page: int
-    limit: int
-    pages: int
+    pass
 
 
 class NarratorAction(BaseModel):
