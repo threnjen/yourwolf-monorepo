@@ -287,7 +287,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
   function handleRemoveStep(index: number) {
     const updated = draft.ability_steps
       .filter((_, i) => i !== index)
-      .map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
+      .map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
     onChange({...draft, ability_steps: updated});
   }
 
@@ -295,7 +295,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
     if (index === 0) return;
     const steps = [...draft.ability_steps];
     [steps[index - 1], steps[index]] = [steps[index], steps[index - 1]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
+    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
     onChange({...draft, ability_steps: renumbered});
   }
 
@@ -303,7 +303,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
     if (index === draft.ability_steps.length - 1) return;
     const steps = [...draft.ability_steps];
     [steps[index], steps[index + 1]] = [steps[index + 1], steps[index]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : step.modifier}));
+    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
     onChange({...draft, ability_steps: renumbered});
   }
 
