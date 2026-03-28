@@ -48,7 +48,10 @@ describe('rolesApi', () => {
 
       const result = await rolesApi.list();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {params: undefined});
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
+        params: undefined,
+        paramsSerializer: {indexes: null},
+      });
       expect(result).toEqual(mockRoles);
     });
 
@@ -60,17 +63,19 @@ describe('rolesApi', () => {
 
       expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
         params: {team: 'werewolf'},
+        paramsSerializer: {indexes: null},
       });
     });
 
-    it('passes visibility filter', async () => {
+    it('passes visibility filter as array', async () => {
       const mockRoles = createMockRoles(2);
       mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
 
-      await rolesApi.list({visibility: 'official'});
+      await rolesApi.list({visibility: ['official']});
 
       expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
-        params: {visibility: 'official'},
+        params: {visibility: ['official']},
+        paramsSerializer: {indexes: null},
       });
     });
 
@@ -80,14 +85,15 @@ describe('rolesApi', () => {
 
       await rolesApi.list({
         team: 'village',
-        visibility: 'public',
+        visibility: ['public'],
       });
 
       expect(mockApiClient.get).toHaveBeenCalledWith('/roles', {
         params: {
           team: 'village',
-          visibility: 'public',
+          visibility: ['public'],
         },
+        paramsSerializer: {indexes: null},
       });
     });
 

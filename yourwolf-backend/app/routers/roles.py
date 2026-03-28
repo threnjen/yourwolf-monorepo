@@ -22,9 +22,9 @@ router = APIRouter()
 @router.get("/", response_model=RoleListResponse)
 async def list_roles(
     team: Team | None = Query(default=None, description="Filter by team"),
-    visibility: Visibility | None = Query(
+    visibility: list[Visibility] | None = Query(
         default=None,
-        description="Filter by visibility",
+        description="Filter by visibility (supports multiple values)",
     ),
     page: int = Query(default=1, ge=1, description="Page number"),
     limit: int = Query(default=20, ge=1, le=100, description="Items per page"),

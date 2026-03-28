@@ -2,7 +2,7 @@
 
 **Date:** March 28, 2026
 **Mode:** Release QA Plan
-**Scope:** Role Builder Wizard (all 13 features delivered in Phase 3)
+**Scope:** Role Builder Wizard (all 13 features delivered in Phase 3) + Roles Listing Filters
 **Environment:** Local dev (Docker Compose — backend + frontend + PostgreSQL)
 **Prerequisites:**
 - From `yourwolf-backend/`, run `docker compose up` — this starts PostgreSQL, runs migrations, seeds data, and starts the backend at `localhost:8000` and frontend at `localhost:3000`
@@ -27,6 +27,7 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 - **Backend validation logic**: Name length (2–50), step ordering (sequential, no gaps/duplicates), first-step modifier = "none", win condition counts (≥1, exactly 1 primary), ability type existence checks, duplicate name detection (case-insensitive), warnings (>5 steps, missing wake_order, conflicting abilities), wake_order schema constraint (0–40)
 - **Backend CRUD**: Step/condition replacement on PUT, locked role guards (403), official role deletion guard (403), creator_id persistence, exclude_unset partial update, dependency eager loading, check-name endpoint
 - **Frontend components**: All wizard step components (BasicInfoStep, AbilitiesStep, WinConditionsStep, ReviewStep), Wizard navigation/state, RoleBuilder page create flow, parameter initialization, modifier label text, win condition label text, primary toggle visibility/auto-clear, team sort utility (sort + group functions), team section header rendering, useAbilities hook, useDrafts hook (CRUD, corruption recovery, quota), RoleCard badge rendering, GameSetup multi-copy selection/dependency cascade, ErrorBanner component, API client methods, routing
+- **Roles Listing Filters**: Filter button rendering (3 buttons with correct text), default filter state (`aria-pressed` assertions), toggle refetch logic, prevent-all-off guard, page title/subtitle text, `useRoles` hook visibility-driven fetching, `rolesApi.list` array serialization, backend multi-visibility query (`GET /api/roles?visibility=official&visibility=private`), single visibility backward compat, no-param-returns-all
 
 ---
 
@@ -41,31 +42,31 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Navigate to `http://localhost:3000/roles/new` | Page loads with "Create New Role" heading and subtitle |
-| [ ] | Observe step indicator | 4 steps visible: "Basic Info", "Abilities", "Win Conditions", "Review"; "Basic Info" is active/highlighted; others are dimmed |
-| [ ] | Click "✏️ New Role" in the sidebar | Navigates to `/roles/new` |
+| [x] | Navigate to `http://localhost:3000/roles/new` | Page loads with "Create New Role" heading and subtitle |
+| [x] | Observe step indicator | 4 steps visible: "Basic Info", "Abilities", "Win Conditions", "Review"; "Basic Info" is active/highlighted; others are dimmed |
+| [x] | Click "✏️ New Role" in the sidebar | Navigates to `/roles/new` |
 
 #### 1.2 Basic Info Step
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order empty; Votes defaults to 1 |
-| [ ] | Type "Se" in the Name field, wait ~500ms | "Checking..." appears below the field briefly, then "Taken ✗" (Seer exists as official role) |
-| [ ] | Clear name, type "My Custom Role", wait ~500ms | "Checking..." appears, then "Available ✓" |
-| [ ] | Observe "Next" button with empty name | Button is disabled (grayed out, not-allowed cursor) |
-| [ ] | Enter a name with 2+ characters | "Next" button becomes enabled |
-| [ ] | Click each of the 5 team buttons: Village, Werewolf, Vampire, Alien, Neutral | Each highlights with its distinct team color; only one is active at a time |
-| [ ] | Select "Werewolf" team | "Primary team role" checkbox appears below the team buttons with subtext: "Primary team roles are required when any role of this team is included in a game." |
-| [ ] | Select "Village" team | "Primary team role" checkbox disappears |
-| [ ] | Select "Neutral" team | "Primary team role" checkbox remains hidden |
+| [x] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order empty; Votes defaults to 1 |
+| [x] | Type "Se" in the Name field, wait ~500ms | "Checking..." appears below the field briefly, then "Taken ✗" (Seer exists as official role) |
+| [x] | Clear name, type "My Custom Role", wait ~500ms | "Checking..." appears, then "Available ✓" |
+| [x] | Observe "Next" button with empty name | Button is disabled (grayed out, not-allowed cursor) |
+| [x] | Enter a name with 2+ characters | "Next" button becomes enabled |
+| [x] | Click each of the 5 team buttons: Village, Werewolf, Vampire, Alien, Neutral | Each highlights with its distinct team color; only one is active at a time |
+| [x] | Select "Werewolf" team | "Primary team role" checkbox appears below the team buttons with subtext: "At least 1 primary team role is required when any role of this team is included in a game." |
+| [x] | Select "Village" team | "Primary team role" checkbox disappears |
+| [x] | Select "Neutral" team | "Primary team role" checkbox remains hidden |
 
 #### 1.3 Abilities Step
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Click "Next" from Basic Info (with valid name) | Navigates to Abilities step; step indicator updates; abilities load from backend |
-| [ ] | Observe category tabs | 5 tabs visible: "Card Actions", "Information", "Physical", "State Changes", "Other" |
-| [ ] | Click "Information" tab | Tab highlights; palette updates to show information-type abilities |
+| [x] | Click "Next" from Basic Info (with valid name) | Navigates to Abilities step; step indicator updates; abilities load from backend |
+| [x] | Observe category tabs | 5 tabs visible: "Card Actions", "Information", "Physical", "State Changes", "Other" |
+| [x] | Click "Information" tab | Tab highlights; palette updates to show information-type abilities |
 | [ ] | Click an ability button (e.g., "View Card") | New step appears in the "Ability Steps" list with order #1; **no modifier dropdown** shown for the first step |
 | [ ] | Click another ability (e.g., "Swap Card") | Step #2 appears; **"Then:" label** appears before a modifier dropdown showing "And then" (default) |
 | [ ] | Open the modifier dropdown on step #2 | Options show descriptive text: "And then", "Or instead", "Only if" |
@@ -91,8 +92,8 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 | [ ] | Click "Next" from Win Conditions step | Review step loads; step indicator shows all 4 steps as reachable |
 | [ ] | Observe summary | All fields displayed: Name, Team, Description, Wake Order, Votes, Ability Steps with order/name and **descriptive modifier labels** ("And then" not raw "and"), Win Conditions with type/primary flag |
 | [ ] | Observe validation section (valid role) | After ~1 second debounce, green "Valid" indicator appears; no errors |
-| [ ] | Click "Create Role" | Button text changes to "Saving..."; on success, navigates to `/roles/{new-role-id}` |
-| [ ] | Verify created role page | Detail page shows all data entered in the wizard |
+| [ ] | Click "Create Role" | Button text changes to "Saving..."; on success, navigates to `/roles` |
+| [ ] | Verify listing page | Roles page loads; new role is visible (if "My Roles" filter is active — see Section 6) |
 | [ ] | Click a completed step in the step indicator (e.g., "Basic Info") | Navigates back to that step with all data preserved |
 
 #### 1.6 Review Step — Validation Feedback
@@ -189,8 +190,44 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 | [ ] | **Win Conditions**: Add a condition, set type, check "Primary win condition" | One primary condition configured; subtext "(Only one allowed per role)" visible |
 | [ ] | Click "Next" | Review step loads; summary shows all data including descriptive modifier labels |
 | [ ] | Wait ~1 second for validation | Green "Valid" indicator appears; "Create Role" button is enabled |
-| [ ] | Click "Create Role" | Button shows "Saving..."; navigates to `/roles/{id}` on success |
-| [ ] | Verify the new role's detail page | Name, team, description, wake_order, votes, ability steps, and win conditions all match what was entered |
+| [ ] | Click "Create Role" | Button shows "Saving..."; navigates to `/roles` on success |
+| [ ] | Verify the roles listing page | Roles page loads with filters visible; new role "Night Stalker" appears under the "Werewolf" team header ("My Roles" filter is active by default) |
+
+---
+
+### 6. Roles Listing Filters
+
+**Covers:** Filters AC2, AC3, AC4, AC7
+**Why manual:** Visual filter button styling, live API filtering, end-to-end create-to-listing flow
+
+#### 6.1 Filter Button Appearance & Defaults
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Navigate to `http://localhost:3000/roles` | Page title reads "Roles"; subtitle reads "Browse and manage your werewolf roles" |
+| [ ] | Observe filter buttons below the header | 3 pill-style buttons visible: "Official", "My Roles", "Downloaded" |
+| [ ] | Observe default active state | "Official" and "My Roles" buttons appear active (colored border + tinted background); "Downloaded" appears inactive (muted) |
+
+#### 6.2 Filter Toggle Behavior
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Click "Downloaded" button | Button becomes active; roles list refreshes to include public-visibility roles (may be empty if none exist) |
+| [ ] | Click "My Roles" button to deactivate it | Button becomes inactive; any private-visibility roles disappear from the list |
+| [ ] | Click "My Roles" again to reactivate | Button becomes active; private roles reappear |
+| [ ] | Deactivate filters until only one remains active (e.g., only "Official") | One button remains active |
+| [ ] | Click the last remaining active filter | Button stays active — click is a no-op; list does not change |
+
+#### 6.3 New Role Appears in Filtered List
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Navigate to `/roles/new` and create a minimal valid role (name: "Filter Test Role", team: Village, at least 1 win condition) | Role creation succeeds |
+| [ ] | Observe redirect | Browser navigates to `/roles` |
+| [ ] | Observe "My Roles" filter is active by default | "My Roles" button shows active styling |
+| [ ] | Look for "Filter Test Role" in the roles list | Role appears under the "Village" team header |
+| [ ] | Deactivate "My Roles" filter | "Filter Test Role" disappears from the list |
+| [ ] | Reactivate "My Roles" filter | "Filter Test Role" reappears |
 
 ---
 
@@ -213,6 +250,6 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 
 ## Notes
 
-- The wizard creates roles with `visibility: 'private'` and `creator_id: null` by default (no auth yet). Created roles may not appear on the official roles list — check the role detail page directly via the redirect URL.
+- The wizard creates roles with `visibility: 'private'` and `creator_id: null` by default (no auth yet). Created roles appear on the Roles page when the "My Roles" filter is active (it is active by default).
 - Local draft storage auto-save (Drafts AC10) is an integration contract between `useDrafts` and the wizard's `RoleBuilder.tsx`. Verify by inspecting `yourwolf_drafts` in localStorage during wizard use.
 - Docker Compose frontend runs on port **3000** (not 5173).

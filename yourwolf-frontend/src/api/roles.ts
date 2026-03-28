@@ -3,7 +3,7 @@ import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, 
 
 interface RoleListParams {
   team?: string;
-  visibility?: string;
+  visibility?: string[];
   page?: number;
   limit?: number;
 }
@@ -18,7 +18,12 @@ interface RoleListResponse {
 
 export const rolesApi = {
   list: async (params?: RoleListParams): Promise<RoleListItem[]> => {
-    const {data} = await apiClient.get<RoleListResponse>('/roles', {params});
+    const {data} = await apiClient.get<RoleListResponse>('/roles', {
+      params,
+      paramsSerializer: {
+        indexes: null,
+      },
+    });
     return data.items;
   },
 

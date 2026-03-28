@@ -27,8 +27,8 @@ describe('useRoles', () => {
 
   describe('initial state', () => {
     it('starts with loading true', () => {
-      mockRolesApi.listOfficial.mockReturnValue(new Promise(() => {})); // Never resolves
-      const {result} = renderHook(() => useRoles());
+      mockRolesApi.list.mockReturnValue(new Promise(() => {})); // Never resolves
+      const {result} = renderHook(() => useRoles(['official']));
 
       expect(result.current.loading).toBe(true);
       expect(result.current.roles).toEqual([]);
@@ -37,11 +37,11 @@ describe('useRoles', () => {
   });
 
   describe('successful fetch', () => {
-    it('fetches official roles on mount', async () => {
+    it('fetches roles with visibility on mount', async () => {
       const mockRoles = createMockRoles(3);
-      mockRolesApi.listOfficial.mockResolvedValue(mockRoles);
+      mockRolesApi.list.mockResolvedValue(mockRoles);
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official', 'private']));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -49,18 +49,18 @@ describe('useRoles', () => {
 
       expect(result.current.roles).toEqual(mockRoles);
       expect(result.current.error).toBeNull();
-      expect(mockRolesApi.listOfficial).toHaveBeenCalledTimes(1);
+      expect(mockRolesApi.list).toHaveBeenCalledWith({visibility: ['official', 'private']});
     });
 
     it('updates roles after refetch', async () => {
       const initialRoles = createMockRoles(2);
       const updatedRoles = createMockRoles(5);
 
-      mockRolesApi.listOfficial
+      mockRolesApi.list
         .mockResolvedValueOnce(initialRoles)
         .mockResolvedValueOnce(updatedRoles);
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official']));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -74,16 +74,50 @@ describe('useRoles', () => {
       });
 
       expect(result.current.roles).toHaveLength(5);
-      expect(mockRolesApi.listOfficial).toHaveBeenCalledTimes(2);
+      expect(mockRolesApi.list).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls list without visibility when no args provided', async () => {
+      const mockRoles = createMockRoles(3);
+      mockRolesApi.list.mockResolvedValue(mockRoles);
+
+      const {result} = renderHook(() => useRoles());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.roles).toEqual(mockRoles);
+      expect(mockRolesApi.list).toHaveBeenCalledWith();
+    });
+
+    it('refetches when visibility changes', async () => {
+      const mockRoles = createMockRoles(3);
+      mockRolesApi.list.mockResolvedValue(mockRoles);
+
+      const {result, rerender} = renderHook(
+        ({visibility}: {visibility: string[]}) => useRoles(visibility),
+        {initialProps: {visibility: ['official']}},
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      rerender({visibility: ['official', 'private']});
+
+      await waitFor(() => {
+        expect(mockRolesApi.list).toHaveBeenCalledWith({visibility: ['official', 'private']});
+      });
     });
   });
 
   describe('error handling', () => {
     it('handles API errors', async () => {
       const errorMessage = 'Network error';
-      mockRolesApi.listOfficial.mockRejectedValue(new Error(errorMessage));
+      mockRolesApi.list.mockRejectedValue(new Error(errorMessage));
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official']));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -94,9 +128,9 @@ describe('useRoles', () => {
     });
 
     it('handles non-Error rejections', async () => {
-      mockRolesApi.listOfficial.mockRejectedValue('String error');
+      mockRolesApi.list.mockRejectedValue('String error');
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official']));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -112,7 +146,7 @@ describe('useRoles', () => {
       const mockRoles = createMockRoles(3);
 
       let resolveSecond: (value: RoleListItem[]) => void;
-      mockRolesApi.listOfficial
+      mockRolesApi.list
         .mockResolvedValueOnce(mockRoles)
         .mockImplementationOnce(
           () =>
@@ -121,7 +155,7 @@ describe('useRoles', () => {
             }),
         );
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official']));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -147,11 +181,11 @@ describe('useRoles', () => {
 
     it('clears previous error on successful refetch', async () => {
       const mockRoles = createMockRoles(3);
-      mockRolesApi.listOfficial
+      mockRolesApi.list
         .mockRejectedValueOnce(new Error('First error'))
         .mockResolvedValueOnce(mockRoles);
 
-      const {result} = renderHook(() => useRoles());
+      const {result} = renderHook(() => useRoles(['official']));
 
       await waitFor(() => {
         expect(result.current.error).toBe('First error');
