@@ -88,6 +88,34 @@ describe('WinConditionsStep', () => {
     });
   });
 
+  describe('label clarity', () => {
+    const draftWithCondition = createMockDraft({
+      win_conditions: [
+        {id: 'wc-1', condition_type: 'team_wins', is_primary: false, overrides_team: false},
+      ] as WinConditionDraft[],
+    });
+
+    it('renders "Primary win condition" label text', () => {
+      render(<WinConditionsStep draft={draftWithCondition} onChange={mockOnChange} />);
+      expect(screen.getByText('Primary win condition')).toBeInTheDocument();
+    });
+
+    it('renders "(Only one allowed per role)" subtext', () => {
+      render(<WinConditionsStep draft={draftWithCondition} onChange={mockOnChange} />);
+      expect(screen.getByText('(Only one allowed per role)')).toBeInTheDocument();
+    });
+
+    it('renders "Independent win" label text', () => {
+      render(<WinConditionsStep draft={draftWithCondition} onChange={mockOnChange} />);
+      expect(screen.getByText('Independent win')).toBeInTheDocument();
+    });
+
+    it('renders "(Wins regardless of team outcome)" subtext', () => {
+      render(<WinConditionsStep draft={draftWithCondition} onChange={mockOnChange} />);
+      expect(screen.getByText('(Wins regardless of team outcome)')).toBeInTheDocument();
+    });
+  });
+
   describe('condition type dropdown', () => {
     it('changing condition type calls onChange', () => {
       const draft = createMockDraft({

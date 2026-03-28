@@ -24,6 +24,7 @@ export function createMockRole(overrides: Partial<RoleListItem> = {}): RoleListI
     default_count: 1,
     min_count: 1,
     max_count: 1,
+    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -49,6 +50,7 @@ export function createMockRoles(count: number = 5): RoleListItem[] {
     default_count: 1,
     min_count: 1,
     max_count: 1,
+    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   }));
@@ -74,6 +76,7 @@ export function createMockOfficialRole(
     default_count: 1,
     min_count: 1,
     max_count: 1,
+    is_primary_team_role: false,
     dependencies: [],
     created_at: '2025-01-01T00:00:00Z',
   };
@@ -219,6 +222,7 @@ export function createMockDraft(overrides: Partial<RoleDraft> = {}): RoleDraft {
     wake_order: null,
     wake_target: null,
     votes: 1,
+    is_primary_team_role: false,
     ability_steps: [] as AbilityStepDraft[],
     win_conditions: [] as WinConditionDraft[],
     created_at: '2025-01-01T00:00:00Z',

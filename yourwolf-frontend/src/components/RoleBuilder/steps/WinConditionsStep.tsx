@@ -36,6 +36,17 @@ const labelStyles: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+const checkboxGroupStyles: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const subtextStyles: React.CSSProperties = {
+  color: theme.colors.textMuted,
+  fontSize: '0.75rem',
+  cursor: 'default',
+};
+
 const addButtonStyles: React.CSSProperties = {
   padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
   borderRadius: theme.borderRadius.md,
@@ -118,25 +129,33 @@ export function WinConditionsStep({draft, onChange}: WinConditionsStepProps) {
                 ))}
               </select>
 
-              <label style={labelStyles}>
-                <input
-                  type="checkbox"
-                  aria-label="Primary"
-                  checked={wc.is_primary}
-                  onChange={(e) => handlePrimaryChange(index, e.target.checked)}
-                />
-                Primary
-              </label>
+              <div style={checkboxGroupStyles}>
+                <label style={labelStyles}>
+                  <input
+                    type="checkbox"
+                    aria-label="Primary win condition"
+                    aria-describedby={`primary-hint-${index}`}
+                    checked={wc.is_primary}
+                    onChange={(e) => handlePrimaryChange(index, e.target.checked)}
+                  />
+                  Primary win condition
+                </label>
+                <span id={`primary-hint-${index}`} style={subtextStyles}>(Only one allowed per role)</span>
+              </div>
 
-              <label style={labelStyles}>
-                <input
-                  type="checkbox"
-                  aria-label="Overrides team"
-                  checked={wc.overrides_team}
-                  onChange={(e) => handleOverridesTeamChange(index, e.target.checked)}
-                />
-                Overrides team
-              </label>
+              <div style={checkboxGroupStyles}>
+                <label style={labelStyles}>
+                  <input
+                    type="checkbox"
+                    aria-label="Independent win"
+                    aria-describedby={`independent-hint-${index}`}
+                    checked={wc.overrides_team}
+                    onChange={(e) => handleOverridesTeamChange(index, e.target.checked)}
+                  />
+                  Independent win
+                </label>
+                <span id={`independent-hint-${index}`} style={subtextStyles}>(Wins regardless of team outcome)</span>
+              </div>
 
               <button
                 style={removeButtonStyles}

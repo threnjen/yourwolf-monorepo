@@ -124,7 +124,15 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
   }
 
   function handleTeamChange(team: Team) {
-    onChange({...draft, team});
+    if (team === 'village' || team === 'neutral') {
+      onChange({...draft, team, is_primary_team_role: false});
+    } else {
+      onChange({...draft, team});
+    }
+  }
+
+  function handlePrimaryTeamRoleChange(checked: boolean) {
+    onChange({...draft, is_primary_team_role: checked});
   }
 
   function handleDescriptionChange(value: string) {
@@ -181,6 +189,23 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
         </div>
       </div>
 
+      {draft.team !== 'village' && draft.team !== 'neutral' && (
+        <div style={fieldGroupStyles}>
+          <label style={labelStyles}>
+            <input
+              type="checkbox"
+              aria-label="Primary team role"
+              checked={draft.is_primary_team_role}
+              onChange={(e) => handlePrimaryTeamRoleChange(e.target.checked)}
+            />
+            {' '}Primary team role
+          </label>
+          <div style={{fontSize: '0.8rem', color: theme.colors.textMuted, marginTop: theme.spacing.xs}}>
+            Primary team roles are required when any role of this team is included in a game.
+          </div>
+        </div>
+      )}
+
       <div style={fieldGroupStyles}>
         <label htmlFor="role-description" style={labelStyles}>Description</label>
         <textarea
@@ -202,8 +227,8 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
             value={draft.wake_order ?? ''}
             onChange={(e) => handleWakeOrderChange(e.target.value)}
             min={0}
-            max={20}
-            placeholder="0–20"
+            max={40}
+            placeholder="0–40"
           />
         </div>
 

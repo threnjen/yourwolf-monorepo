@@ -66,6 +66,21 @@ describe('ReviewStep', () => {
       expect(screen.getByText(/View Card/)).toBeInTheDocument();
     });
 
+    it('shows descriptive modifier labels instead of raw values', () => {
+      const draft = createMockDraft({
+        ability_steps: [
+          {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
+          {id: 'step-2', ability_type: 'swap_card', ability_name: 'Swap Card', order: 2, modifier: 'and', is_required: false, parameters: {}},
+          {id: 'step-3', ability_type: 'view_awake', ability_name: 'View Awake', order: 3, modifier: 'or', is_required: false, parameters: {}},
+          {id: 'step-4', ability_type: 'touch', ability_name: 'Touch', order: 4, modifier: 'if', is_required: false, parameters: {}},
+        ] as AbilityStepDraft[],
+      });
+      render(<ReviewStep draft={draft} validation={mockValidation} />);
+      expect(screen.getByText('(And then)')).toBeInTheDocument();
+      expect(screen.getByText('(Or instead)')).toBeInTheDocument();
+      expect(screen.getByText('(Only if)')).toBeInTheDocument();
+    });
+
     it('shows no ability steps message when empty', () => {
       render(<ReviewStep draft={createMockDraft({ability_steps: []})} validation={mockValidation} />);
       expect(screen.getByText(/no ability steps/i)).toBeInTheDocument();

@@ -25,6 +25,13 @@ const ABILITY_CATEGORIES: AbilityCategory[] = [
 
 const MODIFIERS: StepModifier[] = ['none', 'and', 'or', 'if'];
 
+const MODIFIER_LABELS: Record<StepModifier, string> = {
+  none: '—',
+  and: 'And then',
+  or: 'Or instead',
+  if: 'Only if',
+};
+
 const tabRowStyles: React.CSSProperties = {
   display: 'flex',
   gap: theme.spacing.xs,
@@ -91,6 +98,134 @@ const removeButtonStyles: React.CSSProperties = {
   borderColor: theme.colors.error,
 };
 
+const paramRowStyles: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: theme.spacing.sm,
+  paddingTop: theme.spacing.sm,
+  width: '100%',
+};
+
+const paramFieldStyles: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing.xs,
+};
+
+const paramLabelStyles: React.CSSProperties = {
+  color: theme.colors.textMuted,
+  fontSize: '0.75rem',
+};
+
+const modifierLabelStyles: React.CSSProperties = {
+  color: theme.colors.textMuted,
+  fontSize: '0.75rem',
+  fontWeight: 600,
+};
+
+const STRING_TARGET_OPTIONS: string[] = [
+  'player.self',
+  'player.other',
+  'center.main',
+  'center.bonus',
+  'previous',
+  'viewed',
+  'team.werewolf',
+  'team.vampire',
+  'team.alien',
+  'team.village',
+  'role.mason',
+  'players.actions',
+];
+
+interface StepParameterInputsProps {
+  stepIndex: number;
+  schema: Record<string, unknown>;
+  values: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
+}
+
+function StepParameterInputs({stepIndex, schema, values, onChange}: StepParameterInputsProps) {
+  const properties = schema.properties as Record<string, Record<string, unknown>> | undefined;
+  if (!properties || Object.keys(properties).length === 0) return null;
+
+  const required = (schema.required as string[] | undefined) ?? [];
+
+  return (
+    <div style={paramRowStyles}>
+      {Object.entries(properties).map(([key, prop]) => {
+        const isRequired = required.includes(key);
+        const label = `${key} ${isRequired ? '*' : '(optional)'}`;
+        const inputId = `param-${stepIndex}-${key}`;
+        const type = prop.type as string;
+
+        let inputEl: React.ReactNode;
+        if (type === 'string' && prop.enum) {
+          const enumValues = prop.enum as string[];
+          inputEl = (
+            <select
+              id={inputId}
+              style={selectStyles}
+              value={(values[key] as string) ?? ''}
+              onChange={(e) => onChange(key, e.target.value)}
+            >
+              <option value="">—</option>
+              {enumValues.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          );
+        } else if (type === 'string') {
+          inputEl = (
+            <select
+              id={inputId}
+              style={selectStyles}
+              value={(values[key] as string) ?? ''}
+              onChange={(e) => onChange(key, e.target.value)}
+            >
+              <option value="">—</option>
+              {STRING_TARGET_OPTIONS.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          );
+        } else if (type === 'integer') {
+          inputEl = (
+            <input
+              id={inputId}
+              type="number"
+              min={1}
+              style={selectStyles}
+              value={(values[key] as number) ?? (prop.default as number) ?? 1}
+              onChange={(e) => onChange(key, e.target.value)}
+            />
+          );
+        } else if (type === 'array') {
+          const arrVal = values[key] as number[] | undefined;
+          inputEl = (
+            <input
+              id={inputId}
+              type="text"
+              style={selectStyles}
+              value={arrVal ? arrVal.join(', ') : ''}
+              onChange={(e) => onChange(key, e.target.value)}
+            />
+          );
+        } else {
+          return null;
+        }
+
+        return (
+          <div key={key} style={paramFieldStyles}>
+            <label htmlFor={inputId} style={paramLabelStyles}>{label}</label>
+            {inputEl}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function getTabStyles(isActive: boolean): React.CSSProperties {
   return {
     padding: `${theme.spacing.xs} ${theme.spacing.md}`,
@@ -126,6 +261,17 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
 
   function handleAddAbility(abilityType: string, abilityName: string) {
     const nextOrder = draft.ability_steps.length + 1;
+    const ability = abilities.find((a) => a.type === abilityType);
+    const schema = ability?.parameters_schema as Record<string, unknown> | undefined;
+    const properties = schema?.properties as Record<string, Record<string, unknown>> | undefined;
+    const initialParameters: Record<string, unknown> = {};
+    if (properties) {
+      for (const [key, prop] of Object.entries(properties)) {
+        if (prop.type === 'integer') {
+          initialParameters[key] = (prop.default as number | undefined) ?? 1;
+        }
+      }
+    }
     const newStep: AbilityStepDraft = {
       id: crypto.randomUUID(),
       ability_type: abilityType,
@@ -133,7 +279,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
       order: nextOrder,
       modifier: nextOrder === 1 ? 'none' : 'and',
       is_required: false,
-      parameters: {},
+      parameters: initialParameters,
     };
     onChange({...draft, ability_steps: [...draft.ability_steps, newStep]});
   }
@@ -164,6 +310,30 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
   function handleModifierChange(index: number, modifier: StepModifier) {
     const updated = draft.ability_steps.map((step, i) =>
       i === index ? {...step, modifier} : step,
+    );
+    onChange({...draft, ability_steps: updated});
+  }
+
+  function handleParameterChange(stepIndex: number, paramKey: string, value: unknown) {
+    const step = draft.ability_steps[stepIndex];
+    const ability = abilities.find((a) => a.type === step.ability_type);
+    const schema = ability?.parameters_schema as Record<string, unknown> | undefined;
+    const properties = schema?.properties as Record<string, Record<string, unknown>> | undefined;
+    const propType = properties?.[paramKey]?.type as string | undefined;
+
+    let parsedValue: unknown = value;
+    if (propType === 'integer') {
+      const num = parseInt(value as string, 10);
+      parsedValue = isNaN(num) || num < 1 ? 1 : num;
+    } else if (propType === 'array') {
+      parsedValue = (value as string)
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n));
+    }
+
+    const updated = draft.ability_steps.map((s, i) =>
+      i === stepIndex ? {...s, parameters: {...s.parameters, [paramKey]: parsedValue}} : s,
     );
     onChange({...draft, ability_steps: updated});
   }
@@ -212,48 +382,62 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
           </p>
         ) : (
           <div style={stepListStyles}>
-            {draft.ability_steps.map((step, index) => (
-              <div key={step.id} style={stepItemStyles}>
-                <span style={stepNameStyles}>
-                  {step.order}. {step.ability_name}
-                </span>
+            {draft.ability_steps.map((step, index) => {
+              const stepAbility = abilities.find((a) => a.type === step.ability_type);
+              return (
+                <div key={step.id} style={stepItemStyles}>
+                  <span style={stepNameStyles}>
+                    {step.order}. {step.ability_name}
+                  </span>
 
-                <select
-                  style={selectStyles}
-                  value={step.modifier}
-                  onChange={(e) => handleModifierChange(index, e.target.value as StepModifier)}
-                  disabled={index === 0}
-                >
-                  {MODIFIERS.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
+                  {index > 0 && (
+                    <>
+                      <span style={modifierLabelStyles}>Then:</span>
+                      <select
+                        aria-label="Step modifier"
+                        style={selectStyles}
+                        value={step.modifier}
+                        onChange={(e) => handleModifierChange(index, e.target.value as StepModifier)}
+                      >
+                        {MODIFIERS.filter((m) => m !== 'none').map((m) => (
+                          <option key={m} value={m}>{MODIFIER_LABELS[m]}</option>
+                        ))}
+                      </select>
+                    </>
+                  )}
 
-                <button
-                  style={iconButtonStyles}
-                  onClick={() => handleMoveUp(index)}
-                  disabled={index === 0}
-                  aria-label="Move up"
-                >
-                  ↑
-                </button>
-                <button
-                  style={iconButtonStyles}
-                  onClick={() => handleMoveDown(index)}
-                  disabled={index === draft.ability_steps.length - 1}
-                  aria-label="Move down"
-                >
-                  ↓
-                </button>
-                <button
-                  style={removeButtonStyles}
-                  onClick={() => handleRemoveStep(index)}
-                  aria-label="Remove"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+                  <button
+                    style={iconButtonStyles}
+                    onClick={() => handleMoveUp(index)}
+                    disabled={index === 0}
+                    aria-label="Move up"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    style={iconButtonStyles}
+                    onClick={() => handleMoveDown(index)}
+                    disabled={index === draft.ability_steps.length - 1}
+                    aria-label="Move down"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    style={removeButtonStyles}
+                    onClick={() => handleRemoveStep(index)}
+                    aria-label="Remove"
+                  >
+                    Remove
+                  </button>
+                  <StepParameterInputs
+                    stepIndex={index}
+                    schema={stepAbility?.parameters_schema ?? {}}
+                    values={step.parameters}
+                    onChange={(key, val) => handleParameterChange(index, key, val)}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,9 +1,9 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 import {Roles} from '../pages/Roles';
 import {useRoles} from '../hooks/useRoles';
-import {createMockRoles} from './mocks';
+import {createMockRoles, createMockOfficialRole} from './mocks';
 
 // Mock the useRoles hook
 vi.mock('../hooks/useRoles', () => ({
@@ -172,6 +172,84 @@ describe('Roles Page', () => {
       renderRoles();
 
       expect(screen.getByText('🎭')).toBeInTheDocument();
+    });
+  });
+
+  describe('team sorting and grouping', () => {
+    it('renders team section headers in canonical order', () => {
+      const roles = [
+        createMockOfficialRole('Tanner', 'neutral'),
+        createMockOfficialRole('Werewolf', 'werewolf', 1),
+        createMockOfficialRole('Villager', 'village'),
+      ];
+      mockUseRoles.mockReturnValue({
+        roles,
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      const headings = screen.getAllByRole('heading', {level: 2});
+      const teamHeadings = headings.filter((h) =>
+        ['Village', 'Werewolf', 'Neutral'].includes(h.textContent || ''),
+      );
+      expect(teamHeadings.map((h) => h.textContent)).toEqual([
+        'Village',
+        'Werewolf',
+        'Neutral',
+      ]);
+    });
+
+    it('renders role cards under the correct team section', () => {
+      const roles = [
+        createMockOfficialRole('Tanner', 'neutral'),
+        createMockOfficialRole('Werewolf', 'werewolf', 1),
+        createMockOfficialRole('Villager', 'village'),
+        createMockOfficialRole('Seer', 'village', 4),
+      ];
+      mockUseRoles.mockReturnValue({
+        roles,
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      // Village section should contain Villager and Seer
+      const sections = screen.getAllByTestId('team-section');
+      // first section = village
+      const villageSection = sections[0];
+      expect(within(villageSection).getByText('Villager')).toBeInTheDocument();
+      expect(within(villageSection).getByText('Seer')).toBeInTheDocument();
+
+      // last section = neutral
+      const neutralSection = sections[sections.length - 1];
+      expect(within(neutralSection).getByText('Tanner')).toBeInTheDocument();
+    });
+
+    it('only renders team headers for teams that have roles', () => {
+      const roles = [
+        createMockOfficialRole('Villager', 'village'),
+        createMockOfficialRole('Tanner', 'neutral'),
+      ];
+      mockUseRoles.mockReturnValue({
+        roles,
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      const teamHeadings = screen.getAllByRole('heading', {level: 2}).map((h) => h.textContent);
+      expect(teamHeadings).toContain('Village');
+      expect(teamHeadings).toContain('Neutral');
+      expect(teamHeadings).not.toContain('Werewolf');
+      expect(teamHeadings).not.toContain('Vampire');
+      expect(teamHeadings).not.toContain('Alien');
     });
   });
 });

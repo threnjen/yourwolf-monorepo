@@ -55,6 +55,7 @@ interface RoleCreatePayload {
   wake_order: number | null;
   wake_target: string | null;
   votes: number;
+  is_primary_team_role: boolean;
   visibility: Visibility;
   creator_id: null;
   ability_steps: {
@@ -82,6 +83,7 @@ function draftToPayload(draft: RoleDraft): RoleCreatePayload {
     wake_order: draft.wake_order,
     wake_target: draft.wake_target,
     votes: draft.votes,
+    is_primary_team_role: draft.is_primary_team_role,
     visibility: 'private',
     creator_id: null,
     ability_steps: draft.ability_steps.map((s) => ({

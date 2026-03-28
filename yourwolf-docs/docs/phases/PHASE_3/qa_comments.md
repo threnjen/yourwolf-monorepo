@@ -1,0 +1,9 @@
+- The cards are not grouped/sorted by team, either on the "Roles" page or the "New Game" page.
+- On "Create New Role" "Basic Info Tab": for any team that is not Village/Neutral, needs a toggle for if the role is a "primary" role for that team
+- On "Create New Role" "Basic Info Tab": increase possible "Wake Order" range from 0-40
+- On "Create New Role" "Abilities Tab": All targeted Card Actions need a target selector (self, player, center, ?)
+- On "Create New Role" "Abilities Tab": The default "none" pulldown is confusing and needs a label of some kind. What is it for?
+- On "Create New Role" "Abilities Tab": All targeted Information actions need a target selector (self, player, center, ?)
+- On "Create New Role" "Abilities Tab": All targeted Physical actions need a target selector (self, player, center, ?)
+- On "Create New Role" "Abilities Tab": All targeted State Changes actions need a target selector (self, player, center, ?)
+- On "Create New Role" "Win Conditions": The buttons presented for "Primary" and "Overrides team" are confusing/unclear what they mean.

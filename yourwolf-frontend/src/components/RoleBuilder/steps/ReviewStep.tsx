@@ -1,5 +1,12 @@
-import {RoleDraft, ValidationResult, Team} from '../../../types/role';
+import {RoleDraft, ValidationResult, Team, StepModifier} from '../../../types/role';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
+
+const MODIFIER_LABELS: Record<StepModifier, string> = {
+  none: '—',
+  and: 'And then',
+  or: 'Or instead',
+  if: 'Only if',
+};
 
 interface ReviewStepProps {
   draft: RoleDraft;
@@ -112,12 +119,12 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
           <p style={mutedStyles}>No ability steps configured</p>
         ) : (
           <div>
-            {draft.ability_steps.map((step, index) => (
+            {draft.ability_steps.map((step) => (
               <div key={step.id} style={listItemStyles}>
                 <span style={{color: theme.colors.textMuted, minWidth: '20px'}}>{step.order}.</span>
                 <span>{step.ability_name}</span>
                 {step.modifier !== 'none' && (
-                  <span style={{color: theme.colors.textMuted, fontSize: '0.8rem'}}>({step.modifier})</span>
+                  <span style={{color: theme.colors.textMuted, fontSize: '0.8rem'}}>({MODIFIER_LABELS[step.modifier]})</span>
                 )}
               </div>
             ))}
@@ -131,14 +138,14 @@ export function ReviewStep({draft, validation}: ReviewStepProps) {
           <p style={mutedStyles}>No win conditions configured</p>
         ) : (
           <div>
-            {draft.win_conditions.map((wc, index) => (
+            {draft.win_conditions.map((wc) => (
               <div key={wc.id} style={listItemStyles}>
                 <span>{wc.condition_type}</span>
                 {wc.is_primary && (
-                  <span style={{color: theme.colors.primaryLight, fontSize: '0.8rem'}}>(primary)</span>
+                  <span style={{color: theme.colors.primaryLight, fontSize: '0.8rem'}}>(primary win condition)</span>
                 )}
                 {wc.overrides_team && (
-                  <span style={{color: theme.colors.textMuted, fontSize: '0.8rem'}}>(overrides team)</span>
+                  <span style={{color: theme.colors.textMuted, fontSize: '0.8rem'}}>(independent win)</span>
                 )}
               </div>
             ))}
