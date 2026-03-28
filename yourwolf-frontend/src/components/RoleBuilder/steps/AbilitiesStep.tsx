@@ -243,6 +243,8 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
   const {abilities, loading, error} = useAbilities();
   const [activeCategory, setActiveCategory] = useState<string>('card');
 
+  const isDisabled = draft.wake_order === 0 || draft.wake_order === null;
+
   const activeTypes = ABILITY_CATEGORIES.find((c) => c.id === activeCategory)?.types ?? [];
   const paletteAbilities = abilities.filter((a) => activeTypes.includes(a.type));
 
@@ -255,6 +257,49 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
         }}
       >
         Failed to load abilities: {error}
+      </div>
+    );
+  }
+
+  if (isDisabled) {
+    return (
+      <div>
+        <div style={{
+          padding: theme.spacing.md,
+          backgroundColor: theme.colors.surfaceLight,
+          borderRadius: theme.borderRadius.sm,
+          marginBottom: theme.spacing.md,
+          color: theme.colors.textMuted,
+        }}>
+          This role does not wake up (Wake Order is 0). Set a Wake Order ≥ 1 in Basic Info to add abilities.
+        </div>
+        {draft.ability_steps.length > 0 && (
+          <div style={{
+            padding: theme.spacing.md,
+            backgroundColor: theme.colors.surfaceLight,
+            borderRadius: theme.borderRadius.sm,
+            marginBottom: theme.spacing.md,
+            color: theme.colors.error,
+          }}>
+            This role has ability steps but is set to not wake up. These steps won't execute unless you set a Wake Order ≥ 1.
+          </div>
+        )}
+        {draft.ability_steps.length > 0 && (
+          <div style={{opacity: 0.5, pointerEvents: 'none'}}>
+            <h4 style={{color: theme.colors.text, marginBottom: theme.spacing.sm}}>
+              Ability Steps ({draft.ability_steps.length})
+            </h4>
+            <div style={stepListStyles}>
+              {draft.ability_steps.map((step) => (
+                <div key={step.id} style={stepItemStyles}>
+                  <span style={stepNameStyles}>
+                    {step.order}. {step.ability_name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

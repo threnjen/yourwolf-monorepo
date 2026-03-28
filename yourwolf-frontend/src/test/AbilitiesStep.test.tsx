@@ -31,7 +31,7 @@ describe('AbilitiesStep', () => {
 
   describe('rendering', () => {
     it('renders category tabs', () => {
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       expect(screen.getByRole('button', {name: /card actions/i})).toBeInTheDocument();
       expect(screen.getByRole('button', {name: /information/i})).toBeInTheDocument();
       expect(screen.getByRole('button', {name: /physical/i})).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('AbilitiesStep', () => {
     });
 
     it('shows ability in palette when category matches', () => {
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       // Card Actions category is active by default, should show view_card and swap_card
       expect(screen.getByText('View Card')).toBeInTheDocument();
       expect(screen.getByText('Swap Card')).toBeInTheDocument();
@@ -48,13 +48,13 @@ describe('AbilitiesStep', () => {
 
     it('shows loading state while abilities fetch', () => {
       mockUseAbilities.mockReturnValue({abilities: [], loading: true, error: null});
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       expect(screen.getByText(/loading abilities/i)).toBeInTheDocument();
     });
 
     it('shows empty message when no abilities in category', () => {
       // Switch to Physical tab which has no abilities in mockAbilities
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       fireEvent.click(screen.getByRole('button', {name: /physical/i}));
       expect(screen.getByText(/no abilities/i)).toBeInTheDocument();
     });
@@ -62,7 +62,7 @@ describe('AbilitiesStep', () => {
 
   describe('adding abilities', () => {
     it('clicking ability adds it to draft steps', () => {
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('View Card'));
       expect(mockOnChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -75,6 +75,7 @@ describe('AbilitiesStep', () => {
 
     it('second added ability gets order 2', () => {
       const draftWithOne = createMockDraft({
+        wake_order: 3,
         ability_steps: [
           {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
         ],
@@ -104,7 +105,7 @@ describe('AbilitiesStep', () => {
         loading: false,
         error: null,
       });
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       fireEvent.click(screen.getByText('View Card'));
       expect(mockOnChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -118,6 +119,7 @@ describe('AbilitiesStep', () => {
 
   describe('step list management', () => {
     const draftWithSteps = createMockDraft({
+      wake_order: 3,
       ability_steps: [
         {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
         {id: 'step-2', ability_type: 'swap_card', ability_name: 'Swap Card', order: 2, modifier: 'and', is_required: false, parameters: {}},
@@ -192,7 +194,7 @@ describe('AbilitiesStep', () => {
 
   describe('category switching', () => {
     it('shows information abilities when Information tab clicked', () => {
-      render(<AbilitiesStep draft={createMockDraft()} onChange={mockOnChange} />);
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
       fireEvent.click(screen.getByRole('button', {name: /information/i}));
       expect(screen.getByText('View Awake')).toBeInTheDocument();
     });
@@ -237,6 +239,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'view_card', ability_name: 'View Card',
           order: 1, modifier: 'none', is_required: false, parameters: {count: 1},
@@ -254,6 +257,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'change_to_team', ability_name: 'Change To Team',
           order: 1, modifier: 'none', is_required: false, parameters: {},
@@ -275,6 +279,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'view_card', ability_name: 'View Card',
           order: 1, modifier: 'none', is_required: false, parameters: {count: 1},
@@ -294,6 +299,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'view_card', ability_name: 'View Card',
           order: 1, modifier: 'none', is_required: false, parameters: {count: 1},
@@ -312,6 +318,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'random_num_players', ability_name: 'Random Num Players',
           order: 1, modifier: 'none', is_required: false, parameters: {},
@@ -329,6 +336,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'change_to_team', ability_name: 'Change To Team',
           order: 1, modifier: 'none', is_required: false, parameters: {},
@@ -354,6 +362,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'stop', ability_name: 'Stop',
           order: 1, modifier: 'none', is_required: false, parameters: {},
@@ -374,6 +383,7 @@ describe('AbilitiesStep', () => {
         error: null,
       });
       const draft = createMockDraft({
+        wake_order: 3,
         ability_steps: [{
           id: 'step-1', ability_type: 'view_card', ability_name: 'View Card',
           order: 1, modifier: 'none', is_required: false, parameters: {count: 1},
@@ -382,6 +392,64 @@ describe('AbilitiesStep', () => {
       render(<AbilitiesStep draft={draft} onChange={mockOnChange} />);
       expect(screen.getByText(/target \*/i)).toBeInTheDocument();
       expect(screen.getByText(/count \(optional\)/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('wake order gating', () => {
+    it('shows gating message when wake_order is 0', () => {
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 0})} onChange={mockOnChange} />);
+      expect(screen.getByText(/this role does not wake up/i)).toBeInTheDocument();
+      expect(screen.getByText(/set a wake order/i)).toBeInTheDocument();
+    });
+
+    it('shows gating message when wake_order is null (legacy)', () => {
+      render(<AbilitiesStep draft={createMockDraft({wake_order: null})} onChange={mockOnChange} />);
+      expect(screen.getByText(/this role does not wake up/i)).toBeInTheDocument();
+    });
+
+    it('palette is interactive when wake_order > 0', () => {
+      render(<AbilitiesStep draft={createMockDraft({wake_order: 3})} onChange={mockOnChange} />);
+      expect(screen.queryByText(/this role does not wake up/i)).not.toBeInTheDocument();
+      // Palette buttons should be clickable
+      const viewCardButton = screen.getByText('View Card');
+      fireEvent.click(viewCardButton);
+      expect(mockOnChange).toHaveBeenCalled();
+    });
+
+    it('shows warning when steps exist but wake_order is 0', () => {
+      const draftWithSteps = createMockDraft({
+        wake_order: 0,
+        ability_steps: [
+          {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
+        ] as AbilityStepDraft[],
+      });
+      render(<AbilitiesStep draft={draftWithSteps} onChange={mockOnChange} />);
+      expect(screen.getByText(/this role has ability steps but is set to not wake up/i)).toBeInTheDocument();
+    });
+
+    it('does not show steps-exist warning when wake_order > 0 with steps', () => {
+      const draftWithSteps = createMockDraft({
+        wake_order: 3,
+        ability_steps: [
+          {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
+        ] as AbilityStepDraft[],
+      });
+      render(<AbilitiesStep draft={draftWithSteps} onChange={mockOnChange} />);
+      expect(screen.queryByText(/this role has ability steps but is set to not wake up/i)).not.toBeInTheDocument();
+    });
+
+    it('ability steps are preserved when wake_order set back to 0', () => {
+      const draftWithSteps = createMockDraft({
+        wake_order: 0,
+        ability_steps: [
+          {id: 'step-1', ability_type: 'view_card', ability_name: 'View Card', order: 1, modifier: 'none', is_required: false, parameters: {}},
+          {id: 'step-2', ability_type: 'swap_card', ability_name: 'Swap Card', order: 2, modifier: 'and', is_required: false, parameters: {}},
+        ] as AbilityStepDraft[],
+      });
+      render(<AbilitiesStep draft={draftWithSteps} onChange={mockOnChange} />);
+      // Steps should still be listed (preserved, not deleted)
+      expect(screen.getByText(/1\. View Card/)).toBeInTheDocument();
+      expect(screen.getByText(/2\. Swap Card/)).toBeInTheDocument();
     });
   });
 });

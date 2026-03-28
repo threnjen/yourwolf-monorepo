@@ -140,8 +140,8 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
   }
 
   function handleWakeOrderChange(value: string) {
-    const parsed = value === '' ? null : parseInt(value, 10);
-    onChange({...draft, wake_order: isNaN(parsed as number) ? null : parsed});
+    const parsed = value === '' ? 0 : parseInt(value, 10);
+    onChange({...draft, wake_order: isNaN(parsed) ? 0 : parsed});
   }
 
   function handleVotesChange(value: string) {
@@ -219,7 +219,7 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
 
       <div style={{display: 'flex', gap: theme.spacing.xl}}>
         <div style={fieldGroupStyles}>
-          <label htmlFor="role-wake-order" style={labelStyles}>Wake Order</label>
+          <label htmlFor="role-wake-order" style={labelStyles}>Wake Order (0–40)</label>
           <input
             id="role-wake-order"
             type="number"
@@ -230,6 +230,11 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
             max={40}
             placeholder="0–40"
           />
+          {(draft.wake_order === 0 || draft.wake_order === null) && (
+            <div style={{fontSize: '0.8rem', color: theme.colors.textMuted, marginTop: theme.spacing.xs}}>
+              Does not wake up
+            </div>
+          )}
         </div>
 
         <div style={fieldGroupStyles}>
