@@ -6,6 +6,7 @@ from app.schemas.ability import (
     AbilityStepCreate,
     AbilityStepRead,
 )
+from app.schemas.base import PaginatedResponse
 from app.schemas.game import (
     GameRoleResponse,
     GameSessionCreate,
@@ -16,10 +17,16 @@ from app.schemas.game import (
     NightScript,
 )
 from app.schemas.role import (
+    AbilityStepCreateInRole,
+    AbilityStepInRole,
     RoleCreate,
+    RoleDependencyResponse,
+    RoleListItem,
     RoleListResponse,
+    RoleNameCheckResponse,
     RoleRead,
     RoleUpdate,
+    RoleValidationResponse,
     WinConditionCreate,
     WinConditionRead,
 )
@@ -28,18 +35,25 @@ __all__ = [
     "AbilityCreate",
     "AbilityRead",
     "AbilityStepCreate",
+    "AbilityStepCreateInRole",
+    "AbilityStepInRole",
     "AbilityStepRead",
-    "GameSessionPaginatedResponse",
     "GameRoleResponse",
     "GameSessionCreate",
     "GameSessionListResponse",
+    "GameSessionPaginatedResponse",
     "GameSessionResponse",
     "NarratorAction",
     "NightScript",
+    "PaginatedResponse",
     "RoleCreate",
+    "RoleDependencyResponse",
+    "RoleListItem",
     "RoleListResponse",
+    "RoleNameCheckResponse",
     "RoleRead",
     "RoleUpdate",
+    "RoleValidationResponse",
     "WinConditionCreate",
     "WinConditionRead",
 ]

@@ -33,6 +33,19 @@ class RoleService:
         """
         self.db = db
 
+    @staticmethod
+    def _build_dependency_response(
+        dep: RoleDependency,
+    ) -> RoleDependencyResponse:
+        return RoleDependencyResponse(
+            id=dep.id,
+            required_role_id=dep.required_role_id,
+            required_role_name=(
+                dep.required_role.name if dep.required_role else "Unknown"
+            ),
+            dependency_type=dep.dependency_type,
+        )
+
     def list_roles(
         self,
         team: Team | None = None,
@@ -82,15 +95,7 @@ class RoleService:
         items = []
         for r in roles:
             dependencies = [
-                RoleDependencyResponse(
-                    id=dep.id,
-                    required_role_id=dep.required_role_id,
-                    required_role_name=(
-                        dep.required_role.name if dep.required_role else "Unknown"
-                    ),
-                    dependency_type=dep.dependency_type,
-                )
-                for dep in r.dependencies
+                self._build_dependency_response(dep) for dep in r.dependencies
             ]
             item = RoleListItem(
                 id=r.id,
@@ -104,6 +109,7 @@ class RoleService:
                 default_count=r.default_count,
                 min_count=r.min_count,
                 max_count=r.max_count,
+                is_primary_team_role=r.is_primary_team_role,
                 created_at=r.created_at,
                 dependencies=dependencies,
             )
@@ -161,15 +167,7 @@ class RoleService:
         ]
 
         dependencies = [
-            RoleDependencyResponse(
-                id=dep.id,
-                required_role_id=dep.required_role_id,
-                required_role_name=(
-                    dep.required_role.name if dep.required_role else "Unknown"
-                ),
-                dependency_type=dep.dependency_type,
-            )
-            for dep in role.dependencies
+            self._build_dependency_response(dep) for dep in role.dependencies
         ]
 
         return RoleRead(
@@ -183,6 +181,7 @@ class RoleService:
             default_count=role.default_count,
             min_count=role.min_count,
             max_count=role.max_count,
+            is_primary_team_role=role.is_primary_team_role,
             visibility=role.visibility,
             is_locked=role.is_locked,
             vote_score=role.vote_score,
@@ -217,31 +216,40 @@ class RoleService:
             default_count=role_data.default_count,
             min_count=role_data.min_count,
             max_count=role_data.max_count,
+            is_primary_team_role=role_data.is_primary_team_role,
             creator_id=role_data.creator_id,
         )
         self.db.add(role)
         self.db.flush()  # Get the role ID
 
-        # Create ability steps
+        # Create ability steps — batch-query abilities up front
+        ability_types = [s.ability_type for s in role_data.ability_steps]
+        ability_map = (
+            {
+                a.type: a
+                for a in self.db.query(Ability)
+                .filter(Ability.type.in_(ability_types))
+                .all()
+            }
+            if ability_types
+            else {}
+        )
+
         for step_data in role_data.ability_steps:
-            # Look up ability by type
-            ability = (
-                self.db.query(Ability)
-                .filter(Ability.type == step_data.ability_type)
-                .first()
+            ability = ability_map.get(step_data.ability_type)
+            if not ability:
+                raise ValueError(f"Unknown ability type: '{step_data.ability_type}'")
+            step = AbilityStep(
+                role_id=role.id,
+                ability_id=ability.id,
+                order=step_data.order,
+                modifier=StepModifier(step_data.modifier),
+                is_required=step_data.is_required,
+                parameters=step_data.parameters,
+                condition_type=step_data.condition_type,
+                condition_params=step_data.condition_params,
             )
-            if ability:
-                step = AbilityStep(
-                    role_id=role.id,
-                    ability_id=ability.id,
-                    order=step_data.order,
-                    modifier=StepModifier(step_data.modifier),
-                    is_required=step_data.is_required,
-                    parameters=step_data.parameters,
-                    condition_type=step_data.condition_type,
-                    condition_params=step_data.condition_params,
-                )
-                self.db.add(step)
+            self.db.add(step)
 
         # Create win conditions
         for wc_data in role_data.win_conditions:
@@ -301,24 +309,36 @@ class RoleService:
             self.db.query(AbilityStep).filter(AbilityStep.role_id == role.id).delete(
                 synchronize_session="fetch"
             )
+            # Batch-query abilities up front
+            step_types = [s["ability_type"] for s in new_steps]
+            ability_map = (
+                {
+                    a.type: a
+                    for a in self.db.query(Ability)
+                    .filter(Ability.type.in_(step_types))
+                    .all()
+                }
+                if step_types
+                else {}
+            )
+
             for step_data in new_steps:
-                ability = (
-                    self.db.query(Ability)
-                    .filter(Ability.type == step_data["ability_type"])
-                    .first()
-                )
-                if ability:
-                    step = AbilityStep(
-                        role_id=role.id,
-                        ability_id=ability.id,
-                        order=step_data["order"],
-                        modifier=StepModifier(step_data.get("modifier", "none")),
-                        is_required=step_data.get("is_required", True),
-                        parameters=step_data.get("parameters", {}),
-                        condition_type=step_data.get("condition_type"),
-                        condition_params=step_data.get("condition_params"),
+                ability = ability_map.get(step_data["ability_type"])
+                if not ability:
+                    raise ValueError(
+                        f"Unknown ability type: '{step_data['ability_type']}'"
                     )
-                    self.db.add(step)
+                step = AbilityStep(
+                    role_id=role.id,
+                    ability_id=ability.id,
+                    order=step_data["order"],
+                    modifier=StepModifier(step_data.get("modifier", "none")),
+                    is_required=step_data.get("is_required", True),
+                    parameters=step_data.get("parameters", {}),
+                    condition_type=step_data.get("condition_type"),
+                    condition_params=step_data.get("condition_params"),
+                )
+                self.db.add(step)
 
         if new_wcs is not None:
             # synchronize_session="fetch" required: same reason as above

@@ -945,7 +945,7 @@ def seed_roles(db: Session) -> int:
         )
 
         if existing:
-            logger.debug(f"Role '{role_data['name']}' already exists, skipping.")
+            logger.debug("Role '%s' already exists, skipping.", role_data["name"])
             continue
 
         # Create new role
@@ -974,8 +974,9 @@ def seed_roles(db: Session) -> int:
 
             if not ability_id:
                 logger.warning(
-                    f"Ability type '{ability_type}' not found for role "
-                    f"'{role_data['name']}'"
+                    "Ability type '%s' not found for role '%s'",
+                    ability_type,
+                    role_data["name"],
                 )
                 continue
 
@@ -1003,7 +1004,7 @@ def seed_roles(db: Session) -> int:
             db.add(wc)
 
         created_count += 1
-        logger.info(f"Created role: {role_data['name']}")
+        logger.info("Created role: %s", role_data["name"])
 
     db.commit()
     return created_count
@@ -1048,8 +1049,9 @@ def seed_role_dependencies(db: Session) -> int:
 
         if not source_id or not target_id:
             logger.warning(
-                f"Cannot create dependency {source_name} -> {target_name}: "
-                f"role(s) not found"
+                "Cannot create dependency %s -> %s: role(s) not found",
+                source_name,
+                target_name,
             )
             continue
 
@@ -1065,7 +1067,9 @@ def seed_role_dependencies(db: Session) -> int:
 
         if existing:
             logger.debug(
-                f"Dependency {source_name} -> {target_name} already exists, skipping."
+                "Dependency %s -> %s already exists, skipping.",
+                source_name,
+                target_name,
             )
             continue
 
@@ -1077,7 +1081,10 @@ def seed_role_dependencies(db: Session) -> int:
         db.add(dep)
         created_count += 1
         logger.info(
-            f"Created dependency: {source_name} -> {target_name} ({dep_type.value})"
+            "Created dependency: %s -> %s (%s)",
+            source_name,
+            target_name,
+            dep_type.value,
         )
 
     db.commit()

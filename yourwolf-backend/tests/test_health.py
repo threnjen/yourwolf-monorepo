@@ -1,6 +1,13 @@
 """Tests for health check endpoints."""
 
+from collections.abc import Generator
+from typing import Any
+from unittest.mock import MagicMock
+
+from app.database import get_db
+from app.main import app
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 
 class TestHealthEndpoints:
@@ -42,3 +49,22 @@ class TestHealthEndpoints:
         """Test that health/db endpoint returns JSON content type."""
         response = client.get("/health/db")
         assert "application/json" in response.headers["content-type"]
+
+    def test_database_health_returns_503_on_failure(self) -> None:
+        """Test DB health endpoint returns 503 when database is unreachable."""
+        mock_db = MagicMock(spec=Session)
+        mock_db.execute.side_effect = Exception("connection refused to host db:5432")
+
+        def override_get_db() -> Generator[Session, Any, None]:
+            yield mock_db
+
+        app.dependency_overrides[get_db] = override_get_db
+        try:
+            with TestClient(app) as test_client:
+                response = test_client.get("/health/db")
+            assert response.status_code == 503
+            data = response.json()
+            assert data["status"] == "disconnected"
+            assert "error" not in data
+        finally:
+            app.dependency_overrides.clear()

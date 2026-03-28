@@ -12,13 +12,15 @@ from app.schemas.game import (
 )
 from app.services.game_service import GameService
 from app.services.script_service import ScriptService
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
-@router.post("", response_model=GameSessionResponse, status_code=201)
+@router.post(
+    "/", response_model=GameSessionResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_game(
     game: GameSessionCreate,
     db: Session = Depends(get_db),
@@ -38,7 +40,7 @@ async def create_game(
     total_cards = game.player_count + game.center_card_count
     if len(game.role_ids) != total_cards:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 f"Must select exactly {total_cards} roles "
                 f"({game.player_count} players + "
@@ -50,10 +52,12 @@ async def create_game(
     try:
         return service.create_game(game)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
-@router.get("", response_model=GameSessionPaginatedResponse)
+@router.get("/", response_model=GameSessionPaginatedResponse)
 async def list_games(
     phase: GamePhase | None = Query(default=None, description="Filter by phase"),
     page: int = Query(default=1, ge=1, description="Page number"),
@@ -95,7 +99,9 @@ async def get_game(
     service = GameService(db)
     game = service.get_game(game_id)
     if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
+        )
     return game
 
 
@@ -117,9 +123,16 @@ async def start_game(
         HTTPException: 404 if game not found or not in setup phase.
     """
     service = GameService(db)
-    game = service.start_game(game_id)
+    try:
+        game = service.start_game(game_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
     if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
+        )
     return game
 
 
@@ -141,9 +154,16 @@ async def advance_phase(
         HTTPException: 404 if game not found.
     """
     service = GameService(db)
-    game = service.advance_phase(game_id)
+    try:
+        game = service.advance_phase(game_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
     if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
+        )
     return game
 
 
@@ -167,13 +187,15 @@ async def get_night_script(
     game_service = GameService(db)
     game_orm = game_service.get_game_with_roles(game_id)
     if not game_orm:
-        raise HTTPException(status_code=404, detail="Game not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
+        )
 
     script_service = ScriptService(db)
     return script_service.generate_night_script(game_orm)
 
 
-@router.delete("/{game_id}", status_code=204)
+@router.delete("/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_game(
     game_id: UUID,
     db: Session = Depends(get_db),
@@ -189,4 +211,6 @@ async def delete_game(
     """
     service = GameService(db)
     if not service.delete_game(game_id):
-        raise HTTPException(status_code=404, detail="Game not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
+        )

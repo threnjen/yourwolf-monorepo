@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.models.role import Team, Visibility
 from app.models.role_dependency import DependencyType
+from app.schemas.base import PaginatedResponse
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -193,14 +194,10 @@ class RoleListItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class RoleListResponse(BaseModel):
+class RoleListResponse(PaginatedResponse[RoleListItem]):
     """Paginated response for role list."""
 
-    items: list[RoleListItem]
-    total: int
-    page: int
-    limit: int
-    pages: int
+    pass
 
 
 class RoleValidationResponse(BaseModel):

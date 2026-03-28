@@ -5,10 +5,9 @@ from typing import Any
 
 import pytest
 from app.models.game_session import GamePhase
-from app.models.role import Role
+from app.models.role import Role, Team
 from app.schemas.game import GameSessionCreate
 from app.services.game_service import GameService
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 
@@ -189,10 +188,8 @@ class TestStartGame:
         game = self._create_game(service, seeded_roles)
         service.start_game(game.id)
 
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ValueError, match="not in setup phase"):
             service.start_game(game.id)
-
-        assert exc_info.value.status_code == 400
 
 
 class TestAdvancePhase:
@@ -251,10 +248,8 @@ class TestAdvancePhase:
         for _ in range(4):
             game = service.advance_phase(game.id)
 
-        with pytest.raises(HTTPException) as exc_info:
+        with pytest.raises(ValueError, match="already in complete phase"):
             service.advance_phase(game.id)
-
-        assert exc_info.value.status_code == 400
 
     def test_returns_none_for_nonexistent_game(
         self, db_session: Session, seeded_roles: list[Role]

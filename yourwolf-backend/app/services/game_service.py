@@ -18,7 +18,6 @@ from app.schemas.game import (
     GameSessionPaginatedResponse,
     GameSessionResponse,
 )
-from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 logger = logging.getLogger(__name__)
@@ -182,10 +181,7 @@ class GameService:
                 game_id,
                 game.phase.value,
             )
-            raise HTTPException(
-                status_code=400,
-                detail="Game cannot be started: not in setup phase",
-            )
+            raise ValueError("Game cannot be started: not in setup phase")
 
         game_roles = list(game.game_roles)
         random.shuffle(game_roles)
@@ -194,9 +190,8 @@ class GameService:
         for i in range(game.player_count):
             game_roles[i].position = i
             game_roles[i].is_center = False
-            role = self.db.query(Role).filter(Role.id == game_roles[i].role_id).first()
-            if role:
-                game_roles[i].current_team = role.team
+            if game_roles[i].role:
+                game_roles[i].current_team = game_roles[i].role.team
 
         # Assign center positions
         for i in range(game.player_count, len(game_roles)):
@@ -239,10 +234,7 @@ class GameService:
 
         if game.phase == GamePhase.COMPLETE:
             logger.error("Cannot advance game %s: already in complete phase", game_id)
-            raise HTTPException(
-                status_code=400,
-                detail="Game cannot be advanced: already in complete phase",
-            )
+            raise ValueError("Game cannot be advanced: already in complete phase")
 
         current_index = self.PHASE_ORDER.index(game.phase)
         if current_index < len(self.PHASE_ORDER) - 1:

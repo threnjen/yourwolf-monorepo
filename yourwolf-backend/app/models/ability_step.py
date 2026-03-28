@@ -2,6 +2,7 @@
 
 import enum
 import uuid
+from typing import Any
 
 from app.database import Base
 from app.models.types import JSONB, UUID
@@ -69,7 +70,7 @@ class AbilityStep(Base):
         default=True,
         nullable=False,
     )
-    parameters: Mapped[dict] = mapped_column(
+    parameters: Mapped[dict[str, Any]] = mapped_column(
         JSONB,
         default=dict,
         nullable=False,
@@ -78,7 +79,7 @@ class AbilityStep(Base):
         String(50),
         nullable=True,
     )
-    condition_params: Mapped[dict | None] = mapped_column(
+    condition_params: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,
         nullable=True,
     )

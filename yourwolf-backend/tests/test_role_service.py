@@ -101,6 +101,28 @@ class TestRoleServiceListRoles:
         expected_pages = (len(sample_roles) + 2) // 3  # ceiling division
         assert result.pages == expected_pages
 
+    def test_list_roles_returns_is_primary_team_role(
+        self,
+        db_session: Session,
+    ) -> None:
+        """Test that list_roles returns correct is_primary_team_role values."""
+        service = RoleService(db_session)
+        role = Role(
+            id=uuid.uuid4(),
+            name="Primary WW",
+            description="Primary werewolf",
+            team=Team.WEREWOLF,
+            visibility=Visibility.OFFICIAL,
+            is_locked=True,
+            is_primary_team_role=True,
+        )
+        db_session.add(role)
+        db_session.commit()
+
+        result = service.list_roles()
+        assert result.total == 1
+        assert result.items[0].is_primary_team_role is True
+
 
 class TestRoleServiceGetRole:
     """Tests for RoleService.get_role method."""
@@ -230,6 +252,25 @@ class TestRoleServiceCreateRole:
         )
         result = service.create_role(role_data)
         assert result.id is not None
+
+    def test_create_role_persists_is_primary_team_role(
+        self, db_session: Session
+    ) -> None:
+        """Test that is_primary_team_role=True roundtrips through create → get."""
+        service = RoleService(db_session)
+        role_data = RoleCreate(
+            name="Primary Werewolf",
+            description="The main werewolf",
+            team=Team.WEREWOLF,
+            is_primary_team_role=True,
+        )
+        created = service.create_role(role_data)
+        assert created.is_primary_team_role is True
+
+        # Verify via separate get
+        fetched = service.get_role(created.id)
+        assert fetched is not None
+        assert fetched.is_primary_team_role is True
 
 
 class TestRoleServiceUpdateRole:
