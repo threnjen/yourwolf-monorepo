@@ -201,7 +201,7 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
             {' '}Primary team role
           </label>
           <div style={{fontSize: '0.8rem', color: theme.colors.textMuted, marginTop: theme.spacing.xs}}>
-            Primary team roles are required when any role of this team is included in a game.
+            At least 1 primary team role is required when any role of this team is included in a game.
           </div>
         </div>
       )}

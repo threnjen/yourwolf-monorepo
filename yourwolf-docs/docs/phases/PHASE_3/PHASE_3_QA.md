@@ -41,31 +41,31 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Navigate to `http://localhost:3000/roles/new` | Page loads with "Create New Role" heading and subtitle |
-| [ ] | Observe step indicator | 4 steps visible: "Basic Info", "Abilities", "Win Conditions", "Review"; "Basic Info" is active/highlighted; others are dimmed |
-| [ ] | Click "✏️ New Role" in the sidebar | Navigates to `/roles/new` |
+| [x] | Navigate to `http://localhost:3000/roles/new` | Page loads with "Create New Role" heading and subtitle |
+| [x] | Observe step indicator | 4 steps visible: "Basic Info", "Abilities", "Win Conditions", "Review"; "Basic Info" is active/highlighted; others are dimmed |
+| [x] | Click "✏️ New Role" in the sidebar | Navigates to `/roles/new` |
 
 #### 1.2 Basic Info Step
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order empty; Votes defaults to 1 |
-| [ ] | Type "Se" in the Name field, wait ~500ms | "Checking..." appears below the field briefly, then "Taken ✗" (Seer exists as official role) |
-| [ ] | Clear name, type "My Custom Role", wait ~500ms | "Checking..." appears, then "Available ✓" |
-| [ ] | Observe "Next" button with empty name | Button is disabled (grayed out, not-allowed cursor) |
-| [ ] | Enter a name with 2+ characters | "Next" button becomes enabled |
-| [ ] | Click each of the 5 team buttons: Village, Werewolf, Vampire, Alien, Neutral | Each highlights with its distinct team color; only one is active at a time |
-| [ ] | Select "Werewolf" team | "Primary team role" checkbox appears below the team buttons with subtext: "Primary team roles are required when any role of this team is included in a game." |
-| [ ] | Select "Village" team | "Primary team role" checkbox disappears |
-| [ ] | Select "Neutral" team | "Primary team role" checkbox remains hidden |
+| [x] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order empty; Votes defaults to 1 |
+| [x] | Type "Se" in the Name field, wait ~500ms | "Checking..." appears below the field briefly, then "Taken ✗" (Seer exists as official role) |
+| [x] | Clear name, type "My Custom Role", wait ~500ms | "Checking..." appears, then "Available ✓" |
+| [x] | Observe "Next" button with empty name | Button is disabled (grayed out, not-allowed cursor) |
+| [x] | Enter a name with 2+ characters | "Next" button becomes enabled |
+| [x] | Click each of the 5 team buttons: Village, Werewolf, Vampire, Alien, Neutral | Each highlights with its distinct team color; only one is active at a time |
+| [x] | Select "Werewolf" team | "Primary team role" checkbox appears below the team buttons with subtext: "At least 1 primary team role is required when any role of this team is included in a game." |
+| [x] | Select "Village" team | "Primary team role" checkbox disappears |
+| [x] | Select "Neutral" team | "Primary team role" checkbox remains hidden |
 
 #### 1.3 Abilities Step
 
 | | Step | Expected |
 |---|------|----------|
-| [ ] | Click "Next" from Basic Info (with valid name) | Navigates to Abilities step; step indicator updates; abilities load from backend |
-| [ ] | Observe category tabs | 5 tabs visible: "Card Actions", "Information", "Physical", "State Changes", "Other" |
-| [ ] | Click "Information" tab | Tab highlights; palette updates to show information-type abilities |
+| [x] | Click "Next" from Basic Info (with valid name) | Navigates to Abilities step; step indicator updates; abilities load from backend |
+| [x] | Observe category tabs | 5 tabs visible: "Card Actions", "Information", "Physical", "State Changes", "Other" |
+| [x] | Click "Information" tab | Tab highlights; palette updates to show information-type abilities |
 | [ ] | Click an ability button (e.g., "View Card") | New step appears in the "Ability Steps" list with order #1; **no modifier dropdown** shown for the first step |
 | [ ] | Click another ability (e.g., "Swap Card") | Step #2 appears; **"Then:" label** appears before a modifier dropdown showing "And then" (default) |
 | [ ] | Open the modifier dropdown on step #2 | Options show descriptive text: "And then", "Or instead", "Only if" |

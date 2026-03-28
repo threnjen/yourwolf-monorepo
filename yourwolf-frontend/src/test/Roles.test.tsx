@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {render, screen, within} from '@testing-library/react';
+import {render, screen, within, fireEvent} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 import {Roles} from '../pages/Roles';
 import {useRoles} from '../hooks/useRoles';
@@ -49,7 +49,7 @@ describe('Roles Page', () => {
 
       renderRoles();
 
-      expect(screen.queryByText('Official Roles')).not.toBeInTheDocument();
+      expect(screen.queryByText('Roles')).not.toBeInTheDocument();
     });
   });
 
@@ -95,7 +95,7 @@ describe('Roles Page', () => {
 
       renderRoles();
 
-      expect(screen.getByText('Official Roles')).toBeInTheDocument();
+      expect(screen.getByRole('heading', {level: 1})).toHaveTextContent('Roles');
     });
 
     it('displays page subtitle', () => {
@@ -109,7 +109,7 @@ describe('Roles Page', () => {
       renderRoles();
 
       expect(
-        screen.getByText(/Browse all official One Night Ultimate Werewolf roles/),
+        screen.getByText(/Browse and manage your werewolf roles/),
       ).toBeInTheDocument();
     });
 
@@ -250,6 +250,86 @@ describe('Roles Page', () => {
       expect(teamHeadings).not.toContain('Werewolf');
       expect(teamHeadings).not.toContain('Vampire');
       expect(teamHeadings).not.toContain('Alien');
+    });
+  });
+
+  describe('filter buttons', () => {
+    it('renders three filter buttons', () => {
+      mockUseRoles.mockReturnValue({
+        roles: createMockRoles(3),
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      expect(screen.getByRole('button', {name: 'Official'})).toBeInTheDocument();
+      expect(screen.getByRole('button', {name: 'My Roles'})).toBeInTheDocument();
+      expect(screen.getByRole('button', {name: 'Downloaded'})).toBeInTheDocument();
+    });
+
+    it('Official and My Roles are active by default', () => {
+      mockUseRoles.mockReturnValue({
+        roles: createMockRoles(3),
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      expect(screen.getByRole('button', {name: 'Official'})).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('button', {name: 'My Roles'})).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('button', {name: 'Downloaded'})).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('toggling Downloaded filter calls useRoles with updated visibility', () => {
+      mockUseRoles.mockReturnValue({
+        roles: createMockRoles(3),
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      fireEvent.click(screen.getByRole('button', {name: 'Downloaded'}));
+
+      // After clicking Downloaded, useRoles should be called with all 3 visibilities
+      const lastCall = mockUseRoles.mock.calls[mockUseRoles.mock.calls.length - 1];
+      expect(lastCall[0]).toEqual(expect.arrayContaining(['official', 'private', 'public']));
+    });
+
+    it('cannot deselect last active filter', () => {
+      mockUseRoles.mockReturnValue({
+        roles: createMockRoles(3),
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      // Deselect My Roles — only Official remains
+      fireEvent.click(screen.getByRole('button', {name: 'My Roles'}));
+      // Try to deselect Official — should stay active
+      fireEvent.click(screen.getByRole('button', {name: 'Official'}));
+
+      expect(screen.getByRole('button', {name: 'Official'})).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('passes default visibility to useRoles on initial render', () => {
+      mockUseRoles.mockReturnValue({
+        roles: [],
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+
+      renderRoles();
+
+      expect(mockUseRoles).toHaveBeenCalledWith(expect.arrayContaining(['official', 'private']));
     });
   });
 });

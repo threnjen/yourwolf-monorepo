@@ -49,7 +49,7 @@ class RoleService:
     def list_roles(
         self,
         team: Team | None = None,
-        visibility: Visibility | None = None,
+        visibility: list[Visibility] | Visibility | None = None,
         page: int = 1,
         limit: int = 20,
     ) -> RoleListResponse:
@@ -70,7 +70,10 @@ class RoleService:
         if team is not None:
             query = query.filter(Role.team == team)
         if visibility is not None:
-            query = query.filter(Role.visibility == visibility)
+            if isinstance(visibility, list):
+                query = query.filter(Role.visibility.in_(visibility))
+            else:
+                query = query.filter(Role.visibility == visibility)
 
         # Get total count
         total = query.count()

@@ -79,6 +79,44 @@ class TestListRoles:
         for role in data["items"]:
             assert role["visibility"] == "official"
 
+    def test_list_roles_multi_visibility(
+        self,
+        client: TestClient,
+        sample_roles: list[Role],
+    ) -> None:
+        """Test filtering roles by multiple visibility values."""
+        response = client.get("/api/roles?visibility=official&visibility=private")
+        assert response.status_code == 200
+        data = response.json()
+        visibilities = {item["visibility"] for item in data["items"]}
+        assert visibilities <= {"official", "private"}
+        # sample_roles has 6 official + 1 private = 7
+        assert data["total"] == 7
+
+    def test_list_roles_single_visibility_compat(
+        self,
+        client: TestClient,
+        sample_roles: list[Role],
+    ) -> None:
+        """Test single visibility param still works (backward compat)."""
+        response = client.get("/api/roles?visibility=official")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 6
+        for item in data["items"]:
+            assert item["visibility"] == "official"
+
+    def test_list_roles_no_visibility_returns_all(
+        self,
+        client: TestClient,
+        sample_roles: list[Role],
+    ) -> None:
+        """Test omitting visibility param returns all roles."""
+        response = client.get("/api/roles")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == len(sample_roles)
+
     def test_list_roles_invalid_page(self, client: TestClient) -> None:
         """Test invalid page parameter returns validation error."""
         response = client.get("/api/roles?page=0")

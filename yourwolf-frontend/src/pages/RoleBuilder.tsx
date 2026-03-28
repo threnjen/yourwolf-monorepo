@@ -71,9 +71,9 @@ export function RoleBuilderPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      const role = await rolesApi.create(draft);
+      await rolesApi.create(draft);
       setSaving(false);
-      navigate(`/roles/${role.id}`);
+      navigate('/roles');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to create role');
       setSaving(false);

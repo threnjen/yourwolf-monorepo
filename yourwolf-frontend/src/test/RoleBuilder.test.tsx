@@ -89,7 +89,7 @@ describe('RoleBuilderPage', () => {
   });
 
   describe('create role', () => {
-    it('navigates to role page after successful create', async () => {
+    it('navigates to roles listing after successful create', async () => {
       const mockRole = {id: 'new-role-id', name: 'Test', team: 'village'};
       mockRolesApi.create.mockResolvedValue(mockRole);
       renderPage();
@@ -98,7 +98,7 @@ describe('RoleBuilderPage', () => {
         fireEvent.click(screen.getByRole('button', {name: /create role/i}));
       });
       await act(async () => {});
-      expect(mockNavigate).toHaveBeenCalledWith('/roles/new-role-id');
+      expect(mockNavigate).toHaveBeenCalledWith('/roles');
     });
 
     it('shows error message when create fails', async () => {

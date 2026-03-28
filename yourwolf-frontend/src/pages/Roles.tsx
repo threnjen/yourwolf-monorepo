@@ -1,3 +1,4 @@
+import {useState, useMemo} from 'react';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
 import {theme, capitalize, TEAM_COLORS} from '../styles/theme';
@@ -37,8 +38,51 @@ const teamSectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,
 };
 
+const filterBarStyles: React.CSSProperties = {
+  display: 'flex',
+  gap: theme.spacing.sm,
+  marginBottom: theme.spacing.lg,
+};
+
+function getFilterButtonStyles(isActive: boolean): React.CSSProperties {
+  return {
+    padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+    borderRadius: theme.borderRadius.sm,
+    border: `2px solid ${isActive ? theme.colors.primary : theme.colors.secondary}`,
+    backgroundColor: isActive ? `${theme.colors.primary}30` : 'transparent',
+    color: isActive ? theme.colors.primary : theme.colors.textMuted,
+    cursor: 'pointer',
+    fontWeight: isActive ? 600 : 400,
+    fontSize: '0.85rem',
+  };
+}
+
+const FILTER_CONFIG = [
+  {key: 'official', label: 'Official'},
+  {key: 'private', label: 'My Roles'},
+  {key: 'public', label: 'Downloaded'},
+] as const;
+
+const DEFAULT_FILTERS = new Set(['official', 'private']);
+
 export function Roles() {
-  const {roles, loading, error} = useRoles();
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(() => new Set(DEFAULT_FILTERS));
+  const visibility = useMemo(() => Array.from(activeFilters), [activeFilters]);
+  const {roles, loading, error} = useRoles(visibility);
+
+  const handleFilterToggle = (key: string) => {
+    setActiveFilters((prev) => {
+      if (prev.has(key)) {
+        if (prev.size <= 1) return prev;
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      }
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -70,11 +114,25 @@ export function Roles() {
   return (
     <div style={pageContainerStyles}>
       <header style={pageHeaderStyles}>
-        <h1 style={pageTitleStyles}>Official Roles</h1>
+        <h1 style={pageTitleStyles}>Roles</h1>
         <p style={pageSubtitleStyles}>
-          Browse all official One Night Ultimate Werewolf roles
+          Browse and manage your werewolf roles
         </p>
       </header>
+
+      <div style={filterBarStyles}>
+        {FILTER_CONFIG.map(({key, label}) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={activeFilters.has(key)}
+            style={getFilterButtonStyles(activeFilters.has(key))}
+            onClick={() => handleFilterToggle(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       {roles.length === 0 ? (
         <div style={emptyStyles}>

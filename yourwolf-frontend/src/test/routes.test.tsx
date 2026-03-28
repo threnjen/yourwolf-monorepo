@@ -54,7 +54,7 @@ describe('AppRoutes', () => {
     it('renders Roles page at "/roles" path', () => {
       renderRoutes('/roles');
 
-      expect(screen.getByText('Official Roles')).toBeInTheDocument();
+      expect(screen.getByRole('heading', {level: 1})).toHaveTextContent('Roles');
     });
   });
 
