@@ -1,5 +1,10 @@
 # Agent Guidelines
 
+## Package Management
+- `package.json` is the single source of truth for all dependencies (prod and dev).
+- Always commit `package-lock.json`; use `npm ci` in CI/automated environments for reproducible installs.
+- Install dev-only tools (e.g. `fast-check`, `vitest`) with `npm install --save-dev`.
+
 ## Principles
 
 - Incremental progress over big bangs — small changes that compile and pass tests
@@ -12,21 +17,7 @@
 - Include context for debugging; handle errors at appropriate level; never silently swallow exceptions
 - If you need to explain it, it's too complex
 
-## Plan Mode Rules
-
-- **NEVER** output code blocks in Plan mode
-- Describe changes for someone else to execute later
-- If you catch yourself writing implementation, **STOP**
-- Link to files and reference `symbols`, don't show code
-
 ## Process
-
-### Implementation Flow
-1. **Plan** — study existing patterns.
-2. **Test** — write test first (red)
-3. **Implement** — minimal code to pass (green)
-4. **Refactor** — clean up with tests passing
-5. **Commit** — clear message explaining "why"
 
 ### When Stuck (Max 3 Attempts)
 1. Document what failed (steps, errors, hypothesis)
@@ -36,18 +27,19 @@
 
 ## Testing
 
-### TDD Workflow
-- Write tests BEFORE implementation; confirm they fail first.
-- Run full suite to catch regressions.
-- SHOULD NOT add test unless it can fail for a real defect.
-- Strong assertions (`toEqual` over `toBeGreaterThanOrEqual`)
-- One assertion per test; group under `describe(functionName)`
+- Commit tests separately from implementation
+- Do NOT modify tests during implementation
+- SHOULD NOT add test unless it can fail for real defect
+- SHOULD ensure description matches expect assertion
+- Parameterize inputs (no magic numbers/strings)
+- Compare to independent expectations, not function output
+- Test edge cases, boundaries, realistic input
 
-### When Requirements Change
-- Udpate/delete affected tests FIRST, then change code
-- Stale tests (for removed behavior) should be deleted, not skipped
-- Deprecated functions: remove tests entirely or update to test new stub behavior
-- If unsure whether a test is stale: check if the requirement still exists
+### Property-Based Testing
+- Use [fast-check](https://fast-check.dev/) for property-based testing; include it as a standard dev dependency.
+- Prefer `fast-check` strategies over hand-crafted edge-case inputs when testing data ranges, formats, or invariants.
+- Use `fc.assert(fc.property(...))` integrated with Vitest `test()` blocks.
+- Combine with unit tests — fast-check finds edge cases, unit tests document known behavior.
 
 ## Quality Standards
 
@@ -71,52 +63,41 @@
 ### Decision Priority
 Testability → Readability → Consistency → Simplicity → Reversibility
 
-## Agent Operations
+## Communication
 
-### Context Clearing
-Clear at 60k tokens or 30% context:
-1. Write progress to `.md` file
-2. `/clear` the context
-3. Start fresh session reading the `.md` file
+- No preamble/postamble unless requested
+- No code comments unless asked
+- No explanations for refusals
+- Use ripgrep (`rg`) not `grep`/`find`
+- Use Read/LS tools not `cat`/`head`/`tail`/`ls`
+- Never guess URLs
 
-### Subagents
-- Main agent spawns Task(...) clones for parallel work
-- Fresh context = better critique for self-review
-- Review for: spaghetti code, API changes, missing error handling, security issues
+## TypeScript Style
 
-### Self-Review Checklist
-- [ ] Logic easy to follow?
-- [ ] No unnecessary imports/functions/comments?
-- [ ] Error handling complete?
-- [ ] Security vulnerabilities addressed?
+### Naming
+- `UpperCamelCase` for types, interfaces, components
+- `lowerCamelCase` for variables, functions, methods
+- `CONSTANT_CASE` for global constants
+- Treat acronyms as words: `loadHttpUrl` not `loadHTTPURL`
 
-## Task Documentation
+### Imports
+- Named exports only; no default exports
+- Use `import type` for type-only imports
+- Order: stdlib → third-party → local
 
-### Three-File Pattern
-```
-dev/active/[task-name]/
-├── [task-name]-plan.md      # Accepted plan with stages
-├── [task-name]-context.md   # Key files, decisions
-└── [task-name]-tasks.md     # Checklist of work
-```
+### Types
+- Prefer `interface` over `type` for object shapes
+- Prefer `unknown` over `any`; document exceptions
+- Use `prop?` not `prop: Type | undefined`
+- Mark immutable properties `readonly`
 
-### Plan Template
-```markdown
-## Stage N: [Name]
-**Goal**: [Specific deliverable]
-**Success Criteria**: [Testable outcomes]
-**Status**: [Not Started|In Progress|Complete]
-```
-
-### Workflow
-- Create task directory when starting large work
-- Update status immediately as tasks complete
-- Check `/dev/active/` for existing tasks before starting
-- Read all three files before proceeding with existing task
-- Remove plan file when all stages done
+### Functions
+- Use `const`/`let` only; never `var`
+- Arrow functions for callbacks
+- Function declarations for top-level named functions
+- Strict equality (`===`/`!==`) always
 
 ## Extended Guides
 
 Load when applicable:
-- *Phase Planning* -> `docs/PLANNING_WORKFLOW.md` - for migrations or multi-stage projects spanning multiple commits
 - *Style Guide* -> `docs/STYLE_GUIDE.md` - When writing new modules or unfamiliar with project conventions
