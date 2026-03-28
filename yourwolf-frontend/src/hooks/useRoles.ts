@@ -12,7 +12,7 @@ interface UseRolesResult {
 
 export function useRoles(visibility?: string[]): UseRolesResult {
   const visibilityKey = useMemo(
-    () => (visibility ? [...visibility].sort().join(',') : ''),
+    () => (visibility === undefined ? '__undefined__' : [...visibility].sort().join(',')),
     [visibility],
   );
 

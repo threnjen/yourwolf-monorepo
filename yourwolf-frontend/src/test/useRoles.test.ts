@@ -77,6 +77,20 @@ describe('useRoles', () => {
       expect(mockRolesApi.list).toHaveBeenCalledTimes(2);
     });
 
+    it('calls list without visibility when no args provided', async () => {
+      const mockRoles = createMockRoles(3);
+      mockRolesApi.list.mockResolvedValue(mockRoles);
+
+      const {result} = renderHook(() => useRoles());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.roles).toEqual(mockRoles);
+      expect(mockRolesApi.list).toHaveBeenCalledWith();
+    });
+
     it('refetches when visibility changes', async () => {
       const mockRoles = createMockRoles(3);
       mockRolesApi.list.mockResolvedValue(mockRoles);
