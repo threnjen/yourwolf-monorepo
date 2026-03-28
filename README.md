@@ -86,7 +86,7 @@ See [PROJECT_SETUP.md](docs/PROJECT_SETUP.md) for first-time installation and [L
 
 | Repository | Tech Stack | Purpose |
 |------------|------------|---------|
-| `yourwolf-backend` | Python 3.12, FastAPI, SQLAlchemy, PostgreSQL | REST API, game logic, ability engine |
+| `yourwolf-backend` | Python 3.14, FastAPI, SQLAlchemy, PostgreSQL | REST API, game logic, ability engine |
 | `yourwolf-frontend` | React 18, TypeScript, Vite | Web dashboard, role builder, facilitator UI |
 | `yourwolf-docs` | Markdown, Mermaid | Planning documents, specifications |
 

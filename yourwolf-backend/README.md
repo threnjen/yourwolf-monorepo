@@ -16,7 +16,7 @@ YourWolf Backend provides a RESTful API for managing roles, abilities, and game 
 
 ## Tech Stack
 
-- **Python 3.12**
+- **Python 3.14**
 - **FastAPI** - Modern async web framework
 - **SQLAlchemy 2.0** - ORM with type hints
 - **PostgreSQL 16** - Database
@@ -68,7 +68,7 @@ yourwolf-backend/
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- Python 3.12+ (for local development without Docker)
+- Python 3.14+ (for local development without Docker)
 
 ### Quick Start with Docker
 

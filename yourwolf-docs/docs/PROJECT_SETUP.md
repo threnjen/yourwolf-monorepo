@@ -11,7 +11,7 @@ Install the following tools before anything else:
 | Docker Desktop | Latest | https://www.docker.com/products/docker-desktop/ |
 | Git | Latest | https://git-scm.com/ |
 | Node.js | 20+ | Only needed for frontend outside Docker |
-| Python | 3.12+ | Only needed for backend outside Docker |
+| Python | 3.14+ | Only needed for backend outside Docker |
 
 > **The recommended path is Docker-only.** Node.js and Python are only needed if you want to run services outside of Docker.
 
