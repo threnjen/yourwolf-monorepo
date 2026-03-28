@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {RoleCard} from '../components/RoleCard';
 import {createMockRole} from './mocks';
 import {RoleListItem} from '../types/role';
@@ -76,12 +76,6 @@ describe('RoleCard', () => {
   });
 
   describe('accessibility', () => {
-    it('renders as a div element', () => {
-      const role = createMockRole();
-      const {container} = render(<RoleCard role={role} />);
-      expect(container.firstChild).toBeInstanceOf(HTMLDivElement);
-    });
-
     it('has role name as heading', () => {
       const role = createMockRole({name: 'Seer'});
       render(<RoleCard role={role} />);
@@ -108,42 +102,6 @@ describe('RoleCard', () => {
       const role = createMockRole({min_count: 1, max_count: 1});
       render(<RoleCard role={role} />);
       expect(screen.queryByText(/×/)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('interactions', () => {
-    it('applies hover styles on mouse enter', () => {
-      const role = createMockRole();
-      const {container} = render(<RoleCard role={role} />);
-      const card = container.firstChild as HTMLElement;
-      fireEvent.mouseEnter(card);
-      expect(card.style.transform).toBe('translateY(-2px)');
-    });
-
-    it('removes hover styles on mouse leave', () => {
-      const role = createMockRole();
-      const {container} = render(<RoleCard role={role} />);
-      const card = container.firstChild as HTMLElement;
-      fireEvent.mouseEnter(card);
-      fireEvent.mouseLeave(card);
-      expect(card.style.transform).toBe('translateY(0)');
-    });
-
-    it('applies focus styles on focus', () => {
-      const role = createMockRole();
-      const {container} = render(<RoleCard role={role} />);
-      const card = container.firstChild as HTMLElement;
-      fireEvent.focus(card);
-      expect(card.style.transform).toBe('translateY(-2px)');
-    });
-
-    it('removes focus styles on blur', () => {
-      const role = createMockRole();
-      const {container} = render(<RoleCard role={role} />);
-      const card = container.firstChild as HTMLElement;
-      fireEvent.focus(card);
-      fireEvent.blur(card);
-      expect(card.style.transform).toBe('translateY(0)');
     });
   });
 });

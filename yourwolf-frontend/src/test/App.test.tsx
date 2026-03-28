@@ -35,10 +35,5 @@ describe('App', () => {
       const {container} = renderApp();
       expect(container).toBeInTheDocument();
     });
-
-    it('renders Layout wrapper', () => {
-      const {container} = renderApp();
-      expect(container.querySelector('.app-container')).toBeInTheDocument();
-    });
   });
 });

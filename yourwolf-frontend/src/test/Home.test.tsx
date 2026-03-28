@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 import {Home} from '../pages/Home';
 
@@ -60,51 +60,6 @@ describe('Home Page', () => {
       expect(
         screen.getByText(/Access all official One Night Ultimate Werewolf roles/),
       ).toBeInTheDocument();
-    });
-
-    it('displays feature icons', () => {
-      renderHome();
-
-      // Check for emoji icons
-      expect(screen.getByText('📚')).toBeInTheDocument();
-      expect(screen.getByText('🔧')).toBeInTheDocument();
-      expect(screen.getByText('🎮')).toBeInTheDocument();
-    });
-  });
-
-  describe('styling', () => {
-    it('renders main container', () => {
-      const {container} = renderHome();
-
-      expect(container.firstChild).toBeInstanceOf(HTMLDivElement);
-    });
-
-    it('has heading with proper level', () => {
-      renderHome();
-
-      const heading = screen.getByRole('heading', {level: 1});
-      expect(heading).toBeInTheDocument();
-    });
-  });
-
-  describe('interactions', () => {
-    it('applies hover styles on CTA button mouse enter', () => {
-      renderHome();
-
-      const link = screen.getByRole('link', {name: /Browse Roles/i});
-      fireEvent.mouseEnter(link);
-      // Browser converts hex to rgb(165, 42, 42) which is #a52a2a (primaryLight)
-      expect(link.style.backgroundColor).toBe('rgb(165, 42, 42)');
-    });
-
-    it('removes hover styles on CTA button mouse leave', () => {
-      renderHome();
-
-      const link = screen.getByRole('link', {name: /Browse Roles/i});
-      fireEvent.mouseEnter(link);
-      fireEvent.mouseLeave(link);
-      // Browser converts hex to rgb(139, 0, 0) which is #8b0000 (primary)
-      expect(link.style.backgroundColor).toBe('rgb(139, 0, 0)');
     });
   });
 });

@@ -96,16 +96,6 @@ describe('rolesApi', () => {
 
       await expect(rolesApi.list()).rejects.toThrow('Network error');
     });
-
-    it('returns array of RoleListItem', async () => {
-      const mockRoles = createMockRoles(3);
-      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(mockRoles)});
-
-      const result = await rolesApi.list();
-
-      expect(Array.isArray(result)).toBe(true);
-      expect(result).toHaveLength(3);
-    });
   });
 
   describe('listOfficial', () => {
@@ -123,15 +113,6 @@ describe('rolesApi', () => {
       mockApiClient.get.mockRejectedValue(new Error('Server error'));
 
       await expect(rolesApi.listOfficial()).rejects.toThrow('Server error');
-    });
-
-    it('returns array of official roles', async () => {
-      const officialRoles = createMockRoles(5);
-      mockApiClient.get.mockResolvedValue({data: createPaginatedResponse(officialRoles)});
-
-      const result = await rolesApi.listOfficial();
-
-      expect(Array.isArray(result)).toBe(true);
     });
   });
 

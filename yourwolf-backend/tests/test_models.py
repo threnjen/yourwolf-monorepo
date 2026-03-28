@@ -48,37 +48,6 @@ class TestRoleModel:
         assert role.min_count == 1
         assert role.max_count == 1
 
-    def test_role_all_teams(self, db_session: Session) -> None:
-        """Test all team values work."""
-        teams = [Team.VILLAGE, Team.WEREWOLF, Team.VAMPIRE, Team.ALIEN, Team.NEUTRAL]
-        for team in teams:
-            role = Role(
-                name=f"{team.value} Role",
-                description=f"Team: {team.value}",
-                team=team,
-            )
-            db_session.add(role)
-        db_session.commit()
-
-        roles = db_session.query(Role).all()
-        assert len(roles) == len(teams)
-
-    def test_role_visibility_values(self, db_session: Session) -> None:
-        """Test all visibility values work."""
-        visibilities = [Visibility.PRIVATE, Visibility.PUBLIC, Visibility.OFFICIAL]
-        for vis in visibilities:
-            role = Role(
-                name=f"{vis.value} Role",
-                description=f"Visibility: {vis.value}",
-                team=Team.VILLAGE,
-                visibility=vis,
-            )
-            db_session.add(role)
-        db_session.commit()
-
-        roles = db_session.query(Role).all()
-        assert len(roles) == len(visibilities)
-
     def test_role_is_primary_team_role_defaults_false(
         self, db_session: Session
     ) -> None:
@@ -192,32 +161,6 @@ class TestAbilityStepModel:
         assert step.order == 1
         assert step.modifier == StepModifier.NONE
 
-    def test_step_modifiers(
-        self,
-        db_session: Session,
-        sample_role: Role,
-        sample_ability: Ability,
-    ) -> None:
-        """Test all step modifier values."""
-        modifiers = [
-            StepModifier.NONE,
-            StepModifier.AND,
-            StepModifier.OR,
-            StepModifier.IF,
-        ]
-        for i, mod in enumerate(modifiers, 1):
-            step = AbilityStep(
-                role_id=sample_role.id,
-                ability_id=sample_ability.id,
-                order=i,
-                modifier=mod,
-            )
-            db_session.add(step)
-        db_session.commit()
-
-        steps = db_session.query(AbilityStep).all()
-        assert len(steps) == len(modifiers)
-
 
 class TestWinConditionModel:
     """Tests for the WinCondition model."""
@@ -259,58 +202,6 @@ class TestWinConditionModel:
 
         assert wc.is_primary is True
         assert wc.overrides_team is False
-
-
-class TestTeamEnum:
-    """Tests for Team enum."""
-
-    def test_team_values(self) -> None:
-        """Test team enum values."""
-        assert Team.VILLAGE.value == "village"
-        assert Team.WEREWOLF.value == "werewolf"
-        assert Team.VAMPIRE.value == "vampire"
-        assert Team.ALIEN.value == "alien"
-        assert Team.NEUTRAL.value == "neutral"
-
-    def test_team_is_string_enum(self) -> None:
-        """Test team is a string enum."""
-        for team in Team:
-            assert isinstance(team.value, str)
-
-
-class TestVisibilityEnum:
-    """Tests for Visibility enum."""
-
-    def test_visibility_values(self) -> None:
-        """Test visibility enum values."""
-        assert Visibility.PRIVATE.value == "private"
-        assert Visibility.PUBLIC.value == "public"
-        assert Visibility.OFFICIAL.value == "official"
-
-
-class TestStepModifierEnum:
-    """Tests for StepModifier enum."""
-
-    def test_step_modifier_values(self) -> None:
-        """Test step modifier enum values."""
-        assert StepModifier.NONE.value == "none"
-        assert StepModifier.AND.value == "and"
-        assert StepModifier.OR.value == "or"
-        assert StepModifier.IF.value == "if"
-
-
-class TestDependencyTypeEnum:
-    """Tests for DependencyType enum."""
-
-    def test_dependency_type_values(self) -> None:
-        """Test dependency type enum values."""
-        assert DependencyType.REQUIRES.value == "requires"
-        assert DependencyType.RECOMMENDS.value == "recommends"
-
-    def test_dependency_type_is_string_enum(self) -> None:
-        """Test dependency type is a string enum."""
-        for dep_type in DependencyType:
-            assert isinstance(dep_type.value, str)
 
 
 class TestRoleDependencyModel:

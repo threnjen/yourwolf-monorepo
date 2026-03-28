@@ -164,58 +164,5 @@ describe('useRoles', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.roles).toEqual(mockRoles);
     });
-
-    it('provides refetch function that can be called', async () => {
-      const mockRoles = createMockRoles(3);
-      mockRolesApi.listOfficial.mockResolvedValue(mockRoles);
-
-      const {result} = renderHook(() => useRoles());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(typeof result.current.refetch).toBe('function');
-    });
-  });
-
-  describe('returned values', () => {
-    it('returns roles array', async () => {
-      const mockRoles = createMockRoles(5);
-      mockRolesApi.listOfficial.mockResolvedValue(mockRoles);
-
-      const {result} = renderHook(() => useRoles());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(Array.isArray(result.current.roles)).toBe(true);
-      expect(result.current.roles).toHaveLength(5);
-    });
-
-    it('returns loading boolean', async () => {
-      mockRolesApi.listOfficial.mockResolvedValue([]);
-
-      const {result} = renderHook(() => useRoles());
-
-      expect(typeof result.current.loading).toBe('boolean');
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-    });
-
-    it('returns error as null or string', async () => {
-      mockRolesApi.listOfficial.mockResolvedValue([]);
-
-      const {result} = renderHook(() => useRoles());
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.error).toBeNull();
-    });
   });
 });

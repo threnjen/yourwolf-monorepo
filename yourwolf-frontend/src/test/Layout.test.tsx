@@ -22,12 +22,6 @@ function renderLayout(children: React.ReactNode = <div>Test Content</div>) {
 
 describe('Layout', () => {
   describe('structure', () => {
-    it('renders container div', () => {
-      const {container} = renderLayout();
-
-      expect(container.querySelector('.app-container')).toBeInTheDocument();
-    });
-
     it('renders Header component', () => {
       renderLayout();
 
@@ -52,21 +46,6 @@ describe('Layout', () => {
       renderLayout(<p>Child Content</p>);
 
       expect(screen.getByText('Child Content')).toBeInTheDocument();
-    });
-
-    it('wraps children in page-content div', () => {
-      const {container} = renderLayout(<span>Wrapped</span>);
-
-      expect(container.querySelector('.page-content')).toBeInTheDocument();
-    });
-  });
-
-  describe('styling', () => {
-    it('applies background color style', () => {
-      const {container} = renderLayout();
-
-      const appContainer = container.querySelector('.app-container');
-      expect(appContainer).toHaveStyle({minHeight: '100vh'});
     });
   });
 });

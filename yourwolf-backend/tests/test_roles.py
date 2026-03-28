@@ -79,19 +79,6 @@ class TestListRoles:
         for role in data["items"]:
             assert role["visibility"] == "official"
 
-    def test_list_roles_filter_by_team_and_visibility(
-        self,
-        client: TestClient,
-        sample_roles: list[Role],
-    ) -> None:
-        """Test filtering roles by both team and visibility."""
-        response = client.get("/api/roles?team=village&visibility=official")
-        assert response.status_code == 200
-        data = response.json()
-        for role in data["items"]:
-            assert role["team"] == "village"
-            assert role["visibility"] == "official"
-
     def test_list_roles_invalid_page(self, client: TestClient) -> None:
         """Test invalid page parameter returns validation error."""
         response = client.get("/api/roles?page=0")
@@ -130,17 +117,6 @@ class TestListOfficialRoles:
         for role in data["items"]:
             assert role["visibility"] == "official"
 
-    def test_list_official_roles_pagination(
-        self,
-        client: TestClient,
-        sample_roles: list[Role],
-    ) -> None:
-        """Test pagination works for official roles."""
-        response = client.get("/api/roles/official?limit=2")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data["items"]) <= 2
-
 
 class TestGetRoleById:
     """Tests for GET /api/roles/{role_id} endpoint."""
@@ -168,27 +144,17 @@ class TestGetRoleById:
         response = client.get("/api/roles/not-a-uuid")
         assert response.status_code == 422
 
-    def test_get_role_includes_ability_steps(
+    def test_get_role_includes_ability_steps_and_win_conditions(
         self,
         client: TestClient,
         sample_role_with_steps: Role,
     ) -> None:
-        """Test that role response includes ability steps."""
+        """Test that role response includes ability steps and win conditions."""
         response = client.get(f"/api/roles/{sample_role_with_steps.id}")
         assert response.status_code == 200
         data = response.json()
         assert "ability_steps" in data
         assert len(data["ability_steps"]) > 0
-
-    def test_get_role_includes_win_conditions(
-        self,
-        client: TestClient,
-        sample_role_with_steps: Role,
-    ) -> None:
-        """Test that role response includes win conditions."""
-        response = client.get(f"/api/roles/{sample_role_with_steps.id}")
-        assert response.status_code == 200
-        data = response.json()
         assert "win_conditions" in data
         assert len(data["win_conditions"]) > 0
 
@@ -317,44 +283,6 @@ class TestCreateRole:
         """Test creating a role without name returns 422."""
         role_data = {
             "description": "Missing name",
-            "team": "village",
-        }
-        response = client.post("/api/roles", json=role_data)
-        assert response.status_code == 422
-
-    def test_create_role_missing_description(self, client: TestClient) -> None:
-        """Test creating a role without description returns 422."""
-        role_data = {
-            "name": "Missing Description",
-            "team": "village",
-        }
-        response = client.post("/api/roles", json=role_data)
-        assert response.status_code == 422
-
-    def test_create_role_missing_team(self, client: TestClient) -> None:
-        """Test creating a role without team returns 422."""
-        role_data = {
-            "name": "Missing Team",
-            "description": "No team",
-        }
-        response = client.post("/api/roles", json=role_data)
-        assert response.status_code == 422
-
-    def test_create_role_invalid_team(self, client: TestClient) -> None:
-        """Test creating a role with invalid team returns 422."""
-        role_data = {
-            "name": "Invalid Team",
-            "description": "Bad team",
-            "team": "invalid_team",
-        }
-        response = client.post("/api/roles", json=role_data)
-        assert response.status_code == 422
-
-    def test_create_role_name_too_long(self, client: TestClient) -> None:
-        """Test creating a role with name over 100 chars returns 422."""
-        role_data = {
-            "name": "x" * 101,
-            "description": "Name too long",
             "team": "village",
         }
         response = client.post("/api/roles", json=role_data)

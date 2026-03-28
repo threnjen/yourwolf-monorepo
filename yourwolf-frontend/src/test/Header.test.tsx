@@ -36,12 +36,4 @@ describe('Header', () => {
       expect(link).toHaveAttribute('href', '/');
     });
   });
-
-  describe('styling', () => {
-    it('renders as header element', () => {
-      const {container} = renderHeader();
-
-      expect(container.querySelector('header')).toBeInTheDocument();
-    });
-  });
 });

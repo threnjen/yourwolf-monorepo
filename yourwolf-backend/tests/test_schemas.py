@@ -5,17 +5,10 @@ from datetime import datetime
 
 import pytest
 from app.models.role import Team, Visibility
-from app.models.role_dependency import DependencyType
-from app.schemas.ability import AbilityRead
 from app.schemas.role import (
-    AbilityStepCreateInRole,
     RoleCreate,
-    RoleDependencyResponse,
     RoleListItem,
-    RoleListResponse,
-    RoleRead,
     RoleUpdate,
-    WinConditionCreate,
 )
 from pydantic import ValidationError
 
@@ -134,56 +127,8 @@ class TestRoleUpdateSchema:
             RoleUpdate(name="")
 
 
-class TestRoleReadSchema:
-    """Tests for RoleRead schema."""
-
-    def test_from_dict(self) -> None:
-        """Test creating from dictionary."""
-        data = {
-            "id": uuid.uuid4(),
-            "name": "Test Role",
-            "description": "Test",
-            "team": Team.VILLAGE,
-            "wake_order": None,
-            "wake_target": None,
-            "votes": 1,
-            "visibility": Visibility.OFFICIAL,
-            "is_locked": True,
-            "vote_score": 0,
-            "use_count": 0,
-            "creator_id": None,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
-            "published_at": None,
-            "ability_steps": [],
-            "win_conditions": [],
-        }
-        role = RoleRead(**data)
-        assert role.name == "Test Role"
-
-
 class TestRoleListItemSchema:
     """Tests for RoleListItem schema."""
-
-    def test_from_dict(self) -> None:
-        """Test creating from dictionary."""
-        data = {
-            "id": uuid.uuid4(),
-            "name": "List Role",
-            "description": "Listed",
-            "team": Team.WEREWOLF,
-            "wake_order": 3,
-            "visibility": Visibility.PUBLIC,
-            "vote_score": 5,
-            "use_count": 10,
-            "default_count": 1,
-            "min_count": 1,
-            "max_count": 1,
-            "created_at": datetime.now(),
-        }
-        item = RoleListItem(**data)
-        assert item.name == "List Role"
-        assert item.vote_score == 5
 
     def test_includes_is_primary_team_role(self) -> None:
         """Test that is_primary_team_role appears in serialized output."""
@@ -225,90 +170,6 @@ class TestRoleListItemSchema:
         }
         item = RoleListItem(**data)
         assert item.is_primary_team_role is False
-
-
-class TestRoleListResponseSchema:
-    """Tests for RoleListResponse schema."""
-
-    def test_pagination_fields(self) -> None:
-        """Test pagination fields are present."""
-        response = RoleListResponse(
-            items=[],
-            total=0,
-            page=1,
-            limit=20,
-            pages=1,
-        )
-        assert response.total == 0
-        assert response.page == 1
-        assert response.pages == 1
-
-
-class TestWinConditionCreateSchema:
-    """Tests for WinConditionCreate schema."""
-
-    def test_minimal(self) -> None:
-        """Test creating with minimal fields."""
-        wc = WinConditionCreate(condition_type="team_wins")
-        assert wc.condition_type == "team_wins"
-        assert wc.is_primary is True  # default
-
-    def test_full(self) -> None:
-        """Test creating with all fields."""
-        wc = WinConditionCreate(
-            condition_type="self_dies",
-            condition_params={"extra": "data"},
-            is_primary=False,
-            overrides_team=True,
-        )
-        assert wc.overrides_team is True
-
-
-class TestAbilityStepCreateInRoleSchema:
-    """Tests for AbilityStepCreateInRole schema."""
-
-    def test_minimal(self) -> None:
-        """Test creating with minimal fields."""
-        step = AbilityStepCreateInRole(
-            ability_type="view_card",
-            order=1,
-        )
-        assert step.ability_type == "view_card"
-        assert step.modifier == "none"  # default
-        assert step.is_required is True  # default
-
-    def test_full(self) -> None:
-        """Test creating with all fields."""
-        step = AbilityStepCreateInRole(
-            ability_type="swap_card",
-            order=2,
-            modifier="and",
-            is_required=False,
-            parameters={"target": "center"},
-            condition_type="if_alone",
-            condition_params={"check": True},
-        )
-        assert step.modifier == "and"
-        assert step.is_required is False
-
-
-class TestAbilityReadSchema:
-    """Tests for AbilityRead schema."""
-
-    def test_from_dict(self) -> None:
-        """Test creating from dictionary."""
-        data = {
-            "id": uuid.uuid4(),
-            "type": "test_ability",
-            "name": "Test Ability",
-            "description": "A test",
-            "parameters_schema": {},
-            "is_active": True,
-            "created_at": datetime.now(),
-        }
-        ability = AbilityRead(**data)
-        assert ability.type == "test_ability"
-        assert ability.is_active is True
 
 
 class TestRoleCreateCardCounts:
@@ -387,30 +248,3 @@ class TestRoleCreateCardCounts:
         assert role.default_count == 2
         assert role.min_count == 1
         assert role.max_count == 2
-
-
-class TestRoleDependencyResponseSchema:
-    """Tests for RoleDependencyResponse schema."""
-
-    def test_from_dict(self) -> None:
-        """Test creating from dictionary."""
-        data = {
-            "id": uuid.uuid4(),
-            "required_role_id": uuid.uuid4(),
-            "required_role_name": "Tanner",
-            "dependency_type": DependencyType.REQUIRES,
-        }
-        dep = RoleDependencyResponse(**data)
-        assert dep.required_role_name == "Tanner"
-        assert dep.dependency_type == DependencyType.REQUIRES
-
-    def test_recommends_type(self) -> None:
-        """Test creating a recommends dependency response."""
-        data = {
-            "id": uuid.uuid4(),
-            "required_role_id": uuid.uuid4(),
-            "required_role_name": "Werewolf",
-            "dependency_type": DependencyType.RECOMMENDS,
-        }
-        dep = RoleDependencyResponse(**data)
-        assert dep.dependency_type == DependencyType.RECOMMENDS

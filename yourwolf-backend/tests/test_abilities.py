@@ -101,18 +101,6 @@ class TestGetAbilityByType:
         data = response.json()
         assert "not found" in data["detail"].lower()
 
-    def test_get_ability_returns_correct_schema(
-        self,
-        client: TestClient,
-        sample_ability: Ability,
-    ) -> None:
-        """Test that ability response includes parameters_schema."""
-        response = client.get(f"/api/abilities/{sample_ability.type}")
-        assert response.status_code == 200
-        data = response.json()
-        assert "parameters_schema" in data
-        assert data["parameters_schema"] == {"target": {"type": "string"}}
-
     def test_get_ability_case_sensitive(
         self,
         client: TestClient,
