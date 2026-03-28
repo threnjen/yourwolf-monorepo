@@ -271,7 +271,7 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
           marginBottom: theme.spacing.md,
           color: theme.colors.textMuted,
         }}>
-          This role does not wake up (Wake Order is 0). Set a Wake Order ≥ 1 in Basic Info to add abilities.
+          This role does not wake up. Set a Wake Order ≥ 1 in Basic Info to add abilities.
         </div>
         {draft.ability_steps.length > 0 && (
           <div style={{

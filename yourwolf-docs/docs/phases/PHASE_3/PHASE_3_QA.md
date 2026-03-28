@@ -28,6 +28,7 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 - **Backend CRUD**: Step/condition replacement on PUT, locked role guards (403), official role deletion guard (403), creator_id persistence, exclude_unset partial update, dependency eager loading, check-name endpoint
 - **Frontend components**: All wizard step components (BasicInfoStep, AbilitiesStep, WinConditionsStep, ReviewStep), Wizard navigation/state, RoleBuilder page create flow, parameter initialization, modifier label text, win condition label text, primary toggle visibility/auto-clear, team sort utility (sort + group functions), team section header rendering, useAbilities hook, useDrafts hook (CRUD, corruption recovery, quota), RoleCard badge rendering, GameSetup multi-copy selection/dependency cascade, ErrorBanner component, API client methods, routing
 - **Roles Listing Filters**: Filter button rendering (3 buttons with correct text), default filter state (`aria-pressed` assertions), toggle refetch logic, prevent-all-off guard, page title/subtitle text, `useRoles` hook visibility-driven fetching, `rolesApi.list` array serialization, backend multi-visibility query (`GET /api/roles?visibility=official&visibility=private`), single visibility backward compat, no-param-returns-all
+- **Wake Order Gating**: Default `wake_order: 0` in `createEmptyDraft()` and `createMockDraft()`, clearing input produces 0 not null, label text "Wake Order (0–40)", "Does not wake up" hint presence at 0 and null / absence at >0, AbilitiesStep gating banner at 0 and null, palette interactivity at >0, steps-exist warning at 0 with steps / no warning at >0, steps preserved (not deleted) when wake_order returns to 0
 
 ---
 
@@ -50,7 +51,7 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 
 | | Step | Expected |
 |---|------|----------|
-| [x] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order empty; Votes defaults to 1 |
+| [x] | Observe empty form | Name empty; Team defaults to "Village"; Description empty; Wake Order defaults to **0** with **"Does not wake up"** hint visible below the input; Votes defaults to 1 |
 | [x] | Type "Se" in the Name field, wait ~500ms | "Checking..." appears below the field briefly, then "Taken ✗" (Seer exists as official role) |
 | [x] | Clear name, type "My Custom Role", wait ~500ms | "Checking..." appears, then "Available ✓" |
 | [x] | Observe "Next" button with empty name | Button is disabled (grayed out, not-allowed cursor) |
@@ -102,7 +103,7 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 |---|------|----------|
 | [ ] | Create a role with no win conditions, navigate to Review | Red error(s) appear: "At least one win condition is required"; "Create Role" button is disabled |
 | [ ] | Create a role with 6+ ability steps and navigate to Review | Yellow warning appears: role has many ability steps |
-| [ ] | Create a role with ability steps but no wake_order, navigate to Review | Warning about wake_order appears |
+| [ ] | Create a role with ability steps and wake_order set to 0, navigate to Review | Warning about wake_order appears |
 | [ ] | Enter "Seer" as the role name (exists as official); navigate to Review | Validation returns duplicate name error |
 
 ---
@@ -228,6 +229,55 @@ The following areas are already covered by 184 backend + 283 frontend passing te
 | [ ] | Look for "Filter Test Role" in the roles list | Role appears under the "Village" team header |
 | [ ] | Deactivate "My Roles" filter | "Filter Test Role" disappears from the list |
 | [ ] | Reactivate "My Roles" filter | "Filter Test Role" reappears |
+
+---
+
+### 7. Wake Order Gating — Ability Step Editing
+
+**Covers:** Wake Order Gating AC1 (visual), AC3 (visual), AC4, AC5, AC6
+**Why manual:** Visual disabled/enabled state, opacity styling, multi-step wizard interaction flow
+
+#### 7.1 Default Wake Order & Hint Display
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Navigate to `http://localhost:3000/roles/new` | Wake Order input displays **0**; below the input, muted hint text reads **"Does not wake up"** |
+| [ ] | Change Wake Order to **5** | Hint text **"Does not wake up" disappears**; input shows 5 |
+| [ ] | Clear the Wake Order input (select all, delete) | Input resets to **0**; hint text **"Does not wake up" reappears** |
+
+#### 7.2 AbilitiesStep Gating — Disabled State
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | With Wake Order at **0**, click "Next" to reach Abilities step | **Gating banner** visible: "This role does not wake up. Set a Wake Order ≥ 1 in Basic Info to add abilities." |
+| [ ] | Observe the ability palette below the banner | Palette is **visually disabled** (reduced opacity ~0.5); ability buttons are **not clickable** (pointer-events disabled) |
+| [ ] | Attempt to click an ability button (e.g., "View Card") | **Nothing happens** — no step is added to the list |
+
+#### 7.3 AbilitiesStep Gating — Enabled State
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Click "Back" to return to Basic Info; set Wake Order to **5** | Wake Order updates; "Does not wake up" hint disappears |
+| [ ] | Click "Next" to return to Abilities step | **Gating banner is gone**; palette is fully opaque and interactive |
+| [ ] | Click an ability button (e.g., "View Card") | Step #1 appears in the ability steps list |
+
+#### 7.4 Steps Preserved with Warning
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | With Wake Order at **5** on the Abilities step, add 2 ability steps (e.g., "View Card" then "Swap Card") | Steps #1 and #2 appear in the list |
+| [ ] | Click "Back" to Basic Info; change Wake Order to **0** | Wake Order shows 0; hint reappears |
+| [ ] | Click "Next" to return to Abilities step | **Gating banner** visible; **additional warning** reads: "This role has ability steps but is set to not wake up. These steps won't execute unless you set a Wake Order ≥ 1." |
+| [ ] | Observe the previously-added steps | Steps #1 (View Card) and #2 (Swap Card) are **still listed** (read-only, not deleted) |
+| [ ] | Click "Back"; set Wake Order to **3**; click "Next" | Gating banner and warning are **gone**; steps are still present and palette is interactive again |
+
+#### 7.5 Legacy Null Wake Order (localStorage)
+
+| | Step | Expected |
+|---|------|----------|
+| [ ] | Open DevTools → Application → Local Storage → `localhost:3000`. Set `yourwolf_drafts` to `[{"id":"test","name":"Legacy Test","team":"village","description":"","wake_order":null,"votes":1,"is_primary_team_role":false,"ability_steps":[],"win_conditions":[]}]` | Entry saved |
+| [ ] | Navigate to `/roles/new` (or refresh if already there) | Draft loads; Wake Order input shows **blank** (null renders as empty); **"Does not wake up" hint is visible** |
+| [ ] | Click "Next" to Abilities step | **Gating banner** is shown — null is treated the same as 0 |
 
 ---
 

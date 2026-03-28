@@ -228,6 +228,7 @@ export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
             onChange={(e) => handleWakeOrderChange(e.target.value)}
             min={0}
             max={40}
+            step={1}
             placeholder="0–40"
           />
           {(draft.wake_order === 0 || draft.wake_order === null) && (
