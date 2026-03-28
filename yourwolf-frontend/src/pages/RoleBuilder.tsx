@@ -3,7 +3,6 @@ import {useNavigate} from 'react-router-dom';
 import {RoleDraft, ValidationResult} from '../types/role';
 import {rolesApi} from '../api/roles';
 import {Wizard} from '../components/RoleBuilder/Wizard';
-import {theme} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
 
@@ -17,6 +16,7 @@ function createEmptyDraft(): RoleDraft {
     wake_order: null,
     wake_target: null,
     votes: 1,
+    is_primary_team_role: false,
     ability_steps: [],
     win_conditions: [],
     created_at: now,

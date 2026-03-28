@@ -86,13 +86,13 @@ class TestRoleCreateSchema:
             )
 
     def test_wake_order_range(self) -> None:
-        """Test wake_order must be 0-20."""
+        """Test wake_order must be 0-40."""
         with pytest.raises(ValidationError):
             RoleCreate(
                 name="Bad Wake",
                 description="Invalid wake order",
                 team=Team.VILLAGE,
-                wake_order=25,
+                wake_order=45,
             )
 
     def test_votes_range(self) -> None:

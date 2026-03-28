@@ -58,6 +58,7 @@ export interface RoleDraft {
   wake_order: number | null;
   wake_target: string | null;
   votes: number;
+  is_primary_team_role: boolean;
   ability_steps: AbilityStepDraft[];
   win_conditions: WinConditionDraft[];
   created_at: string;
@@ -105,6 +106,7 @@ export interface RoleListItem {
   default_count: number;
   min_count: number;
   max_count: number;
+  is_primary_team_role: boolean;
   dependencies: RoleDependency[];
   created_at: string;
 }

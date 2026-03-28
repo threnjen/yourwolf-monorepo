@@ -140,6 +140,62 @@ describe('BasicInfoStep', () => {
     });
   });
 
+  describe('primary team role toggle', () => {
+    it.each(['werewolf', 'vampire', 'alien'] as const)('renders toggle for %s team', (team) => {
+      render(<BasicInfoStep draft={createMockDraft({team})} onChange={mockOnChange} />);
+      expect(screen.getByLabelText('Primary team role')).toBeInTheDocument();
+    });
+
+    it('hides toggle for village team', () => {
+      render(<BasicInfoStep draft={createMockDraft({team: 'village'})} onChange={mockOnChange} />);
+      expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
+    });
+
+    it('hides toggle for neutral team', () => {
+      render(<BasicInfoStep draft={createMockDraft({team: 'neutral'})} onChange={mockOnChange} />);
+      expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
+    });
+
+    it('checking toggle calls onChange with is_primary_team_role true', () => {
+      render(
+        <BasicInfoStep
+          draft={createMockDraft({team: 'werewolf', is_primary_team_role: false})}
+          onChange={mockOnChange}
+        />
+      );
+      fireEvent.click(screen.getByLabelText('Primary team role'));
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({is_primary_team_role: true})
+      );
+    });
+
+    it('switching to village clears is_primary_team_role to false', () => {
+      render(
+        <BasicInfoStep
+          draft={createMockDraft({team: 'werewolf', is_primary_team_role: true})}
+          onChange={mockOnChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', {name: /village/i}));
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({team: 'village', is_primary_team_role: false})
+      );
+    });
+
+    it('switching to neutral clears is_primary_team_role to false', () => {
+      render(
+        <BasicInfoStep
+          draft={createMockDraft({team: 'werewolf', is_primary_team_role: true})}
+          onChange={mockOnChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', {name: /neutral/i}));
+      expect(mockOnChange).toHaveBeenCalledWith(
+        expect.objectContaining({team: 'neutral', is_primary_team_role: false})
+      );
+    });
+  });
+
   describe('other field interactions', () => {
     it('calls onChange when description changes', () => {
       render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);

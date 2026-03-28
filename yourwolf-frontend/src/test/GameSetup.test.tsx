@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {render, screen, fireEvent, waitFor} from '@testing-library/react';
+import {render, screen, fireEvent, waitFor, within} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 import {GameSetupPage} from '../pages/GameSetup';
 import {useRoles} from '../hooks/useRoles';
@@ -136,7 +136,7 @@ describe('GameSetupPage', () => {
       renderGameSetup();
 
       fireEvent.click(
-        screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!,
+        screen.getByTestId('team-section').querySelector('[data-role-id]')!,
       );
       expect(screen.getByText(/2 \//)).toBeInTheDocument();
     });
@@ -151,7 +151,7 @@ describe('GameSetupPage', () => {
       setupWithRoles([werewolf]);
       renderGameSetup();
 
-      const card = screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!;
+      const card = screen.getByTestId('team-section').querySelector('[data-role-id]')!;
       fireEvent.click(card); // select
       fireEvent.click(card); // deselect
       expect(screen.getByText(/0 \//)).toBeInTheDocument();
@@ -408,8 +408,13 @@ describe('GameSetupPage', () => {
       fireEvent.blur(screen.getByLabelText('Center Cards'));
 
       // Select Werewolf (2) + Seer (1) = 3 cards = totalCardsNeeded
-      fireEvent.click(screen.getByRole('heading', {name: 'Werewolf'}).closest('[data-role-id]')!);
-      fireEvent.click(screen.getByRole('heading', {name: 'Seer'}).closest('[data-role-id]')!);
+      const roleCards = screen.getAllByTestId('team-section').flatMap(
+        (s) => Array.from(s.querySelectorAll('[data-role-id]')),
+      );
+      const werewolfCard = roleCards.find((c) => c.getAttribute('data-role-id') === werewolf.id)!;
+      const seerCard = roleCards.find((c) => c.getAttribute('data-role-id') === seer.id)!;
+      fireEvent.click(werewolfCard);
+      fireEvent.click(seerCard);
 
       fireEvent.click(screen.getByText('Start Game'));
 
@@ -424,6 +429,49 @@ describe('GameSetupPage', () => {
       expect(calledRoleIds).toHaveLength(3);
       expect(calledRoleIds.filter((id: string) => id === werewolf.id)).toHaveLength(2);
       expect(calledRoleIds.filter((id: string) => id === seer.id)).toHaveLength(1);
+    });
+  });
+
+  describe('team sorting and grouping', () => {
+    it('renders team section headers in canonical order', () => {
+      const roles = [
+        createMockOfficialRole('Tanner', 'neutral'),
+        createMockOfficialRole('Werewolf', 'werewolf', 1),
+        createMockOfficialRole('Villager', 'village'),
+      ];
+      setupWithRoles(roles);
+      renderGameSetup();
+
+      const sections = screen.getAllByTestId('team-section');
+      const teamHeadings = sections.map(
+        (s) => within(s).getAllByRole('heading', {level: 3})[0].textContent,
+      );
+      expect(teamHeadings).toEqual([
+        'Village',
+        'Werewolf',
+        'Neutral',
+      ]);
+    });
+
+    it('renders role cards under the correct team section', () => {
+      const roles = [
+        createMockOfficialRole('Tanner', 'neutral'),
+        createMockOfficialRole('Alpha Wolf', 'werewolf', 1),
+        createMockOfficialRole('Villager', 'village'),
+        createMockOfficialRole('Seer', 'village', 4),
+      ];
+      setupWithRoles(roles);
+      renderGameSetup();
+
+      const sections = screen.getAllByTestId('team-section');
+      // first section = village
+      const villageSection = sections[0];
+      expect(within(villageSection).getByText('Villager')).toBeInTheDocument();
+      expect(within(villageSection).getByText('Seer')).toBeInTheDocument();
+
+      // last section = neutral
+      const neutralSection = sections[sections.length - 1];
+      expect(within(neutralSection).getByText('Tanner')).toBeInTheDocument();
     });
   });
 });

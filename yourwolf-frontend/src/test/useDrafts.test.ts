@@ -13,6 +13,7 @@ const makeDraft = (id: string, name: string): RoleDraft => ({
   wake_order: null,
   wake_target: null,
   votes: 1,
+  is_primary_team_role: false,
   ability_steps: [],
   win_conditions: [],
   created_at: '2025-01-01T00:00:00Z',

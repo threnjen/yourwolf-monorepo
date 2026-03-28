@@ -2,9 +2,11 @@ import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {useGameSetup, PLAYER_COUNT_MIN, PLAYER_COUNT_MAX, CENTER_COUNT_MIN, CENTER_COUNT_MAX, TIMER_MIN_SECONDS, TIMER_MAX_SECONDS, TIMER_STEP_SECONDS} from '../hooks/useGameSetup';
 import {RoleCard} from '../components/RoleCard';
-import {theme} from '../styles/theme';
+import {theme, capitalize, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
+import {groupRolesByTeam} from '../utils/roleSort';
+import type {Team} from '../types/role';
 
 const configGridStyles: React.CSSProperties = {
   display: 'grid',
@@ -73,6 +75,17 @@ const quantityBadgeStyles: React.CSSProperties = {
   textAlign: 'center',
 };
 
+const teamHeaderStyles = (team: Team): React.CSSProperties => ({
+  fontSize: '1.2rem',
+  fontWeight: 600,
+  color: TEAM_COLORS[team] ?? theme.colors.textMuted,
+  margin: `${theme.spacing.md} 0 ${theme.spacing.sm}`,
+});
+
+const teamSectionStyles: React.CSSProperties = {
+  marginBottom: theme.spacing.lg,
+};
+
 export function GameSetupPage() {
   const navigate = useNavigate();
   const {roles, loading} = useRoles();
@@ -107,6 +120,8 @@ export function GameSetupPage() {
       </div>
     );
   }
+
+  const teamGroups = groupRolesByTeam(roles);
 
   return (
     <div style={pageContainerStyles}>
@@ -186,75 +201,80 @@ export function GameSetupPage() {
         </p>
       </div>
 
-      <div style={roleGridStyles}>
-        {roles.map((role) => {
-          const count = selectedRoleCounts[role.id] || 0;
-          const isSelected = count > 0;
-          const showQuantityControls =
-            isSelected && role.min_count !== role.max_count;
+      {teamGroups.map((group) => (
+        <div key={group.team} data-testid="team-section" style={teamSectionStyles}>
+          <h3 style={teamHeaderStyles(group.team)}>{capitalize(group.team)}</h3>
+          <div style={roleGridStyles}>
+            {group.roles.map((role) => {
+              const count = selectedRoleCounts[role.id] || 0;
+              const isSelected = count > 0;
+              const showQuantityControls =
+                isSelected && role.min_count !== role.max_count;
 
-          return (
-            <div
-              key={role.id}
-              data-role-id={role.id}
-              onClick={() => selectRole(role.id)}
-              style={{
-                opacity: isSelected ? 1 : 0.5,
-                border: isSelected
-                  ? `2px solid ${theme.colors.primary}`
-                  : '2px solid transparent',
-                borderRadius: theme.borderRadius.md,
-                cursor: 'pointer',
-                transition: 'opacity 0.2s ease',
-                position: 'relative',
-              }}
-            >
-              <RoleCard role={role} />
-              {isSelected && (
+              return (
                 <div
+                  key={role.id}
+                  data-role-id={role.id}
+                  onClick={() => selectRole(role.id)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: theme.spacing.sm,
-                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                    backgroundColor: theme.colors.surfaceLight,
-                    borderBottomLeftRadius: theme.borderRadius.md,
-                    borderBottomRightRadius: theme.borderRadius.md,
+                    opacity: isSelected ? 1 : 0.5,
+                    border: isSelected
+                      ? `2px solid ${theme.colors.primary}`
+                      : '2px solid transparent',
+                    borderRadius: theme.borderRadius.md,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s ease',
+                    position: 'relative',
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  {showQuantityControls && (
-                    <button
-                      aria-label={`Decrease ${role.name} count`}
-                      onClick={() => adjustCount(role.id, -1)}
-                      style={quantityBtnStyles}
-                    >
-                      −
-                    </button>
-                  )}
-                  <span style={quantityBadgeStyles}>×{count}</span>
-                  {showQuantityControls && (
-                    <button
-                      aria-label={`Increase ${role.name} count`}
-                      onClick={() => adjustCount(role.id, 1)}
-                      disabled={count >= role.max_count}
+                  <RoleCard role={role} />
+                  {isSelected && (
+                    <div
                       style={{
-                        ...quantityBtnStyles,
-                        opacity: count >= role.max_count ? 0.4 : 1,
-                        cursor:
-                          count >= role.max_count ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: theme.spacing.sm,
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                        backgroundColor: theme.colors.surfaceLight,
+                        borderBottomLeftRadius: theme.borderRadius.md,
+                        borderBottomRightRadius: theme.borderRadius.md,
                       }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      +
-                    </button>
+                      {showQuantityControls && (
+                        <button
+                          aria-label={`Decrease ${role.name} count`}
+                          onClick={() => adjustCount(role.id, -1)}
+                          style={quantityBtnStyles}
+                        >
+                          −
+                        </button>
+                      )}
+                      <span style={quantityBadgeStyles}>×{count}</span>
+                      {showQuantityControls && (
+                        <button
+                          aria-label={`Increase ${role.name} count`}
+                          onClick={() => adjustCount(role.id, 1)}
+                          disabled={count >= role.max_count}
+                          style={{
+                            ...quantityBtnStyles,
+                            opacity: count >= role.max_count ? 0.4 : 1,
+                            cursor:
+                              count >= role.max_count ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       {/* Start Button */}
       <button

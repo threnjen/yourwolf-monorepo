@@ -61,7 +61,7 @@ class RoleBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: str = Field(..., min_length=1)
     team: Team
-    wake_order: int | None = Field(default=None, ge=0, le=20)
+    wake_order: int | None = Field(default=None, ge=0, le=40)
     wake_target: str | None = None
     votes: int = Field(default=1, ge=0, le=10)
     default_count: int = Field(default=1, ge=1, le=10)
@@ -119,7 +119,7 @@ class RoleUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, min_length=1)
     team: Team | None = None
-    wake_order: int | None = Field(default=None, ge=0, le=20)
+    wake_order: int | None = Field(default=None, ge=0, le=40)
     wake_target: str | None = None
     votes: int | None = Field(default=None, ge=0, le=10)
     visibility: Visibility | None = None
