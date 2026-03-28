@@ -2,6 +2,7 @@
 
 import uuid
 
+import pytest
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
 from app.schemas.role import (
@@ -512,13 +513,13 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         assert len(result.ability_steps) == 1
         assert result.ability_steps[0].id == original_step_id
 
-    def test_update_role_skips_unknown_ability_type(
+    def test_update_role_raises_on_unknown_ability_type(
         self,
         db_session: Session,
         sample_unlocked_role: Role,
         sample_ability,
     ) -> None:
-        """Steps with an unknown ability_type are silently skipped during replacement."""
+        """Steps with an unknown ability_type raise ValueError."""
         from app.models.ability_step import AbilityStep
 
         service = RoleService(db_session)
@@ -556,11 +557,8 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
                 ),
             ]
         )
-        result = service.update_role(sample_unlocked_role.id, update_data)
-        assert result is not None
-        # Only the valid step is created; the unknown one is silently skipped
-        assert len(result.ability_steps) == 1
-        assert result.ability_steps[0].ability_type == sample_ability.type
+        with pytest.raises(ValueError, match="Unknown ability type"):
+            service.update_role(sample_unlocked_role.id, update_data)
 
     def test_update_role_omitting_win_conditions_leaves_them_unchanged(
         self,

@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/", response_model=GameSessionResponse, status_code=status.HTTP_201_CREATED
+    "", response_model=GameSessionResponse, status_code=status.HTTP_201_CREATED
 )
 async def create_game(
     game: GameSessionCreate,
@@ -57,7 +57,7 @@ async def create_game(
         ) from e
 
 
-@router.get("/", response_model=GameSessionPaginatedResponse)
+@router.get("", response_model=GameSessionPaginatedResponse)
 async def list_games(
     phase: GamePhase | None = Query(default=None, description="Filter by phase"),
     page: int = Query(default=1, ge=1, description="Page number"),
@@ -120,7 +120,8 @@ async def start_game(
         Updated game session.
 
     Raises:
-        HTTPException: 404 if game not found or not in setup phase.
+        HTTPException: 400 if game is not in setup phase.
+        HTTPException: 404 if game not found.
     """
     service = GameService(db)
     try:
@@ -151,6 +152,7 @@ async def advance_phase(
         Updated game session.
 
     Raises:
+        HTTPException: 400 if game is already in complete phase.
         HTTPException: 404 if game not found.
     """
     service = GameService(db)

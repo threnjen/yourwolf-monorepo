@@ -1,5 +1,5 @@
 import {apiClient} from './client';
-import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult} from '../types/role';
+import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, Visibility} from '../types/role';
 
 interface RoleListParams {
   team?: string;
@@ -51,11 +51,11 @@ export const rolesApi = {
 interface RoleCreatePayload {
   name: string;
   description: string;
-  team: string;
+  team: Team;
   wake_order: number | null;
   wake_target: string | null;
   votes: number;
-  visibility: string;
+  visibility: Visibility;
   creator_id: null;
   ability_steps: {
     ability_type: string;

@@ -178,7 +178,7 @@ export function GameFacilitatorPage() {
   const navigate = useNavigate();
 
   if (!gameId) {
-    return <div style={errorStyles}>Game not found</div>;
+    return <ErrorBanner message="Game not found" />;
   }
 
   return <GameFacilitatorContent gameId={gameId} navigate={navigate} />;
