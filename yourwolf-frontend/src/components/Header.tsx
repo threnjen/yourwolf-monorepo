@@ -1,6 +1,10 @@
 import {Link} from 'react-router-dom';
 import {theme} from '../styles/theme';
 
+interface HeaderProps {
+  onToggleSidebar?: () => void;
+}
+
 const headerStyles: React.CSSProperties = {
   position: 'fixed',
   top: 0,
@@ -33,9 +37,20 @@ const accentStyles: React.CSSProperties = {
   color: theme.colors.primary,
 };
 
-export function Header() {
+export function Header({onToggleSidebar}: HeaderProps) {
   return (
     <header style={headerStyles}>
+      {onToggleSidebar && (
+        <button
+          className="hamburger-btn"
+          onClick={onToggleSidebar}
+          aria-label="Toggle navigation"
+        >
+          <span className="hamburger-icon" />
+          <span className="hamburger-icon" />
+          <span className="hamburger-icon" />
+        </button>
+      )}
       <Link to="/" style={logoStyles}>
         <span style={titleStyles}>
           Your<span style={accentStyles}>Wolf</span>

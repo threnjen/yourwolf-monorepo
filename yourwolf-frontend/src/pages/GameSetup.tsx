@@ -2,10 +2,9 @@ import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {useGameSetup, PLAYER_COUNT_MIN, PLAYER_COUNT_MAX, CENTER_COUNT_MIN, CENTER_COUNT_MAX, TIMER_MIN_SECONDS, TIMER_MAX_SECONDS, TIMER_STEP_SECONDS} from '../hooks/useGameSetup';
 import {RoleCard} from '../components/RoleCard';
-import {theme, capitalize, TEAM_COLORS} from '../styles/theme';
-import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
+import {theme, capitalize} from '../styles/theme';
+import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, teamHeaderStyles} from '../styles/shared';
 import {groupRolesByTeam} from '../utils/roleSort';
-import type {Team} from '../types/role';
 
 const configGridStyles: React.CSSProperties = {
   display: 'grid',
@@ -73,13 +72,6 @@ const quantityBadgeStyles: React.CSSProperties = {
   minWidth: '20px',
   textAlign: 'center',
 };
-
-const teamHeaderStyles = (team: Team): React.CSSProperties => ({
-  fontSize: '1.2rem',
-  fontWeight: 600,
-  color: TEAM_COLORS[team] ?? theme.colors.textMuted,
-  margin: `${theme.spacing.md} 0 ${theme.spacing.sm}`,
-});
 
 const teamSectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.lg,

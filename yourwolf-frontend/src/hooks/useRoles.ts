@@ -18,7 +18,7 @@ export function useRoles(visibility?: string[]): UseRolesResult {
 
   const fetcher = useCallback(
     () => rolesApi.list({visibility, limit: 100}),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- visibilityKey is a stable serialization of the visibility array; using the array directly causes infinite re-renders
     [visibilityKey],
   );
 

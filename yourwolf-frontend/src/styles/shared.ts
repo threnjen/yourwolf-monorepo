@@ -1,4 +1,5 @@
-import {theme} from './theme';
+import {theme, TEAM_COLORS} from './theme';
+import type {Team} from '../types/role';
 
 export const loadingStyles: React.CSSProperties = {
   display: 'flex',
@@ -46,3 +47,10 @@ export const selectStyles: React.CSSProperties = {
   color: theme.colors.text,
   fontSize: '0.85rem',
 };
+
+export const teamHeaderStyles = (team: Team): React.CSSProperties => ({
+  fontSize: '1.4rem',
+  fontWeight: 600,
+  color: TEAM_COLORS[team] ?? theme.colors.textMuted,
+  margin: 0,
+});

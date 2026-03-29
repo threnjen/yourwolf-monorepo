@@ -1,6 +1,11 @@
 import {NavLink} from 'react-router-dom';
 import {theme} from '../styles/theme';
 
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
 const sidebarStyles: React.CSSProperties = {
   position: 'fixed',
   top: '60px',
@@ -34,12 +39,14 @@ interface NavItemProps {
   to: string;
   icon: string;
   label: string;
+  onClick?: () => void;
 }
 
-function NavItem({to, icon, label}: NavItemProps) {
+function NavItem({to, icon, label, onClick}: NavItemProps) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       style={({isActive}) => ({
         ...navLinkBaseStyles,
         backgroundColor: isActive ? theme.colors.surfaceLight : 'transparent',
@@ -53,15 +60,22 @@ function NavItem({to, icon, label}: NavItemProps) {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({isOpen, onClose}: SidebarProps) {
+  const className = ['sidebar', isOpen ? 'sidebar-open' : ''].filter(Boolean).join(' ');
+
   return (
-    <aside style={sidebarStyles}>
-      <nav style={navStyles}>
-        <NavItem to="/" icon="🏠" label="Home" />
-        <NavItem to="/roles" icon="🎭" label="Roles" />
-        <NavItem to="/roles/new" icon="✏️" label="New Role" />
-        <NavItem to="/games/new" icon="🎮" label="New Game" />
-      </nav>
-    </aside>
+    <>
+      {isOpen && (
+        <div className="sidebar-backdrop" onClick={onClose} />
+      )}
+      <aside className={className} style={sidebarStyles}>
+        <nav style={navStyles}>
+          <NavItem to="/" icon="🏠" label="Home" onClick={onClose} />
+          <NavItem to="/roles" icon="🎭" label="Roles" onClick={onClose} />
+          <NavItem to="/roles/new" icon="✏️" label="New Role" onClick={onClose} />
+          <NavItem to="/games/new" icon="🎮" label="New Game" onClick={onClose} />
+        </nav>
+      </aside>
+    </>
   );
 }
