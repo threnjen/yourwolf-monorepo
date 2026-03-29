@@ -375,3 +375,18 @@ class TestRoleServiceCreateRoleCreatorId:
         )
         result = service.create_role(role_data)
         assert result.creator_id is None
+
+
+class TestRoleServiceDeleteRole:
+    """Tests for RoleService.delete_role — locked role guard."""
+
+    def test_delete_locked_role_raises_permission_error(
+        self,
+        db_session: Session,
+        sample_role: Role,
+    ) -> None:
+        """Deleting a locked role raises PermissionError."""
+        service = RoleService(db_session)
+
+        with pytest.raises(PermissionError, match="locked"):
+            service.delete_role(sample_role.id)

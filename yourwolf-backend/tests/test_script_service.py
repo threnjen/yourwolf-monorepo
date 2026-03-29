@@ -8,6 +8,7 @@ from app.schemas.game import GameSessionCreate
 from app.schemas.role import RoleCreate, AbilityStepCreateInRole
 from app.services.game_service import GameService
 from app.services.script_service import ScriptService
+from tests.conftest import _ensure_abilities
 from sqlalchemy.orm import Session
 
 
@@ -301,42 +302,6 @@ def _doppelganger_create() -> RoleCreate:
         ],
         win_conditions=[],
     )
-
-
-def _ensure_abilities(db: Session) -> None:
-    """Create ability records in DB if they don't exist yet."""
-    needed = [
-        ("view_card", "View Card", "View a card"),
-        ("swap_card", "Swap Card", "Swap two cards"),
-        ("view_awake", "View Awake", "See who else is awake"),
-        ("copy_role", "Copy Role", "Copy another role"),
-        ("perform_immediately", "Perform Immediately", "Perform copied role now"),
-        ("take_card", "Take Card", "Take a card"),
-        ("explicit_no_view", "Explicit No View", "Do not look"),
-        ("change_to_team", "Change to Team", "Change team"),
-        ("stop", "Stop", "Stop actions"),
-        (
-            "random_num_players",
-            "Random Number of Players",
-            "Select random number of players",
-        ),
-    ]
-    import uuid
-
-    existing = {a.type for a in db.query(Ability).all()}
-    for atype, name, desc in needed:
-        if atype not in existing:
-            db.add(
-                Ability(
-                    id=uuid.uuid4(),
-                    type=atype,
-                    name=name,
-                    description=desc,
-                    parameters_schema={},
-                    is_active=True,
-                )
-            )
-    db.commit()
 
 
 class TestPreviewRoleScript:
@@ -644,7 +609,7 @@ class TestPreviewEndpoint:
                 }
             ],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()
@@ -654,7 +619,7 @@ class TestPreviewEndpoint:
     def test_preview_returns_422_with_invalid_payload(self, client) -> None:
         """AC5: Endpoint returns 422 for truly invalid payload."""
         payload = {"wake_order": -1}  # Invalid: wake_order < 0
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 422
 
@@ -740,7 +705,7 @@ class TestPreviewEndpointMinimalPayload:
                 }
             ],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()
@@ -754,7 +719,7 @@ class TestPreviewEndpointMinimalPayload:
             "wake_order": 5,
             "ability_steps": [],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
 
@@ -765,7 +730,7 @@ class TestPreviewEndpointMinimalPayload:
             "wake_order": 5,
             "ability_steps": [],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()

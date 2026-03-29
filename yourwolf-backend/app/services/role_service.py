@@ -225,51 +225,23 @@ class RoleService:
         self.db.add(role)
         self.db.flush()  # Get the role ID
 
-        # Create ability steps — batch-query abilities up front
-        ability_types = [s.ability_type for s in role_data.ability_steps]
-        ability_map = (
-            {
-                a.type: a
-                for a in self.db.query(Ability)
-                .filter(Ability.type.in_(ability_types))
-                .all()
-            }
-            if ability_types
-            else {}
-        )
+        # Create ability steps and win conditions via shared helpers
+        steps_data = [
+            s.model_dump() for s in role_data.ability_steps
+        ]
+        self._create_ability_steps(role.id, steps_data)
 
-        for step_data in role_data.ability_steps:
-            ability = ability_map.get(step_data.ability_type)
-            if not ability:
-                raise ValueError(f"Unknown ability type: '{step_data.ability_type}'")
-            step = AbilityStep(
-                role_id=role.id,
-                ability_id=ability.id,
-                order=step_data.order,
-                modifier=StepModifier(step_data.modifier),
-                is_required=step_data.is_required,
-                parameters=step_data.parameters,
-                condition_type=step_data.condition_type,
-                condition_params=step_data.condition_params,
-            )
-            self.db.add(step)
-
-        # Create win conditions
-        for wc_data in role_data.win_conditions:
-            wc = WinCondition(
-                role_id=role.id,
-                condition_type=wc_data.condition_type,
-                condition_params=wc_data.condition_params,
-                is_primary=wc_data.is_primary,
-                overrides_team=wc_data.overrides_team,
-            )
-            self.db.add(wc)
+        wc_data = [
+            wc.model_dump() for wc in role_data.win_conditions
+        ]
+        self._create_win_conditions(role.id, wc_data)
 
         self.db.commit()
         self.db.refresh(role)
 
         result = self.get_role(role.id)
-        assert result is not None, "Role was just created, should exist"
+        if result is None:
+            raise RuntimeError("Role was just created, should exist")
         return result
 
     def update_role(self, role_id: UUID, role_data: RoleUpdate) -> RoleRead | None:
@@ -312,56 +284,80 @@ class RoleService:
             self.db.query(AbilityStep).filter(AbilityStep.role_id == role.id).delete(
                 synchronize_session="fetch"
             )
-            # Batch-query abilities up front
-            step_types = [s["ability_type"] for s in new_steps]
-            ability_map = (
-                {
-                    a.type: a
-                    for a in self.db.query(Ability)
-                    .filter(Ability.type.in_(step_types))
-                    .all()
-                }
-                if step_types
-                else {}
-            )
-
-            for step_data in new_steps:
-                ability = ability_map.get(step_data["ability_type"])
-                if not ability:
-                    raise ValueError(
-                        f"Unknown ability type: '{step_data['ability_type']}'"
-                    )
-                step = AbilityStep(
-                    role_id=role.id,
-                    ability_id=ability.id,
-                    order=step_data["order"],
-                    modifier=StepModifier(step_data.get("modifier", "none")),
-                    is_required=step_data.get("is_required", True),
-                    parameters=step_data.get("parameters", {}),
-                    condition_type=step_data.get("condition_type"),
-                    condition_params=step_data.get("condition_params"),
-                )
-                self.db.add(step)
+            self._create_ability_steps(role.id, new_steps)
 
         if new_wcs is not None:
             # synchronize_session="fetch" required: same reason as above
             self.db.query(WinCondition).filter(WinCondition.role_id == role.id).delete(
                 synchronize_session="fetch"
             )
-            for wc_data in new_wcs:
-                wc = WinCondition(
-                    role_id=role.id,
-                    condition_type=wc_data["condition_type"],
-                    condition_params=wc_data.get("condition_params"),
-                    is_primary=wc_data.get("is_primary", True),
-                    overrides_team=wc_data.get("overrides_team", False),
-                )
-                self.db.add(wc)
+            self._create_win_conditions(role.id, new_wcs)
 
         self.db.commit()
         self.db.refresh(role)
 
         return self.get_role(role.id)
+
+    def _create_ability_steps(
+        self, role_id: UUID, steps_data: list[dict]
+    ) -> None:
+        """Batch-query abilities and create AbilityStep objects.
+
+        Args:
+            role_id: The role to attach steps to.
+            steps_data: List of step dicts with ability_type, order, etc.
+
+        Raises:
+            ValueError: If an ability type is unknown.
+        """
+        step_types = [s["ability_type"] for s in steps_data]
+        ability_map = (
+            {
+                a.type: a
+                for a in self.db.query(Ability)
+                .filter(Ability.type.in_(step_types))
+                .all()
+            }
+            if step_types
+            else {}
+        )
+
+        for step_data in steps_data:
+            ability = ability_map.get(step_data["ability_type"])
+            if not ability:
+                raise ValueError(
+                    f"Unknown ability type: '{step_data['ability_type']}'"
+                )
+            step = AbilityStep(
+                role_id=role_id,
+                ability_id=ability.id,
+                order=step_data["order"],
+                modifier=StepModifier(step_data.get("modifier", "none")),
+                is_required=step_data.get("is_required", True),
+                parameters=step_data.get("parameters", {}),
+                condition_type=step_data.get("condition_type"),
+                condition_params=step_data.get("condition_params"),
+            )
+            self.db.add(step)
+
+    def _create_win_conditions(
+        self, role_id: UUID, wc_data: list[dict]
+    ) -> None:
+        """Create WinCondition objects for a role.
+
+        Args:
+            role_id: The role to attach win conditions to.
+            wc_data: List of win condition dicts.
+        """
+        for wc_item in wc_data:
+            wc = WinCondition(
+                role_id=role_id,
+                condition_type=wc_item["condition_type"],
+                condition_params=wc_item.get("condition_params"),
+                is_primary=wc_item.get("is_primary", True),
+                overrides_team=wc_item.get("overrides_team", False),
+            )
+            self.db.add(wc)
 
     def delete_role(self, role_id: UUID) -> bool:
         """Delete a role.

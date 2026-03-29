@@ -344,12 +344,12 @@ class TestGetWarnings:
 
 
 # ---------------------------------------------------------------------------
-# Stage 3 — Integration tests: POST /api/roles/validate
+# Stage 3 — Integration tests: POST /api/v1/roles/validate
 # ---------------------------------------------------------------------------
 
 
 class TestValidateEndpoint:
-    """Integration tests for POST /api/roles/validate (AC1, AC12)."""
+    """Integration tests for POST /api/v1/roles/validate (AC1, AC12)."""
 
     def test_validate_endpoint_valid_role(
         self, client: TestClient, sample_ability: Ability
@@ -361,7 +361,7 @@ class TestValidateEndpoint:
                 {"ability_type": "view_card", "order": 1, "modifier": "none"}
             ],
         )
-        response = client.post("/api/roles/validate", json=payload)
+        response = client.post("/api/v1/roles/validate", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["is_valid"] is True
@@ -370,7 +370,7 @@ class TestValidateEndpoint:
     def test_validate_endpoint_invalid_role(self, client: TestClient) -> None:
         """AC1, AC12: Invalid role returns 200 with is_valid=false and non-empty errors."""
         payload = make_valid_role(name="a", win_conditions=[])
-        response = client.post("/api/roles/validate", json=payload)
+        response = client.post("/api/v1/roles/validate", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["is_valid"] is False
@@ -389,7 +389,7 @@ class TestValidateEndpoint:
             for i in range(6)
         ]
         payload = make_valid_role(wake_order=1, ability_steps=steps)
-        response = client.post("/api/roles/validate", json=payload)
+        response = client.post("/api/v1/roles/validate", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["is_valid"] is True
@@ -403,7 +403,7 @@ class TestValidateEndpoint:
         # sample_role is "Villager" OFFICIAL — would normally trigger duplicate error
         payload = make_valid_role(name="Villager")
         response = client.post(
-            f"/api/roles/validate?exclude_role_id={sample_role.id}", json=payload
+            f"/api/v1/roles/validate?exclude_role_id={sample_role.id}", json=payload
         )
         assert response.status_code == 200
         data = response.json()
@@ -411,16 +411,16 @@ class TestValidateEndpoint:
 
 
 # ---------------------------------------------------------------------------
-# Stage 3 — Integration tests: GET /api/roles/check-name
+# Stage 3 — Integration tests: GET /api/v1/roles/check-name
 # ---------------------------------------------------------------------------
 
 
 class TestCheckNameEndpoint:
-    """Integration tests for GET /api/roles/check-name (AC2, AC4)."""
+    """Integration tests for GET /api/v1/roles/check-name (AC2, AC4)."""
 
     def test_check_name_available(self, client: TestClient) -> None:
         """AC2: Novel name returns is_available=true."""
-        response = client.get("/api/roles/check-name?name=Unique+Name")
+        response = client.get("/api/v1/roles/check-name?name=Unique+Name")
         assert response.status_code == 200
         data = response.json()
         assert data["is_available"] is True
@@ -430,7 +430,7 @@ class TestCheckNameEndpoint:
     def test_check_name_taken(self, client: TestClient, sample_role: Role) -> None:
         """AC2, AC4: Existing official role name returns is_available=false."""
         # sample_role is "Villager" with OFFICIAL visibility
-        response = client.get("/api/roles/check-name?name=Villager")
+        response = client.get("/api/v1/roles/check-name?name=Villager")
         assert response.status_code == 200
         data = response.json()
         assert data["is_available"] is False
@@ -439,17 +439,17 @@ class TestCheckNameEndpoint:
         self, client: TestClient, sample_role: Role
     ) -> None:
         """AC4: Check is case-insensitive — 'VILLAGER' matches 'Villager'."""
-        response = client.get("/api/roles/check-name?name=VILLAGER")
+        response = client.get("/api/v1/roles/check-name?name=VILLAGER")
         assert response.status_code == 200
         data = response.json()
         assert data["is_available"] is False
 
     def test_check_name_requires_name_param(self, client: TestClient) -> None:
         """AC2: Missing name query parameter returns 422."""
-        response = client.get("/api/roles/check-name")
+        response = client.get("/api/v1/roles/check-name")
         assert response.status_code == 422
 
     def test_check_name_whitespace_only(self, client: TestClient) -> None:
         """AC2: Whitespace-only name returns 422 after strip."""
-        response = client.get("/api/roles/check-name?name=++++")
+        response = client.get("/api/v1/roles/check-name?name=++++")
         assert response.status_code == 422

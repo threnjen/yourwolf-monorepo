@@ -24,9 +24,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(health.router)
-app.include_router(roles.router, prefix="/api/roles", tags=["roles"])
-app.include_router(abilities.router, prefix="/api/abilities", tags=["abilities"])
-app.include_router(games.router, prefix="/api/games", tags=["games"])
+app.include_router(roles.router, prefix="/api/v1/roles", tags=["roles"])
+app.include_router(abilities.router, prefix="/api/v1/abilities", tags=["abilities"])
+app.include_router(games.router, prefix="/api/v1/games", tags=["games"])
 
 
 @app.get("/")

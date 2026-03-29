@@ -10,14 +10,14 @@ from sqlalchemy.orm import Session
 
 
 class TestCreateGameEndpoint:
-    """Tests for POST /api/games."""
+    """Tests for POST /api/v1/games."""
 
     def test_creates_game_successfully(
         self, client: TestClient, seeded_roles: list[Role]
     ) -> None:
         role_ids = [str(r.id) for r in seeded_roles[:8]]
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={
                 "player_count": 5,
                 "center_card_count": 3,
@@ -37,7 +37,7 @@ class TestCreateGameEndpoint:
     ) -> None:
         role_ids = [str(r.id) for r in seeded_roles[:5]]
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={
                 "player_count": 5,
                 "center_card_count": 3,
@@ -50,20 +50,20 @@ class TestCreateGameEndpoint:
 
 
 class TestGetNightScriptEndpoint:
-    """Tests for GET /api/games/{id}/script."""
+    """Tests for GET /api/v1/games/{id}/script."""
 
     def test_returns_night_script(
         self, client: TestClient, seeded_roles: list[Role]
     ) -> None:
         role_ids = [str(r.id) for r in seeded_roles[:8]]
         create_resp = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
         game_id = create_resp.json()["id"]
-        client.post(f"/api/games/{game_id}/start")
+        client.post(f"/api/v1/games/{game_id}/start")
 
-        response = client.get(f"/api/games/{game_id}/script")
+        response = client.get(f"/api/v1/games/{game_id}/script")
 
         assert response.status_code == 200
         data = response.json()
@@ -72,7 +72,7 @@ class TestGetNightScriptEndpoint:
         assert data["total_duration_seconds"] > 0
 
     def test_returns_404_for_nonexistent(self, client: TestClient) -> None:
-        response = client.get(f"/api/games/{uuid.uuid4()}/script")
+        response = client.get(f"/api/v1/games/{uuid.uuid4()}/script")
 
         assert response.status_code == 404
 
@@ -87,27 +87,27 @@ class TestFullGameLifecycle:
 
         # Create
         resp = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
         assert resp.status_code == 201
         game_id = resp.json()["id"]
 
         # Start
-        resp = client.post(f"/api/games/{game_id}/start")
+        resp = client.post(f"/api/v1/games/{game_id}/start")
         assert resp.json()["phase"] == "night"
 
         # Get script
-        resp = client.get(f"/api/games/{game_id}/script")
+        resp = client.get(f"/api/v1/games/{game_id}/script")
         assert len(resp.json()["actions"]) > 0
 
         # Advance through all remaining phases
         for expected_phase in ["discussion", "voting", "resolution", "complete"]:
-            resp = client.post(f"/api/games/{game_id}/advance")
+            resp = client.post(f"/api/v1/games/{game_id}/advance")
             assert resp.json()["phase"] == expected_phase
 
         # Verify complete state
-        resp = client.get(f"/api/games/{game_id}")
+        resp = client.get(f"/api/v1/games/{game_id}")
         assert resp.json()["phase"] == "complete"
         assert resp.json()["ended_at"] is not None
 
@@ -132,7 +132,7 @@ class TestCardCountValidationEndpoint:
         ]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
 
@@ -156,7 +156,7 @@ class TestCardCountValidationEndpoint:
         ]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
 
@@ -184,7 +184,7 @@ class TestDependencyValidationEndpoint:
         ]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
 
@@ -208,7 +208,7 @@ class TestDependencyValidationEndpoint:
         ]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
 
@@ -224,7 +224,7 @@ class TestDependencyValidationEndpoint:
         role_ids = [str(r.id) for r in seeded_roles[:8]]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
         )
 
@@ -234,7 +234,7 @@ class TestDependencyValidationEndpoint:
 
 
 class TestWakeOrderSequenceEndpoint:
-    """Tests for wake_order_sequence via POST /api/games."""
+    """Tests for wake_order_sequence via POST /api/v1/games."""
 
     def test_creates_game_with_valid_sequence(
         self, client: TestClient, seeded_roles: list[Role]
@@ -243,7 +243,7 @@ class TestWakeOrderSequenceEndpoint:
         waking_ids = [str(r.id) for r in seeded_roles[:5]]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={
                 "player_count": 5,
                 "center_card_count": 3,
@@ -263,7 +263,7 @@ class TestWakeOrderSequenceEndpoint:
         sequence = [str(r.id) for r in seeded_roles[:2]]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={
                 "player_count": 5,
                 "center_card_count": 3,
@@ -280,7 +280,7 @@ class TestWakeOrderSequenceEndpoint:
         role_ids = [str(r.id) for r in seeded_roles[:8]]
 
         response = client.post(
-            "/api/games",
+            "/api/v1/games",
             json={
                 "player_count": 5,
                 "center_card_count": 3,

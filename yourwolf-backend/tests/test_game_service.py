@@ -170,16 +170,13 @@ class TestStartGame:
             db_session.refresh(role)
             assert role.use_count == 1
 
-    def test_returns_none_for_nonexistent_game(
+    def test_raises_value_error_for_nonexistent_game(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
-        import uuid
-
         service = GameService(db_session)
 
-        result = service.start_game(uuid.uuid4())
-
-        assert result is None
+        with pytest.raises(ValueError, match="Game not found"):
+            service.start_game(uuid.uuid4())
 
     def test_raises_400_if_not_in_setup_phase(
         self, db_session: Session, seeded_roles: list[Role]
@@ -407,6 +404,47 @@ class TestDeleteGame:
         result = service.delete_game(uuid.uuid4())
 
         assert result is False
+
+
+class TestCreateGameUnknownRoleIds:
+    """Tests for rejecting unknown role IDs in game creation."""
+
+    def test_create_game_unknown_role_ids(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """Game creation raises ValueError when role_ids contain unknown UUIDs."""
+        service = GameService(db_session)
+        valid_ids = [r.id for r in seeded_roles[:7]]
+        unknown_id = uuid.uuid4()
+        role_ids = valid_ids + [unknown_id]
+
+        with pytest.raises(ValueError, match=str(unknown_id)):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_create_game_multiple_unknown_role_ids(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """ValueError lists all unknown IDs when multiple are unknown."""
+        service = GameService(db_session)
+        valid_ids = [r.id for r in seeded_roles[:6]]
+        unknown1 = uuid.uuid4()
+        unknown2 = uuid.uuid4()
+        role_ids = valid_ids + [unknown1, unknown2]
+
+        with pytest.raises(ValueError, match="Unknown role IDs"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
 
 
 class TestCardCountValidation:

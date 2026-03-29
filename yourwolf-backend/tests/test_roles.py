@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session
 
 
 class TestListRoles:
-    """Tests for GET /api/roles endpoint."""
+    """Tests for GET /api/v1/roles endpoint."""
 
     def test_list_roles_empty(self, client: TestClient) -> None:
         """Test listing roles when none exist returns empty list."""
-        response = client.get("/api/roles")
+        response = client.get("/api/v1/roles")
         assert response.status_code == 200
         data = response.json()
         assert data["items"] == []
@@ -26,7 +26,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test listing roles returns all roles."""
-        response = client.get("/api/roles")
+        response = client.get("/api/v1/roles")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == len(sample_roles)
@@ -37,7 +37,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test pagination with limit parameter."""
-        response = client.get("/api/roles?limit=3")
+        response = client.get("/api/v1/roles?limit=3")
         assert response.status_code == 200
         data = response.json()
         assert len(data["items"]) == 3
@@ -50,7 +50,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test pagination with page parameter."""
-        response = client.get("/api/roles?page=2&limit=3")
+        response = client.get("/api/v1/roles?page=2&limit=3")
         assert response.status_code == 200
         data = response.json()
         assert data["page"] == 2
@@ -61,7 +61,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test filtering roles by team."""
-        response = client.get("/api/roles?team=werewolf")
+        response = client.get("/api/v1/roles?team=werewolf")
         assert response.status_code == 200
         data = response.json()
         for role in data["items"]:
@@ -73,7 +73,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test filtering roles by visibility."""
-        response = client.get("/api/roles?visibility=official")
+        response = client.get("/api/v1/roles?visibility=official")
         assert response.status_code == 200
         data = response.json()
         for role in data["items"]:
@@ -85,7 +85,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test filtering roles by multiple visibility values."""
-        response = client.get("/api/roles?visibility=official&visibility=private")
+        response = client.get("/api/v1/roles?visibility=official&visibility=private")
         assert response.status_code == 200
         data = response.json()
         visibilities = {item["visibility"] for item in data["items"]}
@@ -99,7 +99,7 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test single visibility param still works (backward compat)."""
-        response = client.get("/api/roles?visibility=official")
+        response = client.get("/api/v1/roles?visibility=official")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 6
@@ -112,33 +112,33 @@ class TestListRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test omitting visibility param returns all roles."""
-        response = client.get("/api/roles")
+        response = client.get("/api/v1/roles")
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == len(sample_roles)
 
     def test_list_roles_invalid_page(self, client: TestClient) -> None:
         """Test invalid page parameter returns validation error."""
-        response = client.get("/api/roles?page=0")
+        response = client.get("/api/v1/roles?page=0")
         assert response.status_code == 422
 
     def test_list_roles_invalid_limit(self, client: TestClient) -> None:
         """Test invalid limit parameter returns validation error."""
-        response = client.get("/api/roles?limit=0")
+        response = client.get("/api/v1/roles?limit=0")
         assert response.status_code == 422
 
     def test_list_roles_limit_max(self, client: TestClient) -> None:
         """Test limit parameter maximum is enforced."""
-        response = client.get("/api/roles?limit=101")
+        response = client.get("/api/v1/roles?limit=101")
         assert response.status_code == 422
 
 
 class TestListOfficialRoles:
-    """Tests for GET /api/roles/official endpoint."""
+    """Tests for GET /api/v1/roles/official endpoint."""
 
     def test_list_official_roles_empty(self, client: TestClient) -> None:
         """Test listing official roles when none exist."""
-        response = client.get("/api/roles/official")
+        response = client.get("/api/v1/roles/official")
         assert response.status_code == 200
         data = response.json()
         assert data["items"] == []
@@ -149,7 +149,7 @@ class TestListOfficialRoles:
         sample_roles: list[Role],
     ) -> None:
         """Test that only official roles are returned."""
-        response = client.get("/api/roles/official")
+        response = client.get("/api/v1/roles/official")
         assert response.status_code == 200
         data = response.json()
         for role in data["items"]:
@@ -157,7 +157,7 @@ class TestListOfficialRoles:
 
 
 class TestGetRoleById:
-    """Tests for GET /api/roles/{role_id} endpoint."""
+    """Tests for GET /api/v1/roles/{role_id} endpoint."""
 
     def test_get_role_success(
         self,
@@ -165,7 +165,7 @@ class TestGetRoleById:
         sample_role: Role,
     ) -> None:
         """Test getting a role by ID returns correct data."""
-        response = client.get(f"/api/roles/{sample_role.id}")
+        response = client.get(f"/api/v1/roles/{sample_role.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == sample_role.name
@@ -174,12 +174,12 @@ class TestGetRoleById:
     def test_get_role_not_found(self, client: TestClient) -> None:
         """Test getting a nonexistent role returns 404."""
         fake_id = uuid.uuid4()
-        response = client.get(f"/api/roles/{fake_id}")
+        response = client.get(f"/api/v1/roles/{fake_id}")
         assert response.status_code == 404
 
     def test_get_role_invalid_uuid(self, client: TestClient) -> None:
         """Test getting a role with invalid UUID returns 422."""
-        response = client.get("/api/roles/not-a-uuid")
+        response = client.get("/api/v1/roles/not-a-uuid")
         assert response.status_code == 422
 
     def test_get_role_includes_ability_steps_and_win_conditions(
@@ -188,7 +188,7 @@ class TestGetRoleById:
         sample_role_with_steps: Role,
     ) -> None:
         """Test that role response includes ability steps and win conditions."""
-        response = client.get(f"/api/roles/{sample_role_with_steps.id}")
+        response = client.get(f"/api/v1/roles/{sample_role_with_steps.id}")
         assert response.status_code == 200
         data = response.json()
         assert "ability_steps" in data
@@ -202,7 +202,7 @@ class TestGetRoleById:
         sample_role: Role,
     ) -> None:
         """Test that role response includes all expected fields."""
-        response = client.get(f"/api/roles/{sample_role.id}")
+        response = client.get(f"/api/v1/roles/{sample_role.id}")
         assert response.status_code == 200
         data = response.json()
         expected_fields = [
@@ -226,7 +226,7 @@ class TestGetRoleById:
 
 
 class TestCreateRole:
-    """Tests for POST /api/roles endpoint."""
+    """Tests for POST /api/v1/roles endpoint."""
 
     def test_create_role_minimal(
         self,
@@ -239,7 +239,7 @@ class TestCreateRole:
             "description": "A test role",
             "team": "village",
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == "Test Role"
@@ -261,7 +261,7 @@ class TestCreateRole:
             "votes": 2,
             "visibility": "public",
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == "Complete Role"
@@ -288,7 +288,7 @@ class TestCreateRole:
                 }
             ],
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert len(data["ability_steps"]) == 1
@@ -312,7 +312,7 @@ class TestCreateRole:
                 }
             ],
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert len(data["win_conditions"]) == 1
@@ -323,12 +323,12 @@ class TestCreateRole:
             "description": "Missing name",
             "team": "village",
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 422
 
 
 class TestUpdateRole:
-    """Tests for PUT /api/roles/{role_id} endpoint."""
+    """Tests for PUT /api/v1/roles/{role_id} endpoint."""
 
     def test_update_role_success(
         self,
@@ -338,7 +338,7 @@ class TestUpdateRole:
         """Test updating an unlocked role."""
         update_data = {"name": "Updated Name"}
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -357,7 +357,7 @@ class TestUpdateRole:
             "team": "werewolf",
         }
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -374,7 +374,7 @@ class TestUpdateRole:
         """Test updating a locked role returns 403."""
         update_data = {"name": "Try Update"}
         response = client.put(
-            f"/api/roles/{sample_role.id}",
+            f"/api/v1/roles/{sample_role.id}",
             json=update_data,
         )
         assert response.status_code == 403
@@ -383,7 +383,7 @@ class TestUpdateRole:
         """Test updating a nonexistent role returns 404."""
         fake_id = uuid.uuid4()
         update_data = {"name": "New Name"}
-        response = client.put(f"/api/roles/{fake_id}", json=update_data)
+        response = client.put(f"/api/v1/roles/{fake_id}", json=update_data)
         assert response.status_code == 404
 
     def test_update_role_partial(
@@ -395,7 +395,7 @@ class TestUpdateRole:
         original_description = sample_unlocked_role.description
         update_data = {"name": "Only Name Changed"}
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -413,7 +413,7 @@ class TestListRolesWithDependencies:
         seeded_roles_with_deps: dict,
     ) -> None:
         """Test that list endpoint returns dependencies for each role."""
-        response = client.get("/api/roles/official?limit=50")
+        response = client.get("/api/v1/roles/official?limit=50")
         assert response.status_code == 200
         data = response.json()
         items_by_name = {item["name"]: item for item in data["items"]}
@@ -432,7 +432,7 @@ class TestListRolesWithDependencies:
 
 
 class TestDeleteRole:
-    """Tests for DELETE /api/roles/{role_id} endpoint."""
+    """Tests for DELETE /api/v1/roles/{role_id} endpoint."""
 
     def test_delete_role_success(
         self,
@@ -440,11 +440,11 @@ class TestDeleteRole:
         sample_unlocked_role: Role,
     ) -> None:
         """Test deleting an unlocked role."""
-        response = client.delete(f"/api/roles/{sample_unlocked_role.id}")
+        response = client.delete(f"/api/v1/roles/{sample_unlocked_role.id}")
         assert response.status_code == 204
 
         # Verify it's deleted
-        get_response = client.get(f"/api/roles/{sample_unlocked_role.id}")
+        get_response = client.get(f"/api/v1/roles/{sample_unlocked_role.id}")
         assert get_response.status_code == 404
 
     def test_delete_locked_role_fails(
@@ -453,7 +453,7 @@ class TestDeleteRole:
         sample_role: Role,
     ) -> None:
         """Test deleting a locked role returns 403."""
-        response = client.delete(f"/api/roles/{sample_role.id}")
+        response = client.delete(f"/api/v1/roles/{sample_role.id}")
         assert response.status_code == 403
 
     def test_delete_official_role_fails(
@@ -462,24 +462,24 @@ class TestDeleteRole:
         sample_official_role: Role,
     ) -> None:
         """Test deleting an official role returns 403 with correct message."""
-        response = client.delete(f"/api/roles/{sample_official_role.id}")
+        response = client.delete(f"/api/v1/roles/{sample_official_role.id}")
         assert response.status_code == 403
         assert "Cannot delete official roles" in response.json()["detail"]
 
     def test_delete_role_not_found(self, client: TestClient) -> None:
         """Test deleting a nonexistent role returns 404."""
         fake_id = uuid.uuid4()
-        response = client.delete(f"/api/roles/{fake_id}")
+        response = client.delete(f"/api/v1/roles/{fake_id}")
         assert response.status_code == 404
 
     def test_delete_role_invalid_uuid(self, client: TestClient) -> None:
         """Test deleting with invalid UUID returns 422."""
-        response = client.delete("/api/roles/not-a-uuid")
+        response = client.delete("/api/v1/roles/not-a-uuid")
         assert response.status_code == 422
 
 
 class TestCreateRoleOwnership:
-    """Tests for creator_id in POST /api/roles endpoint."""
+    """Tests for creator_id in POST /api/v1/roles endpoint."""
 
     def test_create_role_with_creator_id(self, client: TestClient) -> None:
         """creator_id sent in POST body is persisted and returned in the response."""
@@ -490,7 +490,7 @@ class TestCreateRoleOwnership:
             "team": "village",
             "creator_id": creator_id,
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert data["creator_id"] == creator_id
@@ -502,14 +502,14 @@ class TestCreateRoleOwnership:
             "description": "Role without a creator",
             "team": "village",
         }
-        response = client.post("/api/roles", json=role_data)
+        response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
         data = response.json()
         assert data["creator_id"] is None
 
 
 class TestUpdateRoleStepsAndConditions:
-    """Tests for ability step and win condition replacement via PUT /api/roles/{id}."""
+    """Tests for ability step and win condition replacement via PUT /api/v1/roles/{id}."""
 
     def test_update_role_replaces_ability_steps(
         self,
@@ -530,7 +530,7 @@ class TestUpdateRoleStepsAndConditions:
             ]
         }
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -559,7 +559,7 @@ class TestUpdateRoleStepsAndConditions:
             ]
         }
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -594,7 +594,7 @@ class TestUpdateRoleStepsAndConditions:
             ],
         }
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json=update_data,
         )
         assert response.status_code == 200
@@ -625,7 +625,7 @@ class TestUpdateRoleStepsAndConditions:
         original_wc_id = wc.id
 
         response = client.put(
-            f"/api/roles/{sample_unlocked_role.id}",
+            f"/api/v1/roles/{sample_unlocked_role.id}",
             json={"name": "Name Only"},
         )
         assert response.status_code == 200
@@ -672,7 +672,7 @@ class TestUpdateRoleStepsAndConditions:
         original_step_id = step.id
 
         response = client.put(
-            f"/api/roles/{unlocked.id}",
+            f"/api/v1/roles/{unlocked.id}",
             json={"name": "Name Only"},
         )
         assert response.status_code == 200
