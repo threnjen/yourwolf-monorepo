@@ -96,7 +96,7 @@ describe('AppRoutes', () => {
         </MemoryRouter>,
       );
 
-      expect(screen.getByText(/Wake Order Resolution/i)).toBeInTheDocument();
+      expect(screen.getByText(/Review Wake Order/i)).toBeInTheDocument();
     });
 
     it('redirects to /games/new when accessed without state', () => {

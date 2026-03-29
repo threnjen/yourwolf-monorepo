@@ -100,42 +100,95 @@ describe('WakeOrderResolutionPage', () => {
     });
   });
 
-  describe('initial grouping and conflict detection', () => {
-    it('tiles are sorted by wake_order initially', () => {
-      const seer = createMockOfficialRole('Seer', 'village', 4);
+  describe('grouped layout and headers', () => {
+    it('renders group headers with correct labels for each unique wake_order', () => {
       const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
-      const minion = createMockOfficialRole('Minion', 'werewolf', 2);
-
-      renderWithState(makeState([seer, werewolf, minion]));
-
-      const tiles = screen.getAllByTestId('wake-tile');
-      expect(tiles[0]).toHaveTextContent('Werewolf');
-      expect(tiles[1]).toHaveTextContent('Minion');
-      expect(tiles[2]).toHaveTextContent('Seer');
-    });
-
-    it('shows conflict message when roles share the same wake_order', () => {
       const seer = createMockOfficialRole('Seer', 'village', 4);
       const robber = createMockOfficialRole('Robber', 'village', 4);
+      const troublemaker = createMockOfficialRole('Troublemaker', 'village', 5);
 
-      renderWithState(makeState([seer, robber]));
+      renderWithState(makeState([seer, werewolf, robber, troublemaker]));
 
-      expect(screen.getByText('Resolve wake order conflicts to start the game')).toBeInTheDocument();
+      const headers = screen.getAllByTestId('wake-group-header');
+      expect(headers).toHaveLength(3);
+      expect(headers[0]).toHaveTextContent('Wake #1');
+      expect(headers[1]).toHaveTextContent('Wake #4');
+      expect(headers[2]).toHaveTextContent('Wake #5');
     });
 
-    it('"Start Game" is disabled when conflicts exist', () => {
+    it('tiles appear within their respective wake order groups', () => {
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
       const seer = createMockOfficialRole('Seer', 'village', 4);
       const robber = createMockOfficialRole('Robber', 'village', 4);
+      const troublemaker = createMockOfficialRole('Troublemaker', 'village', 5);
 
-      renderWithState(makeState([seer, robber]));
+      renderWithState(makeState([seer, werewolf, robber, troublemaker]));
 
-      const button = screen.getByText('Start Game');
-      expect(button).toBeDisabled();
+      // Group headers and tiles should render in wake_order group order
+      const headers = screen.getAllByTestId('wake-group-header');
+      expect(headers).toHaveLength(3);
+      expect(headers[0]).toHaveTextContent('Wake #1');
+      expect(headers[1]).toHaveTextContent('Wake #4');
+      expect(headers[2]).toHaveTextContent('Wake #5');
+    });
+
+    it('single-role groups display one tile under their header', () => {
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+
+      renderWithState(makeState([werewolf, seer]));
+
+      const groups = screen.getAllByTestId('wake-group');
+      expect(groups).toHaveLength(2);
+      // Each group should have exactly one tile
+      for (const group of groups) {
+        const tiles = group.querySelectorAll('[data-testid="wake-tile"]');
+        expect(tiles).toHaveLength(1);
+      }
+    });
+
+    it('multi-role groups contain all roles with that wake_order', () => {
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+      const robber = createMockOfficialRole('Robber', 'village', 4);
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+
+      renderWithState(makeState([seer, robber, werewolf]));
+
+      const groups = screen.getAllByTestId('wake-group');
+      // Wake #1 group should have 1 tile, Wake #4 group should have 2 tiles
+      const group1Tiles = groups[0].querySelectorAll('[data-testid="wake-tile"]');
+      const group4Tiles = groups[1].querySelectorAll('[data-testid="wake-tile"]');
+      expect(group1Tiles).toHaveLength(1);
+      expect(group4Tiles).toHaveLength(2);
     });
   });
 
-  describe('no conflicts', () => {
-    it('"Start Game" enabled when all roles have unique wake_order', () => {
+  describe('random shuffle within groups', () => {
+    it('tiles within a multi-role group are not always in the same order across renders', () => {
+      // Render multiple times and check that at least one ordering differs
+      const roles = [
+        createMockOfficialRole('Seer', 'village', 4),
+        createMockOfficialRole('Robber', 'village', 4),
+        createMockOfficialRole('Witch', 'village', 4),
+        createMockOfficialRole('Apprentice Seer', 'village', 4),
+      ];
+
+      const orderings = new Set<string>();
+      for (let i = 0; i < 20; i++) {
+        const {unmount} = renderWithState(makeState(roles));
+        const tiles = screen.getAllByTestId('wake-tile');
+        const order = tiles.map((t) => t.textContent).join(',');
+        orderings.add(order);
+        unmount();
+      }
+
+      // With 4 roles and 20 renders, we should see more than 1 unique ordering
+      expect(orderings.size).toBeGreaterThan(1);
+    });
+  });
+
+  describe('always-enabled Start Game', () => {
+    it('"Start Game" is always enabled on page load', () => {
       const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
       const seer = createMockOfficialRole('Seer', 'village', 4);
 
@@ -143,6 +196,25 @@ describe('WakeOrderResolutionPage', () => {
 
       const button = screen.getByText('Start Game');
       expect(button).not.toBeDisabled();
+    });
+
+    it('"Start Game" is enabled even when multiple roles share the same wake_order', () => {
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+      const robber = createMockOfficialRole('Robber', 'village', 4);
+
+      renderWithState(makeState([seer, robber]));
+
+      const button = screen.getByText('Start Game');
+      expect(button).not.toBeDisabled();
+    });
+
+    it('does not show conflict warning message', () => {
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+      const robber = createMockOfficialRole('Robber', 'village', 4);
+
+      renderWithState(makeState([seer, robber]));
+
+      expect(screen.queryByText(/Resolve wake order conflicts/)).not.toBeInTheDocument();
     });
   });
 
@@ -163,6 +235,22 @@ describe('WakeOrderResolutionPage', () => {
       renderWithState(makeState([villager]));
 
       expect(screen.getByText(/No waking roles selected/)).toBeInTheDocument();
+    });
+  });
+
+  describe('page text', () => {
+    it('shows "Review Wake Order" as page title', () => {
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      renderWithState(makeState([werewolf]));
+
+      expect(screen.getByText('Review Wake Order')).toBeInTheDocument();
+    });
+
+    it('shows correct subtitle text', () => {
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      renderWithState(makeState([werewolf]));
+
+      expect(screen.getByText('Drag roles to customize order within each wake group')).toBeInTheDocument();
     });
   });
 
@@ -189,6 +277,31 @@ describe('WakeOrderResolutionPage', () => {
             wake_order_sequence: [werewolf.id, seer.id],
           }),
         );
+      });
+    });
+
+    it('wake_order_sequence respects group ordering (group 1 before group 4)', async () => {
+      const mockGame = createMockGameSession({id: 'game-order'});
+      mockCreate.mockResolvedValue(mockGame);
+
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+      const robber = createMockOfficialRole('Robber', 'village', 4);
+
+      renderWithState(makeState([seer, robber, werewolf]));
+
+      const user = userEvent.setup();
+      await user.click(screen.getByText('Start Game'));
+
+      await waitFor(() => {
+        const call = mockCreate.mock.calls[0][0];
+        const seq: string[] = call.wake_order_sequence;
+        // Werewolf (wake 1) must come before both Seer and Robber (wake 4)
+        const werewolfIdx = seq.indexOf(werewolf.id);
+        const seerIdx = seq.indexOf(seer.id);
+        const robberIdx = seq.indexOf(robber.id);
+        expect(werewolfIdx).toBeLessThan(seerIdx);
+        expect(werewolfIdx).toBeLessThan(robberIdx);
       });
     });
 

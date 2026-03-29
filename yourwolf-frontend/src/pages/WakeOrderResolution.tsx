@@ -38,6 +38,15 @@ interface WakingRole {
   wake_order: number;
 }
 
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 function SortableTile({role}: {role: WakingRole}) {
   const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: role.id});
 
@@ -102,23 +111,19 @@ export function WakeOrderResolutionPage() {
     return result;
   })();
 
-  const [tileOrder, setTileOrder] = useState<string[]>(() => wakingRoles.map((r) => r.id));
-  const [resolvedGroups, setResolvedGroups] = useState<Set<number>>(new Set());
-
   const roleById = new Map(wakingRoles.map((r) => [r.id, r]));
 
-  const hasConflicts = (() => {
-    const groupCounts = new Map<number, number>();
-    for (const roleId of tileOrder) {
-      const role = roleById.get(roleId);
-      if (!role || resolvedGroups.has(role.wake_order)) continue;
-      groupCounts.set(role.wake_order, (groupCounts.get(role.wake_order) ?? 0) + 1);
+  // Group roles by wake_order, shuffle within each group on mount
+  const sortedGroupKeys = [...new Set(wakingRoles.map((r) => r.wake_order))].sort((a, b) => a - b);
+
+  const [groupOrders, setGroupOrders] = useState<Record<number, string[]>>(() => {
+    const groups: Record<number, string[]> = {};
+    for (const key of sortedGroupKeys) {
+      const ids = wakingRoles.filter((r) => r.wake_order === key).map((r) => r.id);
+      groups[key] = shuffleArray(ids);
     }
-    for (const count of groupCounts.values()) {
-      if (count > 1) return true;
-    }
-    return false;
-  })();
+    return groups;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -129,19 +134,21 @@ export function WakeOrderResolutionPage() {
     const {active, over} = event;
     if (over && active.id !== over.id) {
       const draggedRole = roleById.get(String(active.id));
-      if (draggedRole) {
-        setResolvedGroups((prev) => new Set([...prev, draggedRole.wake_order]));
-      }
-      setTileOrder((items) => {
-        const oldIndex = items.indexOf(String(active.id));
-        const newIndex = items.indexOf(String(over.id));
-        return arrayMove(items, oldIndex, newIndex);
+      if (!draggedRole) return;
+      const groupKey = draggedRole.wake_order;
+      setGroupOrders((prev) => {
+        const groupItems = prev[groupKey];
+        if (!groupItems) return prev;
+        const oldIndex = groupItems.indexOf(String(active.id));
+        const newIndex = groupItems.indexOf(String(over.id));
+        if (oldIndex === -1 || newIndex === -1) return prev;
+        return {...prev, [groupKey]: arrayMove(groupItems, oldIndex, newIndex)};
       });
     }
   }
 
   const handleStartGame = async () => {
-    if (!state || hasConflicts) return;
+    if (!state) return;
 
     setSubmitting(true);
     setError(null);
@@ -153,13 +160,16 @@ export function WakeOrderResolutionPage() {
       }
     }
 
+    // Flatten group orders into a single sequence, ordered by group number
+    const flatSequence = sortedGroupKeys.flatMap((key) => groupOrders[key] ?? []);
+
     try {
       const game = await gamesApi.create({
         player_count: state.playerCount,
         center_card_count: state.centerCount,
         discussion_timer_seconds: state.timerSeconds,
         role_ids: selectedRoleIds,
-        wake_order_sequence: tileOrder.length > 0 ? tileOrder : undefined,
+        wake_order_sequence: flatSequence.length > 0 ? flatSequence : undefined,
       });
       navigate(`/games/${game.id}`);
     } catch (err) {
@@ -170,24 +180,18 @@ export function WakeOrderResolutionPage() {
 
   if (!state) return null;
 
-  const canStart = !hasConflicts && !submitting;
+  const canStart = !submitting;
 
   return (
     <div style={pageContainerStyles}>
       <div style={pageHeaderStyles}>
-        <h1 style={pageTitleStyles}>Wake Order Resolution</h1>
+        <h1 style={pageTitleStyles}>Review Wake Order</h1>
         <p style={pageSubtitleStyles}>
-          Drag roles to set the wake order. Roles with the same wake number must be resolved.
+          Drag roles to customize order within each wake group
         </p>
       </div>
 
       {error && <ErrorBanner message={error} />}
-
-      {hasConflicts && (
-        <p style={{color: theme.colors.warning, marginBottom: theme.spacing.md}}>
-          Resolve wake order conflicts to start the game
-        </p>
-      )}
 
       {wakingRoles.length === 0 ? (
         <p style={{color: theme.colors.textMuted, marginBottom: theme.spacing.lg}}>
@@ -195,15 +199,30 @@ export function WakeOrderResolutionPage() {
         </p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={tileOrder} strategy={verticalListSortingStrategy}>
-            <div style={{marginBottom: theme.spacing.lg}}>
-              {tileOrder.map((roleId) => {
-                const role = roleById.get(roleId);
-                if (!role) return null;
-                return <SortableTile key={roleId} role={role} />;
-              })}
-            </div>
-          </SortableContext>
+          <div style={{marginBottom: theme.spacing.lg}}>
+            {sortedGroupKeys.map((groupKey) => (
+              <div key={groupKey} data-testid="wake-group" style={{marginBottom: theme.spacing.md}}>
+                <h3
+                  data-testid="wake-group-header"
+                  style={{
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: theme.colors.textMuted,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
+                  Wake #{groupKey}
+                </h3>
+                <SortableContext items={groupOrders[groupKey] ?? []} strategy={verticalListSortingStrategy}>
+                  {(groupOrders[groupKey] ?? []).map((roleId) => {
+                    const role = roleById.get(roleId);
+                    if (!role) return null;
+                    return <SortableTile key={roleId} role={role} />;
+                  })}
+                </SortableContext>
+              </div>
+            ))}
+          </div>
         </DndContext>
       )}
 
