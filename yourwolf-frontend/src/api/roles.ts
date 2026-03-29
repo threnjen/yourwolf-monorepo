@@ -53,7 +53,7 @@ export const rolesApi = {
   },
 
   previewScript: async (draft: RoleDraft): Promise<NarratorPreviewResponse> => {
-    const {data} = await apiClient.post<NarratorPreviewResponse>('/roles/preview-script', draftToPayload(draft));
+    const {data} = await apiClient.post<NarratorPreviewResponse>('/roles/preview-script', draftToPreviewPayload(draft));
     return data;
   },
 };
@@ -110,6 +110,38 @@ function draftToPayload(draft: RoleDraft): RoleCreatePayload {
       condition_params: w.condition_params ?? null,
       is_primary: w.is_primary,
       overrides_team: w.overrides_team,
+    })),
+  };
+}
+
+interface PreviewScriptPayload {
+  name: string;
+  wake_order: number | null;
+  wake_target: string | null;
+  ability_steps: {
+    ability_type: string;
+    order: number;
+    modifier: string;
+    is_required: boolean;
+    parameters: Record<string, unknown>;
+    condition_type?: string;
+    condition_params?: Record<string, unknown>;
+  }[];
+}
+
+function draftToPreviewPayload(draft: RoleDraft): PreviewScriptPayload {
+  return {
+    name: draft.name,
+    wake_order: draft.wake_order,
+    wake_target: draft.wake_target,
+    ability_steps: draft.ability_steps.map((s) => ({
+      ability_type: s.ability_type,
+      order: s.order,
+      modifier: s.modifier,
+      is_required: s.is_required,
+      parameters: s.parameters,
+      condition_type: s.condition_type,
+      condition_params: s.condition_params,
     })),
   };
 }

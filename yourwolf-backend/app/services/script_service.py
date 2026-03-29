@@ -13,7 +13,7 @@ from app.schemas.game import NarratorAction, NightScript
 from app.schemas.role import (
     NarratorPreviewAction,
     NarratorPreviewResponse,
-    RoleCreate,
+    PreviewScriptRequest,
 )
 from sqlalchemy.orm import Session, joinedload
 
@@ -86,6 +86,7 @@ class ScriptService:
         "perform_as": 2,
         "perform_immediately": 2,
         "stop": 0,
+        "random_num_players": 5,
     }
 
     def __init__(self, db: Session) -> None:
@@ -127,6 +128,7 @@ class ScriptService:
             .filter(
                 Role.id.in_(role_ids),
                 Role.wake_order.isnot(None),
+                Role.wake_order != 0,
             )
             .order_by(Role.wake_order)
             .all()
@@ -185,18 +187,20 @@ class ScriptService:
             total_duration_seconds=total_duration,
         )
 
-    def preview_role_script(self, data: RoleCreate) -> NarratorPreviewResponse:
+    def preview_role_script(
+        self, data: PreviewScriptRequest
+    ) -> NarratorPreviewResponse:
         """Generate a narrator preview for a draft role without persisting.
 
         Args:
-            data: RoleCreate payload describing the draft role.
+            data: PreviewScriptRequest payload describing the draft role.
 
         Returns:
             NarratorPreviewResponse with ordered narrator actions.
         """
         logger.info("Generating preview script for role '%s'", data.name)
 
-        if data.wake_order is None:
+        if data.wake_order is None or data.wake_order == 0:
             return NarratorPreviewResponse(actions=[])
 
         # Build stand-in objects from the payload
@@ -360,6 +364,11 @@ class ScriptService:
             "touch": self._touch_instruction,
             "flip_card": self._flip_card_instruction,
             "copy_role": self._copy_role_instruction,
+            "change_to_team": self._change_to_team_instruction,
+            "perform_as": self._perform_as_instruction,
+            "perform_immediately": self._perform_immediately_instruction,
+            "stop": self._stop_instruction,
+            "random_num_players": self._random_num_players_instruction,
         }
 
         generator = templates.get(ability.type)
@@ -451,6 +460,51 @@ class ScriptService:
     def _copy_role_instruction(self, role: _RoleLike, params: dict[str, Any]) -> str:
         """Generate copy_role instruction."""
         return "You are now that role for the rest of the game."
+
+    def _change_to_team_instruction(
+        self, role: _RoleLike, params: dict[str, Any]
+    ) -> str:
+        """Generate change_to_team instruction."""
+        team = params.get("team")
+        if team:
+            return f"If you see a {team}, you are now on the {team} team."
+        return "You change teams."
+
+    def _perform_as_instruction(self, role: _RoleLike, params: dict[str, Any]) -> str:
+        """Generate perform_as instruction."""
+        return "At the copied role's normal wake time, perform their night actions."
+
+    def _perform_immediately_instruction(
+        self, role: _RoleLike, params: dict[str, Any]
+    ) -> str:
+        """Generate perform_immediately instruction."""
+        return "Now perform the copied role's night actions."
+
+    def _stop_instruction(self, role: _RoleLike, params: dict[str, Any]) -> str:
+        """Generate stop instruction."""
+        return "Stop. Do not perform any further actions."
+
+    def _random_num_players_instruction(
+        self, role: _RoleLike, params: dict[str, Any]
+    ) -> str:
+        """Generate random_num_players instruction."""
+        options = params.get("options")
+        if options and len(options) == 1:
+            return f"{options[0]} adjacent players are now part of your group."
+        if options and len(options) == 2:
+            formatted = f"{options[0]} or {options[1]}"
+            return (
+                f"A random number of adjacent players ({formatted}) "
+                "are now part of your group."
+            )
+        if options and len(options) > 2:
+            formatted = ", ".join(str(o) for o in options[:-1])
+            formatted += f", or {options[-1]}"
+            return (
+                f"A random number of adjacent players ({formatted}) "
+                "are now part of your group."
+            )
+        return "A random number of players are selected."
 
     def _get_step_duration(self, step: _StepLike) -> int:
         """Get appropriate duration for an ability step.

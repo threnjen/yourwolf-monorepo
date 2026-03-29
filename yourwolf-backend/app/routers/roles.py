@@ -12,6 +12,7 @@ from app.schemas.role import (
     RoleUpdate,
     RoleValidationResponse,
     NarratorPreviewResponse,
+    PreviewScriptRequest,
 )
 from app.services.role_service import RoleService
 from app.services.script_service import ScriptService
@@ -108,13 +109,13 @@ async def validate_role(
 
 @router.post("/preview-script", response_model=NarratorPreviewResponse)
 async def preview_script(
-    role_data: RoleCreate,
+    role_data: PreviewScriptRequest,
     db: Session = Depends(get_db),
 ) -> NarratorPreviewResponse:
     """Generate a narrator script preview for a draft role without persisting.
 
     Args:
-        role_data: Role creation data to generate preview for.
+        role_data: Preview request with only script-relevant fields.
         db: Database session.
 
     Returns:

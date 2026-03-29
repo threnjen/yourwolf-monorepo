@@ -228,16 +228,26 @@ describe('rolesApi', () => {
   });
 
   describe('previewScript', () => {
-    it('posts draft to /roles/preview-script', async () => {
-      const draft = createMockDraft({name: 'Seer'});
+    it('posts only preview-relevant fields to /roles/preview-script', async () => {
+      const draft = createMockDraft({name: 'Seer', wake_order: 4, wake_target: 'player.self'});
       const previewResponse = createMockPreviewResponse();
       mockApiClient.post.mockResolvedValue({data: previewResponse});
 
       const result = await rolesApi.previewScript(draft);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/roles/preview-script', expect.objectContaining({
+      const [url, payload] = mockApiClient.post.mock.calls[0];
+      expect(url).toBe('/roles/preview-script');
+      // Should only send preview-relevant fields, not description/team/votes etc.
+      expect(payload).toEqual({
         name: 'Seer',
-      }));
+        wake_order: 4,
+        wake_target: 'player.self',
+        ability_steps: [],
+      });
+      expect(payload).not.toHaveProperty('description');
+      expect(payload).not.toHaveProperty('team');
+      expect(payload).not.toHaveProperty('votes');
+      expect(payload).not.toHaveProperty('win_conditions');
       expect(result).toEqual(previewResponse);
     });
 

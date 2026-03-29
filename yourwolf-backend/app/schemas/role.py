@@ -230,6 +230,19 @@ class NarratorPreviewResponse(BaseModel):
     actions: list[NarratorPreviewAction] = Field(default_factory=list)
 
 
+class PreviewScriptRequest(BaseModel):
+    """Lightweight schema for the preview endpoint.
+
+    Does NOT inherit from RoleBase — the preview only needs fields relevant
+    to narrator script generation, not the full role creation payload.
+    """
+
+    name: str = ""
+    wake_order: int | None = Field(default=0, ge=0, le=40)
+    wake_target: str | None = None
+    ability_steps: list[AbilityStepCreateInRole] = Field(default_factory=list)
+
+
 # Update forward references
 RoleCreate.model_rebuild()
 RoleUpdate.model_rebuild()
