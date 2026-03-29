@@ -12,6 +12,7 @@ vi.mock('../api/roles', () => ({
     validate: vi.fn(),
     checkName: vi.fn(),
     create: vi.fn(),
+    previewScript: vi.fn(),
   },
 }));
 
@@ -35,6 +36,7 @@ const mockRolesApi = rolesApi as unknown as {
   validate: ReturnType<typeof vi.fn>;
   checkName: ReturnType<typeof vi.fn>;
   create: ReturnType<typeof vi.fn>;
+  previewScript: ReturnType<typeof vi.fn>;
 };
 
 function renderPage() {
@@ -62,6 +64,7 @@ describe('RoleBuilderPage', () => {
     vi.useFakeTimers();
     mockRolesApi.validate.mockResolvedValue({is_valid: true, errors: [], warnings: []});
     mockRolesApi.checkName.mockResolvedValue({name: 'Test Role', is_available: true, message: 'Available'});
+    mockRolesApi.previewScript.mockResolvedValue({actions: []});
   });
 
   afterEach(() => {
@@ -128,5 +131,57 @@ describe('RoleBuilderPage', () => {
       expect(screen.getByText(/Validation service unavailable/i)).toBeInTheDocument();
     });
   });
-});
 
+  describe('preview (AC3, AC7)', () => {
+    it('calls previewScript after debounce on draft change', async () => {
+      mockRolesApi.previewScript.mockResolvedValue({actions: []});
+      renderPage();
+
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+
+      // Before debounce fires
+      expect(mockRolesApi.previewScript).not.toHaveBeenCalled();
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+
+      expect(mockRolesApi.previewScript).toHaveBeenCalledTimes(1);
+    });
+
+    it('only fires one preview call within debounce window', async () => {
+      mockRolesApi.previewScript.mockResolvedValue({actions: []});
+      renderPage();
+
+      // Rapid changes
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'S'}});
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Se'}});
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+
+      // Only the last debounced call should fire
+      expect(mockRolesApi.previewScript).toHaveBeenCalledTimes(1);
+    });
+
+    it('gracefully handles preview API failure', async () => {
+      mockRolesApi.previewScript.mockRejectedValue(new Error('Network error'));
+      renderPage();
+
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+
+      // Preview should degrade gracefully — panel still present, no crash
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
+      expect(screen.getByText(/no narrator instructions/i)).toBeInTheDocument();
+    });
+  });
+});

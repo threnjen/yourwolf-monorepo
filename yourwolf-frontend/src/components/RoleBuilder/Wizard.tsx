@@ -1,10 +1,11 @@
 import {useState} from 'react';
-import {RoleDraft, ValidationResult} from '../../types/role';
+import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../../types/role';
 import {theme} from '../../styles/theme';
 import {BasicInfoStep} from './steps/BasicInfoStep';
 import {AbilitiesStep} from './steps/AbilitiesStep';
 import {WinConditionsStep} from './steps/WinConditionsStep';
 import {ReviewStep} from './steps/ReviewStep';
+import {NarratorPreview} from './NarratorPreview';
 
 type WizardStep = 'basic' | 'abilities' | 'win' | 'review';
 
@@ -18,6 +19,8 @@ const STEPS: {id: WizardStep; label: string}[] = [
 interface WizardProps {
   draft: RoleDraft;
   validation: ValidationResult | null;
+  preview: NarratorPreviewResponse | null;
+  previewLoading: boolean;
   onChange: (draft: RoleDraft) => void;
   onSave: () => void;
   saving: boolean;
@@ -94,7 +97,7 @@ function canProceedFromStep(step: WizardStep, draft: RoleDraft): boolean {
   return true;
 }
 
-export function Wizard({draft, validation, onChange, onSave, saving}: WizardProps) {
+export function Wizard({draft, validation, preview, previewLoading, onChange, onSave, saving}: WizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('basic');
 
   const currentIndex = STEPS.findIndex((s) => s.id === currentStep);
@@ -153,6 +156,12 @@ export function Wizard({draft, validation, onChange, onSave, saving}: WizardProp
           <ReviewStep draft={draft} validation={validation} />
         )}
       </div>
+
+      <NarratorPreview
+        actions={preview?.actions ?? []}
+        loading={previewLoading}
+        roleName={draft.name}
+      />
 
       <div style={navStyles}>
         <button

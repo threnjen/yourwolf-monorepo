@@ -11,8 +11,11 @@ from app.schemas.role import (
     RoleRead,
     RoleUpdate,
     RoleValidationResponse,
+    NarratorPreviewResponse,
+    PreviewScriptRequest,
 )
 from app.services.role_service import RoleService
+from app.services.script_service import ScriptService
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -102,6 +105,24 @@ async def validate_role(
         errors=errors,
         warnings=warnings,
     )
+
+
+@router.post("/preview-script", response_model=NarratorPreviewResponse)
+async def preview_script(
+    role_data: PreviewScriptRequest,
+    db: Session = Depends(get_db),
+) -> NarratorPreviewResponse:
+    """Generate a narrator script preview for a draft role without persisting.
+
+    Args:
+        role_data: Preview request with only script-relevant fields.
+        db: Database session.
+
+    Returns:
+        Narrator preview with ordered instruction actions.
+    """
+    service = ScriptService(db)
+    return service.preview_role_script(role_data)
 
 
 @router.get("/check-name", response_model=RoleNameCheckResponse)

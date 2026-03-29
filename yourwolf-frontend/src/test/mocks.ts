@@ -1,4 +1,4 @@
-import {RoleListItem, Team, Visibility, Ability, AbilityStepDraft, WinConditionDraft, RoleDraft} from '../types/role';
+import {RoleListItem, Team, Visibility, Ability, AbilityStepDraft, WinConditionDraft, RoleDraft, NarratorPreviewAction, NarratorPreviewResponse} from '../types/role';
 import type {
   GameSession,
   GameSessionListItem,
@@ -227,6 +227,25 @@ export function createMockDraft(overrides: Partial<RoleDraft> = {}): RoleDraft {
     win_conditions: [] as WinConditionDraft[],
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a mock NarratorPreviewResponse for testing.
+ */
+export function createMockPreviewResponse(
+  overrides: Partial<NarratorPreviewResponse> = {},
+): NarratorPreviewResponse {
+  const defaultActions: NarratorPreviewAction[] = [
+    {order: 1, instruction: 'Seer, wake up.', is_section_header: false},
+    {order: 2, instruction: 'You may look at one other player\'s card.', is_section_header: false},
+    {order: 3, instruction: 'OR You may look at 2 cards from the center.', is_section_header: false},
+    {order: 4, instruction: 'Seer, close your eyes.', is_section_header: false},
+  ];
+
+  return {
+    actions: defaultActions,
     ...overrides,
   };
 }
