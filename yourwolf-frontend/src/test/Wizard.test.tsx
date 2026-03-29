@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
 import {Wizard} from '../components/RoleBuilder/Wizard';
-import {createMockDraft} from './mocks';
+import {createMockDraft, createMockPreviewResponse} from './mocks';
 import {ValidationResult} from '../types/role';
 
 const mockOnChange = vi.fn();
@@ -19,6 +19,8 @@ function renderWizard(draftOverrides: object = {}, validation: ValidationResult 
     <Wizard
       draft={draft}
       validation={validation}
+      preview={null}
+      previewLoading={false}
       onChange={mockOnChange}
       onSave={mockOnSave}
       saving={false}
@@ -42,7 +44,7 @@ describe('Wizard', () => {
       expect(screen.getByText(/Basic Info/i)).toBeInTheDocument();
       expect(screen.getByText(/Abilities/i)).toBeInTheDocument();
       expect(screen.getByText(/Win Conditions/i)).toBeInTheDocument();
-      expect(screen.getByText(/Review/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', {name: /^Review$/i})).toBeInTheDocument();
     });
 
     it('Back button is disabled on step 1', () => {
@@ -138,6 +140,8 @@ describe('Wizard', () => {
         <Wizard
           draft={draft}
           validation={mockValidation}
+          preview={null}
+          previewLoading={false}
           onChange={mockOnChange}
           onSave={mockOnSave}
           saving={true}
@@ -158,6 +162,8 @@ describe('Wizard', () => {
         <Wizard
           draft={draft}
           validation={invalidValidation}
+          preview={null}
+          previewLoading={false}
           onChange={mockOnChange}
           onSave={mockOnSave}
           saving={false}
@@ -175,6 +181,8 @@ describe('Wizard', () => {
         <Wizard
           draft={draft}
           validation={null}
+          preview={null}
+          previewLoading={false}
           onChange={mockOnChange}
           onSave={mockOnSave}
           saving={false}
@@ -184,6 +192,79 @@ describe('Wizard', () => {
       fireEvent.click(screen.getByRole('button', {name: /next/i}));
       fireEvent.click(screen.getByRole('button', {name: /next/i}));
       expect(screen.getByRole('button', {name: /create role/i})).toBeDisabled();
+    });
+  });
+
+  describe('narrator preview integration (AC1)', () => {
+    it('preview panel is visible on Basic Info tab', () => {
+      const preview = createMockPreviewResponse();
+      const draft = createMockDraft({name: 'Test Role'});
+      render(
+        <Wizard
+          draft={draft}
+          validation={mockValidation}
+          preview={preview}
+          previewLoading={false}
+          onChange={mockOnChange}
+          onSave={mockOnSave}
+          saving={false}
+        />,
+      );
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
+      expect(screen.getByText('Seer, wake up.')).toBeInTheDocument();
+    });
+
+    it('preview panel is visible on Abilities tab', () => {
+      const preview = createMockPreviewResponse();
+      renderWizard({name: 'Test Role'});
+      // Navigate to Abilities
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      // Re-render with preview data
+      const draft = createMockDraft({name: 'Test Role'});
+      const {unmount} = render(
+        <Wizard
+          draft={draft}
+          validation={mockValidation}
+          preview={preview}
+          previewLoading={false}
+          onChange={mockOnChange}
+          onSave={mockOnSave}
+          saving={false}
+        />,
+      );
+      expect(screen.getAllByTestId('narrator-preview').length).toBeGreaterThanOrEqual(1);
+      unmount();
+    });
+
+    it('preview panel is visible on all 4 tabs when navigated', () => {
+      const preview = createMockPreviewResponse();
+      const draft = createMockDraft({name: 'Test Role'});
+      const {rerender} = render(
+        <Wizard
+          draft={draft}
+          validation={mockValidation}
+          preview={preview}
+          previewLoading={false}
+          onChange={mockOnChange}
+          onSave={mockOnSave}
+          saving={false}
+        />,
+      );
+
+      // Basic Info tab
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
+
+      // Abilities tab
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
+
+      // Win Conditions tab
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
+
+      // Review tab
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
     });
   });
 });

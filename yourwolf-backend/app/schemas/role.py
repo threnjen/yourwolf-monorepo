@@ -216,6 +216,20 @@ class RoleNameCheckResponse(BaseModel):
     message: str
 
 
+class NarratorPreviewAction(BaseModel):
+    """A single instruction line in the narrator preview."""
+
+    order: int
+    instruction: str
+    is_section_header: bool = False
+
+
+class NarratorPreviewResponse(BaseModel):
+    """Response schema for POST /roles/preview-script."""
+
+    actions: list[NarratorPreviewAction] = Field(default_factory=list)
+
+
 # Update forward references
 RoleCreate.model_rebuild()
 RoleUpdate.model_rebuild()

@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {RoleDraft, ValidationResult} from '../types/role';
+import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../types/role';
 import {rolesApi} from '../api/roles';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
@@ -28,10 +28,13 @@ export function RoleBuilderPage() {
   const navigate = useNavigate();
   const [draft, setDraft] = useState<RoleDraft>(createEmptyDraft);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [preview, setPreview] = useState<NarratorPreviewResponse | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const validateIdRef = useRef(0);
+  const previewIdRef = useRef(0);
 
   const handleDraftChange = useCallback((updatedDraft: RoleDraft) => {
     setDraft(updatedDraft);
@@ -42,18 +45,31 @@ export function RoleBuilderPage() {
     }
 
     const requestId = ++validateIdRef.current;
+    const previewRequestId = ++previewIdRef.current;
+
+    setPreviewLoading(true);
 
     debounceRef.current = setTimeout(async () => {
-      try {
-        const result = await rolesApi.validate(updatedDraft);
-        if (requestId === validateIdRef.current) {
-          setValidation(result);
-        }
-      } catch {
-        if (requestId === validateIdRef.current) {
-          // Validation failure shouldn't block navigation
+      const [validationSettled, previewSettled] = await Promise.allSettled([
+        rolesApi.validate(updatedDraft),
+        rolesApi.previewScript(updatedDraft),
+      ]);
+
+      if (requestId === validateIdRef.current) {
+        if (validationSettled.status === 'fulfilled') {
+          setValidation(validationSettled.value);
+        } else {
           setValidation({is_valid: false, errors: ['Validation service unavailable'], warnings: []});
         }
+      }
+
+      if (previewRequestId === previewIdRef.current) {
+        if (previewSettled.status === 'fulfilled') {
+          setPreview(previewSettled.value);
+        } else {
+          setPreview(null);
+        }
+        setPreviewLoading(false);
       }
     }, 1000);
   }, []);
@@ -94,6 +110,8 @@ export function RoleBuilderPage() {
       <Wizard
         draft={draft}
         validation={validation}
+        preview={preview}
+        previewLoading={previewLoading}
         onChange={handleDraftChange}
         onSave={handleSave}
         saving={saving}

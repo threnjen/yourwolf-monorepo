@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {rolesApi} from '../api/roles';
-import {createMockRoles, createMockRole, createMockDraft} from './mocks';
+import {createMockRoles, createMockRole, createMockDraft, createMockPreviewResponse} from './mocks';
 import {RoleListItem} from '../types/role';
 
 // Mock the API client module
@@ -224,6 +224,31 @@ describe('rolesApi', () => {
         team: 'village',
       }));
       expect(result).toEqual(createdRole);
+    });
+  });
+
+  describe('previewScript', () => {
+    it('posts draft to /roles/preview-script', async () => {
+      const draft = createMockDraft({name: 'Seer'});
+      const previewResponse = createMockPreviewResponse();
+      mockApiClient.post.mockResolvedValue({data: previewResponse});
+
+      const result = await rolesApi.previewScript(draft);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/roles/preview-script', expect.objectContaining({
+        name: 'Seer',
+      }));
+      expect(result).toEqual(previewResponse);
+    });
+
+    it('returns empty actions for non-waking role', async () => {
+      const draft = createMockDraft({name: 'Villager', wake_order: null});
+      const emptyPreview = createMockPreviewResponse({actions: []});
+      mockApiClient.post.mockResolvedValue({data: emptyPreview});
+
+      const result = await rolesApi.previewScript(draft);
+
+      expect(result.actions).toEqual([]);
     });
   });
 });

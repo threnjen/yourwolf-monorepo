@@ -1,5 +1,5 @@
 import {apiClient} from './client';
-import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, Visibility} from '../types/role';
+import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, Visibility, NarratorPreviewResponse} from '../types/role';
 
 interface RoleListParams {
   team?: string;
@@ -49,6 +49,11 @@ export const rolesApi = {
 
   create: async (draft: RoleDraft): Promise<Role> => {
     const {data} = await apiClient.post<Role>('/roles', draftToPayload(draft));
+    return data;
+  },
+
+  previewScript: async (draft: RoleDraft): Promise<NarratorPreviewResponse> => {
+    const {data} = await apiClient.post<NarratorPreviewResponse>('/roles/preview-script', draftToPayload(draft));
     return data;
   },
 };

@@ -1,3 +1,1 @@
-- On "New Role" page, on "Create New Role" tab, I should not be able to go "Next" without a Wake Order entered
-- Use 20 as the default wake order, but put 0-40 next to "Wake Order" label
-- saving my New Role did not work. It did not appear on the Roles page. I need more guidance on what to get from the logs for this. I just see `INFO sqlalchemy.engine.Engine ROLLBACK` but no clear errors.
+- 

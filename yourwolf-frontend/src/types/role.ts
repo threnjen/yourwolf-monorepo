@@ -110,3 +110,13 @@ export interface RoleListItem {
   dependencies: RoleDependency[];
   created_at: string;
 }
+
+export interface NarratorPreviewAction {
+  order: number;
+  instruction: string;
+  is_section_header: boolean;
+}
+
+export interface NarratorPreviewResponse {
+  actions: NarratorPreviewAction[];
+}
