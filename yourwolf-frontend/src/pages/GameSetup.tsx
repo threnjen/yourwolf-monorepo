@@ -4,7 +4,6 @@ import {useGameSetup, PLAYER_COUNT_MIN, PLAYER_COUNT_MAX, CENTER_COUNT_MIN, CENT
 import {RoleCard} from '../components/RoleCard';
 import {theme, capitalize, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
-import {ErrorBanner} from '../components/ErrorBanner';
 import {groupRolesByTeam} from '../utils/roleSort';
 import type {Team} from '../types/role';
 
@@ -106,11 +105,9 @@ export function GameSetupPage() {
     totalSelectedCards,
     totalCardsNeeded,
     canStart,
-    submitting,
-    error,
     selectRole,
     adjustCount,
-    handleStartGame,
+    handleNext,
   } = useGameSetup(roles, navigate);
 
   if (loading) {
@@ -131,8 +128,6 @@ export function GameSetupPage() {
           Configure your game and select roles for all players and center cards.
         </p>
       </div>
-
-      {error && <ErrorBanner message={error} />}
 
       {/* Configuration */}
       <div style={configGridStyles}>
@@ -276,9 +271,9 @@ export function GameSetupPage() {
         </div>
       ))}
 
-      {/* Start Button */}
+      {/* Next Button */}
       <button
-        onClick={handleStartGame}
+        onClick={handleNext}
         disabled={!canStart}
         style={{
           ...buttonStyle,
@@ -286,7 +281,7 @@ export function GameSetupPage() {
           cursor: canStart ? 'pointer' : 'not-allowed',
         }}
       >
-        {submitting ? 'Creating Game...' : 'Start Game'}
+        Next
       </button>
     </div>
   );

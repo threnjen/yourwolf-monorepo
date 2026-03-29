@@ -1,6 +1,5 @@
 import {useState, useMemo, useCallback} from 'react';
 import type {NavigateFunction} from 'react-router-dom';
-import {gamesApi} from '../api/games';
 import type {RoleListItem} from '../types/role';
 
 export const PLAYER_COUNT_MIN = 3;
@@ -19,8 +18,6 @@ export function useGameSetup(roles: RoleListItem[], navigate: NavigateFunction) 
   const [centerCountInput, setCenterCountInput] = useState('3');
   const [timerSecondsInput, setTimerSecondsInput] = useState('300');
   const [selectedRoleCounts, setSelectedRoleCounts] = useState<Record<string, number>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const roleMap = useMemo(() => {
     const map: Record<string, RoleListItem> = {};
@@ -35,18 +32,8 @@ export function useGameSetup(roles: RoleListItem[], navigate: NavigateFunction) 
     [selectedRoleCounts],
   );
 
-  const selectedRoleIds = useMemo(() => {
-    const ids: string[] = [];
-    for (const [roleId, count] of Object.entries(selectedRoleCounts)) {
-      for (let i = 0; i < count; i++) {
-        ids.push(roleId);
-      }
-    }
-    return ids;
-  }, [selectedRoleCounts]);
-
   const totalCardsNeeded = playerCount + centerCount;
-  const canStart = totalSelectedCards === totalCardsNeeded && !submitting;
+  const canStart = totalSelectedCards === totalCardsNeeded;
 
   const removeRoleWithCascade = useCallback(
     (counts: Record<string, number>, roleId: string): Record<string, number> => {
@@ -115,25 +102,17 @@ export function useGameSetup(roles: RoleListItem[], navigate: NavigateFunction) 
     [roleMap, removeRoleWithCascade],
   );
 
-  const handleStartGame = async () => {
+  const handleNext = () => {
     if (!canStart) return;
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const game = await gamesApi.create({
-        player_count: playerCount,
-        center_card_count: centerCount,
-        discussion_timer_seconds: timerSeconds,
-        role_ids: selectedRoleIds,
-      });
-      navigate(`/games/${game.id}`);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to create game',
-      );
-      setSubmitting(false);
-    }
+    navigate('/games/new/wake-order', {
+      state: {
+        playerCount,
+        centerCount,
+        timerSeconds,
+        selectedRoleCounts,
+        roles,
+      },
+    });
   };
 
   return {
@@ -153,10 +132,8 @@ export function useGameSetup(roles: RoleListItem[], navigate: NavigateFunction) 
     totalSelectedCards,
     totalCardsNeeded,
     canStart,
-    submitting,
-    error,
     selectRole,
     adjustCount,
-    handleStartGame,
+    handleNext,
   };
 }

@@ -17,7 +17,7 @@ export function useRoles(visibility?: string[]): UseRolesResult {
   );
 
   const fetcher = useCallback(
-    () => (visibility ? rolesApi.list({visibility}) : rolesApi.list()),
+    () => rolesApi.list({visibility, limit: 100}),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [visibilityKey],
   );

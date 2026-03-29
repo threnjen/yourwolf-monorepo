@@ -1215,3 +1215,94 @@ class TestNightScriptExcludesWakeOrderZero:
 
         role_names = {a.role_name for a in script.actions}
         assert "TestZeroWake" not in role_names
+
+
+class TestScriptWakeOrderSequence:
+    """Tests for wake_order_sequence-based ordering in night scripts (AC10, AC11)."""
+
+    def test_night_script_uses_wake_order_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC10: When wake_order_sequence is present, roles are ordered by it."""
+        # Create game with custom wake_order_sequence
+        # seeded_roles: Werewolf(1), Seer(4), Insomniac(9), Robber(3), Troublemaker(5)
+        # Default order: Werewolf, Robber, Seer, Troublemaker, Insomniac
+        # Custom order: Insomniac, Troublemaker, Seer, Robber, Werewolf (reverse)
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+
+        # Set custom wake_order_sequence on the existing game
+        waking_roles = [
+            seeded_roles[2],  # Insomniac
+            seeded_roles[4],  # Troublemaker
+            seeded_roles[1],  # Seer
+            seeded_roles[3],  # Robber
+            seeded_roles[0],  # Werewolf
+        ]
+        game.wake_order_sequence = [str(r.id) for r in waking_roles]
+        db_session.commit()
+        db_session.refresh(game)
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = [
+            "Insomniac",
+            "Troublemaker",
+            "Seer",
+            "Robber",
+            "Werewolf",
+        ]
+        assert role_order == expected_order
+
+    def test_night_script_falls_back_to_role_wake_order(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC11: When wake_order_sequence is null, falls back to Role.wake_order."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        # Ensure no sequence
+        assert game.wake_order_sequence is None
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = ["Werewolf", "Robber", "Seer", "Troublemaker", "Insomniac"]
+        assert role_order == expected_order
+
+    def test_night_script_custom_sequence_partial_reorder(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """Custom sequence with a specific swap produces actions in that order."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+
+        # Swap Seer and Robber in the order: Werewolf, Seer, Robber, Troublemaker, Insomniac
+        waking_roles = [
+            seeded_roles[0],  # Werewolf
+            seeded_roles[1],  # Seer
+            seeded_roles[3],  # Robber
+            seeded_roles[4],  # Troublemaker
+            seeded_roles[2],  # Insomniac
+        ]
+        game.wake_order_sequence = [str(r.id) for r in waking_roles]
+        db_session.commit()
+        db_session.refresh(game)
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = ["Werewolf", "Seer", "Robber", "Troublemaker", "Insomniac"]
+        assert role_order == expected_order

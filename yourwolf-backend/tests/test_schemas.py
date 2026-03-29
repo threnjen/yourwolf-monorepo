@@ -4,7 +4,9 @@ import uuid
 from datetime import datetime
 
 import pytest
+from app.models.game_session import GamePhase
 from app.models.role import Team, Visibility
+from app.schemas.game import GameSessionCreate, GameSessionResponse
 from app.schemas.role import (
     RoleCreate,
     RoleListItem,
@@ -248,3 +250,61 @@ class TestRoleCreateCardCounts:
         assert role.default_count == 2
         assert role.min_count == 1
         assert role.max_count == 2
+
+
+class TestGameSessionCreateWakeOrderSequence:
+    """Tests for wake_order_sequence on GameSessionCreate schema."""
+
+    def test_accepts_valid_wake_order_sequence(self) -> None:
+        """AC3: GameSessionCreate accepts an optional wake_order_sequence."""
+        ids = [uuid.uuid4(), uuid.uuid4()]
+        schema = GameSessionCreate(
+            player_count=5,
+            center_card_count=3,
+            role_ids=[uuid.uuid4() for _ in range(8)],
+            wake_order_sequence=ids,
+        )
+        assert schema.wake_order_sequence == ids
+
+    def test_accepts_none_wake_order_sequence(self) -> None:
+        """AC3: GameSessionCreate accepts None / missing wake_order_sequence."""
+        schema = GameSessionCreate(
+            player_count=5,
+            center_card_count=3,
+            role_ids=[uuid.uuid4() for _ in range(8)],
+        )
+        assert schema.wake_order_sequence is None
+
+    def test_response_includes_wake_order_sequence(self) -> None:
+        """AC4: GameSessionResponse includes wake_order_sequence."""
+        ids = [uuid.uuid4(), uuid.uuid4()]
+        resp = GameSessionResponse(
+            id=uuid.uuid4(),
+            player_count=5,
+            center_card_count=3,
+            discussion_timer_seconds=300,
+            phase=GamePhase.SETUP,
+            current_wake_order=None,
+            created_at=datetime.now(),
+            started_at=None,
+            ended_at=None,
+            game_roles=[],
+            wake_order_sequence=ids,
+        )
+        assert resp.wake_order_sequence == ids
+
+    def test_response_wake_order_sequence_defaults_none(self) -> None:
+        """AC4: GameSessionResponse defaults wake_order_sequence to None."""
+        resp = GameSessionResponse(
+            id=uuid.uuid4(),
+            player_count=5,
+            center_card_count=3,
+            discussion_timer_seconds=300,
+            phase=GamePhase.SETUP,
+            current_wake_order=None,
+            created_at=datetime.now(),
+            started_at=None,
+            ended_at=None,
+            game_roles=[],
+        )
+        assert resp.wake_order_sequence is None

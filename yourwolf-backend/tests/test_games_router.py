@@ -231,3 +231,62 @@ class TestDependencyValidationEndpoint:
         assert response.status_code == 201
         assert "warnings" in response.json()
         assert response.json()["warnings"] == []
+
+
+class TestWakeOrderSequenceEndpoint:
+    """Tests for wake_order_sequence via POST /api/games."""
+
+    def test_creates_game_with_valid_sequence(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        waking_ids = [str(r.id) for r in seeded_roles[:5]]
+
+        response = client.post(
+            "/api/games",
+            json={
+                "player_count": 5,
+                "center_card_count": 3,
+                "role_ids": role_ids,
+                "wake_order_sequence": list(reversed(waking_ids)),
+            },
+        )
+
+        assert response.status_code == 201
+        assert response.json()["wake_order_sequence"] == list(reversed(waking_ids))
+
+    def test_rejects_invalid_sequence(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        # Only include 2 of 5 waking roles
+        sequence = [str(r.id) for r in seeded_roles[:2]]
+
+        response = client.post(
+            "/api/games",
+            json={
+                "player_count": 5,
+                "center_card_count": 3,
+                "role_ids": role_ids,
+                "wake_order_sequence": sequence,
+            },
+        )
+
+        assert response.status_code == 400
+
+    def test_response_includes_null_sequence(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+
+        response = client.post(
+            "/api/games",
+            json={
+                "player_count": 5,
+                "center_card_count": 3,
+                "role_ids": role_ids,
+            },
+        )
+
+        assert response.status_code == 201
+        assert response.json()["wake_order_sequence"] is None

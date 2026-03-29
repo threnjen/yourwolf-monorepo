@@ -120,19 +120,42 @@ class ScriptService:
 
         # Get unique roles that wake (have wake_order), sorted by wake_order
         role_ids = list({gr.role_id for gr in game_roles})
-        roles = (
-            self.db.query(Role)
-            .options(
-                joinedload(Role.ability_steps).joinedload(AbilityStep.ability),
+
+        if game.wake_order_sequence:
+            # Use custom sequence ordering
+            logger.debug("Using custom wake_order_sequence for game %s", game.id)
+            sequence_ids = game.wake_order_sequence  # list of UUID strings
+            roles = (
+                self.db.query(Role)
+                .options(
+                    joinedload(Role.ability_steps).joinedload(AbilityStep.ability),
+                )
+                .filter(
+                    Role.id.in_(role_ids),
+                    Role.wake_order.isnot(None),
+                    Role.wake_order != 0,
+                )
+                .all()
             )
-            .filter(
-                Role.id.in_(role_ids),
-                Role.wake_order.isnot(None),
-                Role.wake_order != 0,
+            # Sort by position in the sequence
+            seq_index = {uid: i for i, uid in enumerate(sequence_ids)}
+            roles.sort(key=lambda r: seq_index.get(str(r.id), len(sequence_ids)))
+        else:
+            # Fallback to Role.wake_order ordering
+            logger.debug("Using default Role.wake_order ordering for game %s", game.id)
+            roles = (
+                self.db.query(Role)
+                .options(
+                    joinedload(Role.ability_steps).joinedload(AbilityStep.ability),
+                )
+                .filter(
+                    Role.id.in_(role_ids),
+                    Role.wake_order.isnot(None),
+                    Role.wake_order != 0,
+                )
+                .order_by(Role.wake_order)
+                .all()
             )
-            .order_by(Role.wake_order)
-            .all()
-        )
 
         actions: list[NarratorAction] = []
         order = 1

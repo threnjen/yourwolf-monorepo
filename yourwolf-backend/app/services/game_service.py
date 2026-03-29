@@ -132,12 +132,64 @@ class GameService:
         if errors:
             raise ValueError("; ".join(errors))
 
+        # Validate wake_order_sequence if provided
+        wake_order_sequence_str: list[str] | None = None
+        if data.wake_order_sequence is not None:
+            sequence = data.wake_order_sequence
+            seq_errors: list[str] = []
+
+            # Check for duplicates
+            if len(sequence) != len(set(sequence)):
+                seq_errors.append("Duplicate IDs found in wake_order_sequence")
+
+            role_ids_set = set(data.role_ids)
+            # Check all IDs in sequence are in role_ids
+            extra_ids = set(sequence) - role_ids_set
+            if extra_ids:
+                seq_errors.append("wake_order_sequence contains IDs not in role_ids")
+
+            # Determine waking roles (unique role IDs with wake_order not None and != 0)
+            unique_role_ids = set(data.role_ids)
+            waking_roles = {
+                r.id
+                for r in roles
+                if r.id in unique_role_ids
+                and r.wake_order is not None
+                and r.wake_order != 0
+            }
+
+            # Check no non-waking roles in sequence
+            non_waking_in_seq = set(sequence) - waking_roles
+            # Only flag non-waking if those IDs are actually in role_ids
+            non_waking_in_seq = non_waking_in_seq & role_ids_set
+            if non_waking_in_seq:
+                seq_errors.append(
+                    "wake_order_sequence contains IDs that are not waking roles"
+                )
+
+            # Check all waking roles in sequence
+            missing_waking = waking_roles - set(sequence)
+            if missing_waking:
+                missing_names = [
+                    role_map[rid].name for rid in missing_waking if rid in role_map
+                ]
+                seq_errors.append(
+                    f"Missing waking role(s) from wake_order_sequence: "
+                    f"{', '.join(missing_names)}"
+                )
+
+            if seq_errors:
+                raise ValueError("; ".join(seq_errors))
+
+            wake_order_sequence_str = [str(uid) for uid in sequence]
+
         # Create game
         game = GameSession(
             player_count=data.player_count,
             center_card_count=data.center_card_count,
             discussion_timer_seconds=data.discussion_timer_seconds,
             phase=GamePhase.SETUP,
+            wake_order_sequence=wake_order_sequence_str,
         )
         self.db.add(game)
         self.db.flush()
@@ -366,6 +418,11 @@ class GameService:
                 )
             )
 
+        # Convert stored UUID strings back to UUID objects for schema
+        wake_seq = None
+        if game.wake_order_sequence is not None:
+            wake_seq = [UUID(s) for s in game.wake_order_sequence]
+
         return GameSessionResponse(
             id=game.id,
             player_count=game.player_count,
@@ -377,4 +434,5 @@ class GameService:
             started_at=game.started_at,
             ended_at=game.ended_at,
             game_roles=game_roles,
+            wake_order_sequence=wake_seq,
         )

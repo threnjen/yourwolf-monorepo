@@ -45,6 +45,24 @@ describe('gamesApi', () => {
       expect(mockApiClient.post).toHaveBeenCalledWith('/games', payload);
       expect(result).toEqual(mockGame);
     });
+
+    it('passes wake_order_sequence through to API when provided', async () => {
+      const mockGame = createMockGameSession();
+      mockApiClient.post.mockResolvedValue({data: mockGame});
+
+      const payload = {
+        player_count: 5,
+        center_card_count: 3,
+        discussion_timer_seconds: 300,
+        role_ids: ['role-1', 'role-2', 'role-3'],
+        wake_order_sequence: ['role-2', 'role-1', 'role-3'],
+      };
+
+      const result = await gamesApi.create(payload);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/games', payload);
+      expect(result).toEqual(mockGame);
+    });
   });
 
   describe('list', () => {
