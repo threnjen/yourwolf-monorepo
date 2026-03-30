@@ -8,6 +8,7 @@ from app.schemas.game import GameSessionCreate
 from app.schemas.role import RoleCreate, AbilityStepCreateInRole
 from app.services.game_service import GameService
 from app.services.script_service import ScriptService
+from tests.conftest import _ensure_abilities
 from sqlalchemy.orm import Session
 
 
@@ -301,42 +302,6 @@ def _doppelganger_create() -> RoleCreate:
         ],
         win_conditions=[],
     )
-
-
-def _ensure_abilities(db: Session) -> None:
-    """Create ability records in DB if they don't exist yet."""
-    needed = [
-        ("view_card", "View Card", "View a card"),
-        ("swap_card", "Swap Card", "Swap two cards"),
-        ("view_awake", "View Awake", "See who else is awake"),
-        ("copy_role", "Copy Role", "Copy another role"),
-        ("perform_immediately", "Perform Immediately", "Perform copied role now"),
-        ("take_card", "Take Card", "Take a card"),
-        ("explicit_no_view", "Explicit No View", "Do not look"),
-        ("change_to_team", "Change to Team", "Change team"),
-        ("stop", "Stop", "Stop actions"),
-        (
-            "random_num_players",
-            "Random Number of Players",
-            "Select random number of players",
-        ),
-    ]
-    import uuid
-
-    existing = {a.type for a in db.query(Ability).all()}
-    for atype, name, desc in needed:
-        if atype not in existing:
-            db.add(
-                Ability(
-                    id=uuid.uuid4(),
-                    type=atype,
-                    name=name,
-                    description=desc,
-                    parameters_schema={},
-                    is_active=True,
-                )
-            )
-    db.commit()
 
 
 class TestPreviewRoleScript:
@@ -644,7 +609,7 @@ class TestPreviewEndpoint:
                 }
             ],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()
@@ -654,7 +619,7 @@ class TestPreviewEndpoint:
     def test_preview_returns_422_with_invalid_payload(self, client) -> None:
         """AC5: Endpoint returns 422 for truly invalid payload."""
         payload = {"wake_order": -1}  # Invalid: wake_order < 0
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 422
 
@@ -740,7 +705,7 @@ class TestPreviewEndpointMinimalPayload:
                 }
             ],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()
@@ -754,7 +719,7 @@ class TestPreviewEndpointMinimalPayload:
             "wake_order": 5,
             "ability_steps": [],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
 
@@ -765,7 +730,7 @@ class TestPreviewEndpointMinimalPayload:
             "wake_order": 5,
             "ability_steps": [],
         }
-        response = client.post("/api/roles/preview-script", json=payload)
+        response = client.post("/api/v1/roles/preview-script", json=payload)
 
         assert response.status_code == 200
         data = response.json()
@@ -1215,3 +1180,94 @@ class TestNightScriptExcludesWakeOrderZero:
 
         role_names = {a.role_name for a in script.actions}
         assert "TestZeroWake" not in role_names
+
+
+class TestScriptWakeOrderSequence:
+    """Tests for wake_order_sequence-based ordering in night scripts (AC10, AC11)."""
+
+    def test_night_script_uses_wake_order_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC10: When wake_order_sequence is present, roles are ordered by it."""
+        # Create game with custom wake_order_sequence
+        # seeded_roles: Werewolf(1), Seer(4), Insomniac(9), Robber(3), Troublemaker(5)
+        # Default order: Werewolf, Robber, Seer, Troublemaker, Insomniac
+        # Custom order: Insomniac, Troublemaker, Seer, Robber, Werewolf (reverse)
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+
+        # Set custom wake_order_sequence on the existing game
+        waking_roles = [
+            seeded_roles[2],  # Insomniac
+            seeded_roles[4],  # Troublemaker
+            seeded_roles[1],  # Seer
+            seeded_roles[3],  # Robber
+            seeded_roles[0],  # Werewolf
+        ]
+        game.wake_order_sequence = [str(r.id) for r in waking_roles]
+        db_session.commit()
+        db_session.refresh(game)
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = [
+            "Insomniac",
+            "Troublemaker",
+            "Seer",
+            "Robber",
+            "Werewolf",
+        ]
+        assert role_order == expected_order
+
+    def test_night_script_falls_back_to_role_wake_order(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC11: When wake_order_sequence is null, falls back to Role.wake_order."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        # Ensure no sequence
+        assert game.wake_order_sequence is None
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = ["Werewolf", "Robber", "Seer", "Troublemaker", "Insomniac"]
+        assert role_order == expected_order
+
+    def test_night_script_custom_sequence_partial_reorder(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """Custom sequence with a specific swap produces actions in that order."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+
+        # Swap Seer and Robber in the order: Werewolf, Seer, Robber, Troublemaker, Insomniac
+        waking_roles = [
+            seeded_roles[0],  # Werewolf
+            seeded_roles[1],  # Seer
+            seeded_roles[3],  # Robber
+            seeded_roles[4],  # Troublemaker
+            seeded_roles[2],  # Insomniac
+        ]
+        game.wake_order_sequence = [str(r.id) for r in waking_roles]
+        db_session.commit()
+        db_session.refresh(game)
+
+        script_service = ScriptService(db_session)
+        script = script_service.generate_night_script(game)
+
+        role_order = []
+        for action in script.actions:
+            if action.role_name != "Narrator" and action.role_name not in role_order:
+                role_order.append(action.role_name)
+
+        expected_order = ["Werewolf", "Seer", "Robber", "Troublemaker", "Insomniac"]
+        assert role_order == expected_order

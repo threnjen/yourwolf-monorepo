@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.database import Base
 from app.models.types import UUID
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -72,6 +72,10 @@ class GameSession(Base):
     )
     current_wake_order: Mapped[int | None] = mapped_column(
         Integer,
+        nullable=True,
+    )
+    wake_order_sequence: Mapped[list[str] | None] = mapped_column(
+        JSON,
         nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(

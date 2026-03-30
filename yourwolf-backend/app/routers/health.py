@@ -4,6 +4,7 @@ from app.database import get_db
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["health"])
@@ -35,7 +36,7 @@ async def database_health_check(
     try:
         db.execute(text("SELECT 1"))
         return {"status": "connected"}
-    except Exception:
+    except SQLAlchemyError:
         return JSONResponse(
             status_code=503,
             content={"status": "disconnected"},

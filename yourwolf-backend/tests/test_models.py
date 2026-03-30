@@ -1,8 +1,11 @@
 """Tests for database models."""
 
+import uuid
+
 import pytest
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
+from app.models.game_session import GameSession
 from app.models.role import Role, Team, Visibility
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.models.win_condition import WinCondition
@@ -349,3 +352,34 @@ class TestRoleDependencyModel:
         db_session.add(dep2)
         with pytest.raises(Exception):
             db_session.commit()
+
+
+class TestGameSessionModel:
+    """Tests for the GameSession model — wake_order_sequence column."""
+
+    def test_game_session_wake_order_sequence_default_none(
+        self, db_session: Session
+    ) -> None:
+        """AC2: wake_order_sequence defaults to None."""
+        game = GameSession(player_count=5, center_card_count=3)
+        db_session.add(game)
+        db_session.commit()
+        db_session.refresh(game)
+
+        assert game.wake_order_sequence is None
+
+    def test_game_session_wake_order_sequence_stores_uuid_strings(
+        self, db_session: Session
+    ) -> None:
+        """AC2: wake_order_sequence stores a list of UUID strings."""
+        ids = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        game = GameSession(
+            player_count=5,
+            center_card_count=3,
+            wake_order_sequence=ids,
+        )
+        db_session.add(game)
+        db_session.commit()
+        db_session.refresh(game)
+
+        assert game.wake_order_sequence == ids

@@ -1,12 +1,13 @@
-import {describe, it, expect} from 'vitest';
+import {describe, it, expect, vi} from 'vitest';
 import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {BrowserRouter} from 'react-router-dom';
 import {Header} from '../components/Header';
 
-function renderHeader() {
+function renderHeader(props: {onToggleSidebar?: () => void} = {}) {
   return render(
     <BrowserRouter>
-      <Header />
+      <Header {...props} />
     </BrowserRouter>,
   );
 }
@@ -34,6 +35,31 @@ describe('Header', () => {
 
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('href', '/');
+    });
+  });
+
+  describe('hamburger button', () => {
+    it('renders hamburger button when onToggleSidebar is provided', () => {
+      renderHeader({onToggleSidebar: vi.fn()});
+
+      const button = screen.getByRole('button', {name: /toggle navigation/i});
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveClass('hamburger-btn');
+    });
+
+    it('does not render hamburger button when onToggleSidebar is not provided', () => {
+      renderHeader();
+
+      expect(screen.queryByRole('button', {name: /toggle navigation/i})).not.toBeInTheDocument();
+    });
+
+    it('calls onToggleSidebar when hamburger button is clicked', async () => {
+      const onToggle = vi.fn();
+      renderHeader({onToggleSidebar: onToggle});
+
+      await userEvent.click(screen.getByRole('button', {name: /toggle navigation/i}));
+
+      expect(onToggle).toHaveBeenCalledTimes(1);
     });
   });
 });

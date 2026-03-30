@@ -1,10 +1,9 @@
 import {useState, useMemo} from 'react';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
-import {theme, capitalize, TEAM_COLORS} from '../styles/theme';
-import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, loadingStyles, errorStyles} from '../styles/shared';
+import {theme, capitalize} from '../styles/theme';
+import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, loadingStyles, errorStyles, teamHeaderStyles} from '../styles/shared';
 import {groupRolesByTeam} from '../utils/roleSort';
-import type {Team} from '../types/role';
 
 const gridStyles: React.CSSProperties = {
   display: 'grid',
@@ -26,13 +25,6 @@ const emptyIconStyles: React.CSSProperties = {
   fontSize: '3rem',
   marginBottom: theme.spacing.md,
 };
-
-const teamHeaderStyles = (team: Team): React.CSSProperties => ({
-  fontSize: '1.4rem',
-  fontWeight: 600,
-  color: TEAM_COLORS[team] ?? theme.colors.textMuted,
-  margin: 0,
-});
 
 const teamSectionStyles: React.CSSProperties = {
   marginBottom: theme.spacing.xl,

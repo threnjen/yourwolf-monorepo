@@ -304,6 +304,53 @@ def sample_role_with_steps(
     return role
 
 
+def _ensure_abilities(db: Session) -> dict[str, Ability]:
+    """Create ability records in DB if they don't exist yet.
+
+    Returns a dict mapping ability type -> Ability instance.
+    Shared across fixtures and test files to eliminate duplication.
+    """
+    needed = [
+        ("view_card", "View Card", "View a card"),
+        ("swap_card", "Swap Card", "Swap two cards"),
+        ("view_awake", "View Awake", "See who else is awake"),
+        ("copy_role", "Copy Role", "Copy another role"),
+        ("perform_immediately", "Perform Immediately", "Perform copied role now"),
+        ("take_card", "Take Card", "Take a card"),
+        ("explicit_no_view", "Explicit No View", "Do not look"),
+        ("change_to_team", "Change to Team", "Change team"),
+        ("stop", "Stop", "Stop actions"),
+        (
+            "random_num_players",
+            "Random Number of Players",
+            "Select random number of players",
+        ),
+        ("thumbs_up", "Thumbs Up", "Signal other players"),
+        ("flip_card", "Flip Card", "Flip a card face up/down"),
+    ]
+    existing = {a.type: a for a in db.query(Ability).all()}
+    for atype, name, desc in needed:
+        if atype not in existing:
+            ability = Ability(
+                id=uuid.uuid4(),
+                type=atype,
+                name=name,
+                description=desc,
+                parameters_schema={},
+                is_active=True,
+            )
+            db.add(ability)
+            existing[atype] = ability
+    db.flush()
+    return existing
+
+
+@pytest.fixture
+def ensure_abilities(db_session: Session) -> dict[str, Ability]:
+    """Fixture wrapper around _ensure_abilities for use in test files."""
+    return _ensure_abilities(db_session)
+
+
 @pytest.fixture
 def seeded_roles(db_session: Session) -> list[Role]:
     """Create roles with abilities for game service testing.
@@ -318,25 +365,8 @@ def seeded_roles(db_session: Session) -> list[Role]:
     Returns:
         List of roles ready for game creation.
     """
-    # Create abilities first
-    abilities = {}
-    abilities_data = [
-        ("view_card", "View Card", "View a card"),
-        ("swap_card", "Swap Card", "Swap two cards"),
-        ("view_awake", "View Awake", "See who else is awake"),
-    ]
-    for ability_type, name, description in abilities_data:
-        ability = Ability(
-            id=uuid.uuid4(),
-            type=ability_type,
-            name=name,
-            description=description,
-            parameters_schema={},
-            is_active=True,
-        )
-        db_session.add(ability)
-        abilities[ability_type] = ability
-    db_session.flush()
+    # Create abilities using shared helper
+    abilities = _ensure_abilities(db_session)
 
     # Create roles
     roles_data = [
@@ -442,26 +472,8 @@ def seeded_roles_with_deps(db_session: Session) -> dict[str, Any]:
     Returns:
         Dict with 'roles' list and 'role_map' (name -> Role).
     """
-    # Create abilities
-    abilities = {}
-    abilities_data = [
-        ("view_card", "View Card", "View a card"),
-        ("swap_card", "Swap Card", "Swap two cards"),
-        ("view_awake", "View Awake", "See who else is awake"),
-        ("thumbs_up", "Thumbs Up", "Signal other players"),
-    ]
-    for ability_type, name, description in abilities_data:
-        ability = Ability(
-            id=uuid.uuid4(),
-            type=ability_type,
-            name=name,
-            description=description,
-            parameters_schema={},
-            is_active=True,
-        )
-        db_session.add(ability)
-        abilities[ability_type] = ability
-    db_session.flush()
+    # Create abilities using shared helper
+    abilities = _ensure_abilities(db_session)
 
     # Create roles with card counts
     # (name, team, wake_order, wake_target, default_count, min_count, max_count, is_primary_team_role)

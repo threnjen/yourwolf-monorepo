@@ -21,6 +21,19 @@ vi.mock('../api/roles', () => ({
   },
 }));
 
+// Mock gamesApi to avoid actual API calls
+vi.mock('../api/games', () => ({
+  gamesApi: {
+    create: vi.fn(),
+    list: vi.fn(),
+    getById: vi.fn(),
+    start: vi.fn(),
+    advancePhase: vi.fn(),
+    getNightScript: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
 const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
 
 function renderRoutes(initialRoute: string = '/') {
@@ -63,6 +76,34 @@ describe('AppRoutes', () => {
       renderRoutes('/roles/new');
 
       expect(screen.getByText(/Create New Role/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('wake order route', () => {
+    it('renders WakeOrderResolution page at "/games/new/wake-order" path with state', () => {
+      render(
+        <MemoryRouter initialEntries={[{
+          pathname: '/games/new/wake-order',
+          state: {
+            playerCount: 5,
+            centerCount: 3,
+            timerSeconds: 300,
+            selectedRoleCounts: {},
+            roles: [],
+          },
+        }]}>
+          <AppRoutes />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByText(/Review Wake Order/i)).toBeInTheDocument();
+    });
+
+    it('redirects to /games/new when accessed without state', () => {
+      renderRoutes('/games/new/wake-order');
+
+      // Should redirect to /games/new (GameSetup)
+      expect(screen.getByText(/New Game Setup/i)).toBeInTheDocument();
     });
   });
 });

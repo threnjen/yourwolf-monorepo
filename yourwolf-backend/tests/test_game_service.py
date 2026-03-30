@@ -170,16 +170,13 @@ class TestStartGame:
             db_session.refresh(role)
             assert role.use_count == 1
 
-    def test_returns_none_for_nonexistent_game(
+    def test_raises_value_error_for_nonexistent_game(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
-        import uuid
-
         service = GameService(db_session)
 
-        result = service.start_game(uuid.uuid4())
-
-        assert result is None
+        with pytest.raises(ValueError, match="Game not found"):
+            service.start_game(uuid.uuid4())
 
     def test_raises_400_if_not_in_setup_phase(
         self, db_session: Session, seeded_roles: list[Role]
@@ -407,6 +404,47 @@ class TestDeleteGame:
         result = service.delete_game(uuid.uuid4())
 
         assert result is False
+
+
+class TestCreateGameUnknownRoleIds:
+    """Tests for rejecting unknown role IDs in game creation."""
+
+    def test_create_game_unknown_role_ids(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """Game creation raises ValueError when role_ids contain unknown UUIDs."""
+        service = GameService(db_session)
+        valid_ids = [r.id for r in seeded_roles[:7]]
+        unknown_id = uuid.uuid4()
+        role_ids = valid_ids + [unknown_id]
+
+        with pytest.raises(ValueError, match=str(unknown_id)):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_create_game_multiple_unknown_role_ids(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """ValueError lists all unknown IDs when multiple are unknown."""
+        service = GameService(db_session)
+        valid_ids = [r.id for r in seeded_roles[:6]]
+        unknown1 = uuid.uuid4()
+        unknown2 = uuid.uuid4()
+        role_ids = valid_ids + [unknown1, unknown2]
+
+        with pytest.raises(ValueError, match="Unknown role IDs"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
 
 
 class TestCardCountValidation:
@@ -754,3 +792,159 @@ class TestPrimaryTeamRoleValidation:
         error_msg = str(exc_info.value).lower()
         assert "werewolf" in error_msg
         assert "vampire" in error_msg
+
+
+class TestWakeOrderSequenceValidation:
+    """Tests for wake_order_sequence validation in create_game (AC5-AC9)."""
+
+    def test_stores_valid_wake_order_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC5: Valid sequence is stored and returned."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+        # Waking roles: Werewolf(1), Seer(4), Insomniac(9), Robber(3), Troublemaker(5)
+        waking_ids = [r.id for r in seeded_roles[:5]]
+        # Custom order: reverse of default
+        sequence = list(reversed(waking_ids))
+
+        game = service.create_game(
+            GameSessionCreate(
+                player_count=5,
+                center_card_count=3,
+                role_ids=role_ids,
+                wake_order_sequence=sequence,
+            )
+        )
+
+        assert game.wake_order_sequence == sequence
+
+    def test_rejects_extra_role_in_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC6: Sequence with role ID not in role_ids is rejected."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+        waking_ids = [r.id for r in seeded_roles[:5]]
+        # Add an extra random ID
+        sequence = waking_ids + [uuid.uuid4()]
+
+        with pytest.raises(ValueError, match="not in.*role_ids"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                    wake_order_sequence=sequence,
+                )
+            )
+
+    def test_rejects_missing_waking_role_in_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC7: Sequence missing a waking role from role_ids is rejected."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+        # Only include 4 of 5 waking roles
+        sequence = [r.id for r in seeded_roles[:4]]
+
+        with pytest.raises(ValueError, match="[Mm]issing.*waking"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                    wake_order_sequence=sequence,
+                )
+            )
+
+    def test_rejects_duplicate_ids_in_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC8: Sequence with duplicate IDs is rejected."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+        waking_ids = [r.id for r in seeded_roles[:5]]
+        # Duplicate the first one
+        sequence = waking_ids + [waking_ids[0]]
+
+        with pytest.raises(ValueError, match="[Dd]uplicate"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                    wake_order_sequence=sequence,
+                )
+            )
+
+    def test_accepts_null_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC9: Null/omitted wake_order_sequence is accepted."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+
+        game = service.create_game(
+            GameSessionCreate(
+                player_count=5,
+                center_card_count=3,
+                role_ids=role_ids,
+            )
+        )
+
+        assert game.wake_order_sequence is None
+
+    def test_accepts_empty_sequence_no_waking_roles(self, db_session: Session) -> None:
+        """Empty sequence is valid when no waking roles are selected."""
+        from app.models.role import Visibility
+
+        # Create 8 non-waking roles
+        roles = []
+        for i in range(8):
+            role = Role(
+                id=uuid.uuid4(),
+                name=f"Villager{i}",
+                description="A villager",
+                team=Team.VILLAGE,
+                wake_order=None,
+                visibility=Visibility.OFFICIAL,
+            )
+            db_session.add(role)
+            roles.append(role)
+        db_session.commit()
+
+        service = GameService(db_session)
+        role_ids = [r.id for r in roles]
+
+        game = service.create_game(
+            GameSessionCreate(
+                player_count=5,
+                center_card_count=3,
+                role_ids=role_ids,
+                wake_order_sequence=[],
+            )
+        )
+
+        assert game.wake_order_sequence == []
+
+    def test_rejects_non_waking_role_in_sequence(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """Sequence containing a non-waking role is rejected."""
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+        waking_ids = [r.id for r in seeded_roles[:5]]
+        # Replace one waking role with a non-waking one (Villager at index 5)
+        non_waking_id = seeded_roles[5].id
+        sequence = waking_ids + [non_waking_id]
+
+        with pytest.raises(ValueError, match="not.*waking"):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                    wake_order_sequence=sequence,
+                )
+            )

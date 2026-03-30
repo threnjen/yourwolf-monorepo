@@ -415,7 +415,7 @@ ROLES_DATA = [
     {
         "name": "Doppelganger",
         "team": Team.VILLAGE,
-        "wake_order": 0,
+        "wake_order": 1,
         "wake_target": "player.self",
         "description": "Look at another player's card and become that role.",
         "votes": 1,
@@ -478,7 +478,7 @@ ROLES_DATA = [
     {
         "name": "Copycat",
         "team": Team.VILLAGE,
-        "wake_order": 0,
+        "wake_order": 1,
         "wake_target": "player.self",
         "description": "Look at a center card and become that role.",
         "votes": 1,

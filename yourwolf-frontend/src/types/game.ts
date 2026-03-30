@@ -11,6 +11,7 @@ export interface GameSessionCreate {
   center_card_count: number;
   discussion_timer_seconds: number;
   role_ids: string[];
+  wake_order_sequence?: string[];
 }
 
 export interface GameRole {

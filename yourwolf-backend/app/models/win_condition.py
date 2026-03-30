@@ -1,6 +1,7 @@
 """WinCondition model definition."""
 
 import uuid
+from typing import Any
 
 from app.database import Base
 from app.models.types import JSONB, UUID
@@ -40,7 +41,7 @@ class WinCondition(Base):
         String(50),
         nullable=False,
     )
-    condition_params: Mapped[dict | None] = mapped_column(
+    condition_params: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,
         nullable=True,
     )

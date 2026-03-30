@@ -62,13 +62,84 @@ class GameService:
         roles = self.db.query(Role).filter(Role.id.in_(data.role_ids)).all()
         role_map = {r.id: r for r in roles}
 
+        # Reject unknown role IDs
+        unknown_ids = set(data.role_ids) - set(role_map.keys())
+        if unknown_ids:
+            raise ValueError(
+                f"Unknown role IDs: {', '.join(str(uid) for uid in unknown_ids)}"
+            )
+
         # Validate card counts
         role_id_counts = Counter(data.role_ids)
-        errors = []
+        errors = self._validate_card_counts(role_map, role_id_counts)
+        if errors:
+            raise ValueError("; ".join(errors))
+
+        # Validate primary team roles
+        errors = self._validate_primary_teams(role_map)
+        if errors:
+            raise ValueError("; ".join(errors))
+
+        # Validate dependencies
+        present_role_ids = set(data.role_ids)
+        dep_errors, warnings = self._validate_dependencies(present_role_ids)
+        if dep_errors:
+            raise ValueError("; ".join(dep_errors))
+
+        # Validate wake_order_sequence if provided
+        wake_order_sequence_str: list[str] | None = None
+        if data.wake_order_sequence is not None:
+            seq_errors = self._validate_wake_sequence(data, roles, role_map)
+            if seq_errors:
+                raise ValueError("; ".join(seq_errors))
+            wake_order_sequence_str = [str(uid) for uid in data.wake_order_sequence]
+
+        # Create game
+        game = GameSession(
+            player_count=data.player_count,
+            center_card_count=data.center_card_count,
+            discussion_timer_seconds=data.discussion_timer_seconds,
+            phase=GamePhase.SETUP,
+            wake_order_sequence=wake_order_sequence_str,
+        )
+        self.db.add(game)
+        self.db.flush()
+
+        for role_id in data.role_ids:
+            game_role = GameRole(
+                game_session_id=game.id,
+                role_id=role_id,
+            )
+            self.db.add(game_role)
+
+        self.db.commit()
+        self.db.refresh(game)
+        logger.info(
+            "Game %s created with %d players, %d center cards, %d roles",
+            game.id,
+            data.player_count,
+            data.center_card_count,
+            len(data.role_ids),
+        )
+        response = self._to_response(game)
+        response.warnings = warnings
+        return response
+
+    def _validate_card_counts(
+        self, role_map: dict[UUID, Role], role_id_counts: Counter
+    ) -> list[str]:
+        """Validate card counts against role min/max constraints.
+
+        Args:
+            role_map: Mapping of role ID to Role objects.
+            role_id_counts: Counter of role IDs in the game.
+
+        Returns:
+            List of error strings. Empty if valid.
+        """
+        errors: list[str] = []
         for role_id, count in role_id_counts.items():
-            role = role_map.get(role_id)
-            if not role:
-                continue
+            role = role_map[role_id]
             if count < role.min_count:
                 errors.append(
                     f"'{role.name}' requires at least {role.min_count} "
@@ -79,10 +150,18 @@ class GameService:
                     f"'{role.name}' allows at most {role.max_count} "
                     f"card(s), but {count} provided"
                 )
-        if errors:
-            raise ValueError("; ".join(errors))
+        return errors
 
-        # Validate primary team roles
+    def _validate_primary_teams(self, role_map: dict[UUID, Role]) -> list[str]:
+        """Validate that each non-village/neutral team has a primary role.
+
+        Args:
+            role_map: Mapping of role ID to Role objects.
+
+        Returns:
+            List of error strings. Empty if valid.
+        """
+        errors: list[str] = []
         teams_with_primary: dict[Team, bool] = {}
         for role in role_map.values():
             if role.team in (Team.VILLAGE, Team.NEUTRAL):
@@ -98,12 +177,20 @@ class GameService:
                     f"'{team.value}' team requires at least one primary role "
                     f"(e.g., Werewolf)"
                 )
+        return errors
 
-        if errors:
-            raise ValueError("; ".join(errors))
+    def _validate_dependencies(
+        self, present_role_ids: set[UUID]
+    ) -> tuple[list[str], list[str]]:
+        """Validate role dependencies and collect warnings.
 
-        # Validate dependencies
-        present_role_ids = set(data.role_ids)
+        Args:
+            present_role_ids: Set of role IDs present in the game.
+
+        Returns:
+            Tuple of (errors, warnings) string lists.
+        """
+        errors: list[str] = []
         warnings: list[str] = []
 
         deps = (
@@ -129,52 +216,85 @@ class GameService:
                         f"'{role_name}' works best with '{req_name}' in the game"
                     )
 
-        if errors:
-            raise ValueError("; ".join(errors))
+        return errors, warnings
 
-        # Create game
-        game = GameSession(
-            player_count=data.player_count,
-            center_card_count=data.center_card_count,
-            discussion_timer_seconds=data.discussion_timer_seconds,
-            phase=GamePhase.SETUP,
-        )
-        self.db.add(game)
-        self.db.flush()
+    def _validate_wake_sequence(
+        self,
+        data: GameSessionCreate,
+        roles: list[Role],
+        role_map: dict[UUID, Role],
+    ) -> list[str]:
+        """Validate the wake_order_sequence field.
 
-        for role_id in data.role_ids:
-            game_role = GameRole(
-                game_session_id=game.id,
-                role_id=role_id,
+        Args:
+            data: Game creation data.
+            roles: List of fetched Role objects.
+            role_map: Mapping of role ID to Role objects.
+
+        Returns:
+            List of error strings. Empty if valid.
+        """
+        sequence = data.wake_order_sequence
+        seq_errors: list[str] = []
+
+        # Check for duplicates
+        if len(sequence) != len(set(sequence)):
+            seq_errors.append("Duplicate IDs found in wake_order_sequence")
+
+        role_ids_set = set(data.role_ids)
+        # Check all IDs in sequence are in role_ids
+        extra_ids = set(sequence) - role_ids_set
+        if extra_ids:
+            seq_errors.append("wake_order_sequence contains IDs not in role_ids")
+
+        # Determine waking roles (unique role IDs with wake_order not None and != 0)
+        unique_role_ids = set(data.role_ids)
+        waking_roles = {
+            r.id
+            for r in roles
+            if r.id in unique_role_ids
+            and r.wake_order is not None
+            and r.wake_order != 0
+        }
+
+        # Check no non-waking roles in sequence
+        non_waking_in_seq = set(sequence) - waking_roles
+        # Only flag non-waking if those IDs are actually in role_ids
+        non_waking_in_seq = non_waking_in_seq & role_ids_set
+        if non_waking_in_seq:
+            seq_errors.append(
+                "wake_order_sequence contains IDs that are not waking roles"
             )
-            self.db.add(game_role)
 
-        self.db.commit()
-        self.db.refresh(game)
-        logger.info(
-            "Game %s created with %d players, %d center cards, %d roles",
-            game.id,
-            data.player_count,
-            data.center_card_count,
-            len(data.role_ids),
-        )
-        response = self._to_response(game)
-        response.warnings = warnings
-        return response
+        # Check all waking roles in sequence
+        missing_waking = waking_roles - set(sequence)
+        if missing_waking:
+            missing_names = [
+                role_map[rid].name for rid in missing_waking if rid in role_map
+            ]
+            seq_errors.append(
+                f"Missing waking role(s) from wake_order_sequence: "
+                f"{', '.join(missing_names)}"
+            )
 
-    def start_game(self, game_id: UUID) -> GameSessionResponse | None:
+        return seq_errors
+
+    def start_game(self, game_id: UUID) -> GameSessionResponse:
         """Randomly assign roles to players and center, advance to night.
 
         Args:
             game_id: Game session UUID.
 
         Returns:
-            Updated game session or None if not found / wrong phase.
+            Updated game session response.
+
+        Raises:
+            ValueError: If game not found or not in setup phase.
         """
         game = self.get_game_with_roles(game_id)
         if not game:
             logger.error("Cannot start game %s: not found", game_id)
-            return None
+            raise ValueError("Game not found")
         if game.phase != GamePhase.SETUP:
             logger.error(
                 "Cannot start game %s: not in setup phase (current: %s)",
@@ -366,6 +486,11 @@ class GameService:
                 )
             )
 
+        # Convert stored UUID strings back to UUID objects for schema
+        wake_seq = None
+        if game.wake_order_sequence is not None:
+            wake_seq = [UUID(s) for s in game.wake_order_sequence]
+
         return GameSessionResponse(
             id=game.id,
             player_count=game.player_count,
@@ -377,4 +502,5 @@ class GameService:
             started_at=game.started_at,
             ended_at=game.ended_at,
             game_roles=game_roles,
+            wake_order_sequence=wake_seq,
         )

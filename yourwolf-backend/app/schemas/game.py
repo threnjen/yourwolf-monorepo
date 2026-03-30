@@ -15,6 +15,7 @@ class GameSessionCreate(BaseModel):
     center_card_count: int = Field(default=3, ge=0, le=5)
     discussion_timer_seconds: int = Field(default=300, ge=60, le=1800)
     role_ids: list[UUID]
+    wake_order_sequence: list[UUID] | None = Field(default=None)
 
 
 class GameRoleResponse(BaseModel):
@@ -44,6 +45,7 @@ class GameSessionResponse(BaseModel):
     started_at: datetime | None
     ended_at: datetime | None
     game_roles: list[GameRoleResponse]
+    wake_order_sequence: list[UUID] | None = None
     warnings: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)

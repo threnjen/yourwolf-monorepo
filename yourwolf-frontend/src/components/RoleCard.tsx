@@ -9,10 +9,6 @@ function getTeamColor(team: Team): string {
   return TEAM_COLORS[team];
 }
 
-function getTeamLabel(team: Team): string {
-  return capitalize(team);
-}
-
 const cardStyles: React.CSSProperties = {
   backgroundColor: theme.colors.surface,
   borderRadius: theme.borderRadius.md,
@@ -136,7 +132,7 @@ export function RoleCard({role}: RoleCardProps) {
               border: `1px solid ${teamColor}40`,
             }}
           >
-            {getTeamLabel(role.team)}
+            {capitalize(role.team)}
           </span>
 
           {role.wake_order !== undefined && role.wake_order !== null && (

@@ -1,20 +1,22 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {render, screen, fireEvent, waitFor, within} from '@testing-library/react';
+import {render, screen, fireEvent, within} from '@testing-library/react';
 import {BrowserRouter} from 'react-router-dom';
 import {GameSetupPage} from '../pages/GameSetup';
 import {useRoles} from '../hooks/useRoles';
-import {gamesApi} from '../api/games';
 import {createMockOfficialRole} from './mocks';
 import type {RoleListItem} from '../types/role';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 vi.mock('../hooks/useRoles', () => ({
   useRoles: vi.fn(),
-}));
-
-vi.mock('../api/games', () => ({
-  gamesApi: {
-    create: vi.fn(),
-  },
 }));
 
 const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
@@ -39,6 +41,7 @@ function setupWithRoles(roles: RoleListItem[]) {
 describe('GameSetupPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNavigate.mockClear();
     mockUseRoles.mockReturnValue({
       roles: [],
       loading: false,
@@ -379,11 +382,15 @@ describe('GameSetupPage', () => {
     });
   });
 
-  describe('API submission', () => {
-    it('submits role_ids with duplicated IDs for multi-copy roles', async () => {
-      const mockCreate = gamesApi.create as ReturnType<typeof vi.fn>;
-      mockCreate.mockResolvedValue({id: 'game-1'});
+  describe('Next button navigation', () => {
+    it('button says "Next" instead of "Start Game"', () => {
+      setupWithRoles([]);
+      renderGameSetup();
+      expect(screen.getByText('Next')).toBeInTheDocument();
+      expect(screen.queryByText('Start Game')).not.toBeInTheDocument();
+    });
 
+    it('clicking "Next" navigates to /games/new/wake-order with correct Router state', () => {
       const werewolf: RoleListItem = {
         ...createMockOfficialRole('Werewolf', 'werewolf', 1),
         default_count: 2,
@@ -416,19 +423,20 @@ describe('GameSetupPage', () => {
       fireEvent.click(werewolfCard);
       fireEvent.click(seerCard);
 
-      fireEvent.click(screen.getByText('Start Game'));
+      fireEvent.click(screen.getByText('Next'));
 
-      await waitFor(() => {
-        expect(mockCreate).toHaveBeenCalledWith(
-          expect.objectContaining({
-            role_ids: expect.arrayContaining([werewolf.id, werewolf.id, seer.id]),
-          }),
-        );
+      expect(mockNavigate).toHaveBeenCalledWith('/games/new/wake-order', {
+        state: expect.objectContaining({
+          playerCount: 3,
+          centerCount: 0,
+          timerSeconds: 300,
+          selectedRoleCounts: {
+            [werewolf.id]: 2,
+            [seer.id]: 1,
+          },
+          roles: [werewolf, seer],
+        }),
       });
-      const calledRoleIds = mockCreate.mock.calls[0][0].role_ids;
-      expect(calledRoleIds).toHaveLength(3);
-      expect(calledRoleIds.filter((id: string) => id === werewolf.id)).toHaveLength(2);
-      expect(calledRoleIds.filter((id: string) => id === seer.id)).toHaveLength(1);
     });
   });
 

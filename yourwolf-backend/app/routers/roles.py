@@ -272,7 +272,7 @@ async def delete_role(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(e),
-        )
+        ) from e
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

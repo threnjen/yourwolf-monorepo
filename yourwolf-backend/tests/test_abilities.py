@@ -8,11 +8,11 @@ from sqlalchemy.orm import Session
 
 
 class TestListAbilities:
-    """Tests for GET /api/abilities endpoint."""
+    """Tests for GET /api/v1/abilities endpoint."""
 
     def test_list_abilities_empty(self, client: TestClient) -> None:
         """Test listing abilities when none exist returns empty list."""
-        response = client.get("/api/abilities")
+        response = client.get("/api/v1/abilities")
         assert response.status_code == 200
         data = response.json()
         assert data == []
@@ -23,7 +23,7 @@ class TestListAbilities:
         sample_abilities: list[Ability],
     ) -> None:
         """Test listing abilities returns all active abilities."""
-        response = client.get("/api/abilities")
+        response = client.get("/api/v1/abilities")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == len(sample_abilities)
@@ -53,7 +53,7 @@ class TestListAbilities:
         db_session.add_all([active, inactive])
         db_session.commit()
 
-        response = client.get("/api/abilities")
+        response = client.get("/api/v1/abilities")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -65,7 +65,7 @@ class TestListAbilities:
         sample_ability: Ability,
     ) -> None:
         """Test that ability response includes all expected fields."""
-        response = client.get("/api/abilities")
+        response = client.get("/api/v1/abilities")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
@@ -80,7 +80,7 @@ class TestListAbilities:
 
 
 class TestGetAbilityByType:
-    """Tests for GET /api/abilities/{ability_type} endpoint."""
+    """Tests for GET /api/v1/abilities/{ability_type} endpoint."""
 
     def test_get_ability_by_type_success(
         self,
@@ -88,7 +88,7 @@ class TestGetAbilityByType:
         sample_ability: Ability,
     ) -> None:
         """Test getting an ability by its type string."""
-        response = client.get(f"/api/abilities/{sample_ability.type}")
+        response = client.get(f"/api/v1/abilities/{sample_ability.type}")
         assert response.status_code == 200
         data = response.json()
         assert data["type"] == sample_ability.type
@@ -96,7 +96,7 @@ class TestGetAbilityByType:
 
     def test_get_ability_by_type_not_found(self, client: TestClient) -> None:
         """Test getting a nonexistent ability returns 404."""
-        response = client.get("/api/abilities/nonexistent_ability")
+        response = client.get("/api/v1/abilities/nonexistent_ability")
         assert response.status_code == 404
         data = response.json()
         assert "not found" in data["detail"].lower()
@@ -107,5 +107,5 @@ class TestGetAbilityByType:
         sample_ability: Ability,
     ) -> None:
         """Test that ability type lookup is case sensitive."""
-        response = client.get(f"/api/abilities/{sample_ability.type.upper()}")
+        response = client.get(f"/api/v1/abilities/{sample_ability.type.upper()}")
         assert response.status_code == 404
