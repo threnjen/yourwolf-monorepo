@@ -1,83 +1,88 @@
-# Phase 4: Authentication & Users
+# Phase 4: Client-Side Game Engine
 
 **Status**: Planned
-**Depends on**: Phase 03 (Role Builder MVP)
-**Estimated complexity**: Medium
-**Cross-references**: None
+**Depends on**: Phase 3.6 (Wake Order Resolution)
+**Estimated complexity**: Large
+**Cross-references**: Python source in `yourwolf-backend/app/services/script_service.py`, `yourwolf-backend/app/services/game_service.py`
 
 ## Objective
 
-Add user authentication via AWS Cognito, user profiles, and a role ownership model so that users can own, manage, and persist their custom roles across sessions.
+Port the night script generation engine, wake order logic, and ability resolution from the Python backend to TypeScript so the game can run entirely client-side with no server dependency.
 
 ## Scope
 
 ### In Scope
-- AWS Cognito integration (email/password sign-up and sign-in)
-- Anonymous session support (no account required to play games or browse roles)
-- JWT validation middleware for FastAPI
-- User model with profile fields (display_name, bio, avatar_url)
-- Role ownership: `creator_id` foreign key, permission checks on update/delete
-- User API: profile CRUD, "My Roles" listing, account deletion (soft delete)
-- Frontend auth context with session persistence
-- Login, sign-up, and email verification pages
-- Profile settings page
-- Protected route wrappers for auth-required pages
-- Update existing role endpoints with optional/required auth
+- TypeScript game engine module: `src/engine/` directory with pure functions (no React, no API calls)
+- Port `ScriptService.generate_night_script()` logic to TypeScript
+- Port `ScriptService._generate_role_script()` and `ScriptService._generate_step_instruction()` to TypeScript
+- Port step duration map (`STEP_DURATIONS`) and instruction template generation for all 15 ability types
+- Port wake order sorting with custom sequence support (from Phase 3.6)
+- Port `StepModifier` conditional logic (AND/OR/IF) resolution
+- TypeScript types for engine inputs/outputs: `NightScript`, `NarratorAction`, `RoleInput`, `AbilityStepInput`
+- Game state machine: phase transitions (setup → night → discussion → voting → resolution → complete)
+- In-memory game session management (create, progress, complete — no persistence yet)
+- Comprehensive unit tests for the engine matching existing Python test coverage
+- Engine works in both browser and Tauri contexts (pure TypeScript, no DOM or Node dependencies)
 
 ### Out of Scope
-- Social logins (Google, GitHub, etc.) — deferred to Phase 08
-- Admin roles or role-based access control beyond ownership
-- Password reset UI (Cognito handles this via hosted UI initially)
-- Role sharing or publishing (Phase 05)
-- Multi-factor authentication
+- Data persistence (Phase 05 — Local Data Layer)
+- Tauri integration or native packaging (Phase 06)
+- Audio narration (Phase 07)
+- Removing or modifying the Python backend (it remains for future cloud use)
+- Conditional ability builder UI (Phase 11 — Advanced Features)
+- Any API calls — the engine operates on in-memory data structures
 
 ## Key Deliverables
 
 | # | Deliverable | Description | Likely Features |
 |---|-------------|-------------|-----------------|
-| 1 | Cognito Backend Integration | JWT verification, JWKS caching, token validation middleware | Auth module |
-| 2 | Auth Dependencies | `get_current_user_optional` and `get_current_user_required` FastAPI dependencies | Middleware |
-| 3 | User Model & Migration | User table with cognito_sub, email, display_name, profile fields | Model, migration |
-| 4 | User API | Profile GET/PATCH, "My Roles" listing, logout recording, account deletion | Router, service, schemas |
-| 5 | Role Auth Integration | Add optional/required auth to role CRUD endpoints, ownership checks | Router updates |
-| 6 | Frontend Auth Context | AuthProvider with Cognito SDK, session persistence, token refresh | Context, hooks |
-| 7 | Auth Pages | Login, sign-up, email verification, forgot password | Frontend pages |
-| 8 | Profile Page | User settings, display name, bio, "My Roles" grid | Frontend page |
+| 1 | Engine Types | TypeScript interfaces for engine inputs/outputs: roles, ability steps, scripts, actions | Type definitions |
+| 2 | Script Generator | Port of `generate_night_script()` — takes roles + sequence, produces ordered `NarratorAction[]` | Core engine function |
+| 3 | Instruction Templates | Port of `_generate_step_instruction()` — all 15 ability type templates | Template functions |
+| 4 | Wake Order Resolver | Sort roles by wake order with custom sequence override | Sort utility |
+| 5 | Game State Machine | Phase transitions, timer state, current wake index tracking | State management |
+| 6 | Frontend Integration | Replace API calls to script/game endpoints with local engine calls | Hook/service updates |
 
 ## Technical Context
 
-- Existing role router: `app/routers/roles.py` — currently has no auth; needs `creator_id` and ownership checks added
-- Existing role model: `app/models/role.py` — has `creator_id` column from Phase 03 but no foreign key to users
-- Frontend routing: `src/routes.tsx` — needs protected route wrappers
-- Frontend API client: `src/api/roles.ts` — needs auth token injection via axios interceptor
-- AWS Cognito SDK: `amazon-cognito-identity-js` (frontend), `python-jose` or `PyJWT` + `PyJWKClient` (backend)
-- All game facilitation features (Phase 02) remain accessible without auth
+- Python source to port: `yourwolf-backend/app/services/script_service.py` — `ScriptService` class (~450 lines), contains `generate_night_script()`, `_generate_role_script()`, `_generate_step_instruction()`, `preview_role_script()`
+- Python game service: `yourwolf-backend/app/services/game_service.py` — game creation and phase management
+- Python models to mirror: `app/models/ability_step.py` (`StepModifier` enum), `app/models/game_session.py` (`GamePhase` enum)
+- Existing frontend types: `src/types/role.ts` (Role, AbilityStep, Team types), `src/types/game.ts` (GameSession, GamePhase, NarratorAction types)
+- Existing frontend hooks: `src/hooks/useGame.ts`, `src/hooks/useGameSetup.ts` — currently call API; will be updated to use local engine
+- Existing API client: `src/api/games.ts` — game creation/management calls to backend
+- Step durations map: 15 ability types with specific second values (8s for view_card, 6s for swap_card, etc.)
+- Instruction templates: string generation per ability type with parameter interpolation (wake_target, card counts, etc.)
+- The engine module must have zero dependencies on React, DOM APIs, or Node.js — pure TypeScript functions that can run anywhere
 
 ## Dependencies & Risks
 
-- **Dependency**: AWS Cognito user pool must be created and configured (can use free tier)
-- **Dependency**: Environment variables for Cognito Pool ID / Client ID needed in both backend and frontend
-- **Risk**: Cognito SDK complexity — the `amazon-cognito-identity-js` library has verbose patterns; consider wrapping in a clean service layer
-- **Risk**: Token refresh handling — access tokens expire after 1 hour; need silent refresh via refresh token
-- **Mitigation**: Test with Cognito local emulator or a dedicated dev user pool
+- **Dependency**: Phase 3.6 wake order sequence logic must be stable — the engine must support both default and custom ordering
+- **Risk**: Python-to-TypeScript translation errors — mitigate by writing matching test cases from existing Python tests and verifying output parity
+- **Risk**: Edge cases in conditional step resolution (AND/OR/IF chains) — the Python implementation handles these; tests must cover the same scenarios
+- **Risk**: Frontend integration complexity — switching from API-driven to local engine requires updating hooks and removing server round-trips; mitigate by creating an adapter layer so hooks don't change their public interface
+- **Mitigation**: Keep the Python backend running during development as a reference; run both engines with the same inputs and compare outputs
 
 ## Success Criteria
 
-- [ ] User signs up with email/password and receives verification email
-- [ ] User logs in and receives JWT; backend validates it
-- [ ] Authenticated user creates a role and it is linked to their account
-- [ ] Unauthenticated user can still browse roles and play games
-- [ ] Role update/delete returns 403 for non-owners
-- [ ] User can view and update their profile
-- [ ] "My Roles" page shows all roles created by the current user
-- [ ] Token refresh works silently (no re-login required within session)
-- [ ] Soft-delete account works and preserves published roles
+- [ ] TypeScript engine generates identical night scripts to the Python backend for all 30 seed roles
+- [ ] All 15 ability type instruction templates produce correct narrator text
+- [ ] Wake order sorting matches Python behavior (default order and custom sequence)
+- [ ] Step modifier conditionals (AND/OR/IF) resolve correctly
+- [ ] Game state machine progresses through all phases (setup → night → discussion → voting → resolution → complete)
+- [ ] Frontend game flow works without any backend API calls for script generation or game management
+- [ ] Engine has no dependencies on DOM, Node, or React APIs
+- [ ] Unit test coverage ≥90% for engine module
 
 ## QA Considerations
 
-- Auth flow (signup → verify → login → session persistence → logout) requires manual QA
-- Protected vs. unprotected routes need verification
-- Anonymous user experience must remain fully functional
+- End-to-end game flow must be manually tested: create game → run night phase → verify script matches expected output
+- Compare engine output against Python backend for regression (same roles, same wake order → same script)
+- The facilitator UI (`GameFacilitator.tsx`, `ScriptReader.tsx`) should behave identically after switching to local engine
+
+## Notes for Feature - Decomposer
+
+Natural decomposition: engine types → instruction templates → script generator → wake order resolver → game state machine → frontend integration. The instruction templates and script generator are tightly coupled. Frontend integration should be last since it changes existing code. Consider having a temporary "dual mode" where both local engine and API are available for comparison testing.
 - Token expiry and refresh behavior should be tested with time manipulation
 
 ## Notes for Feature - Decomposer

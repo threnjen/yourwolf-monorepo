@@ -1,83 +1,95 @@
-# Phase 6: Advanced Features
+# Phase 6: Desktop App (Tauri v2)
 
 **Status**: Planned
-**Depends on**: Phase 05 (Community Features)
-**Estimated complexity**: Large
-**Cross-references**: None
+**Depends on**: Phase 05 (Local Data Layer)
+**Estimated complexity**: Medium
+**Cross-references**: Tauri v2 documentation at https://v2.tauri.app
 
 ## Objective
 
-Enhance the platform with advanced role creation capabilities (IF/THEN/ELSE conditional logic for ability steps), automated content moderation via AWS Comprehend, optional audio narration via AWS Polly, and game history tracking with replay viewing.
+Package the React frontend and local game engine as a native desktop application using Tauri v2, producing installable builds for macOS and Windows (Linux best-effort) that work fully offline.
 
 ## Scope
 
 ### In Scope
-- Conditional ability builder: extend AbilityStep model with condition types (IF role_is, IF team_is, IF player_count, etc.), THEN/ELSE branching, and condition parameters
-- Condition validator service for validating conditional step configurations
-- Conditional builder UI component in the Role Builder wizard
-- AWS Comprehend integration for automated content moderation on role publishing
-- Moderation statuses: clean, flagged (enters queue), blocked (rejected immediately)
-- Auto-moderation integrated into the publishing workflow from Phase 05
-- AWS Polly integration for text-to-speech audio narration of night scripts
-- S3 caching for generated audio (hash-based deduplication)
-- Audio player component for playing narration in the facilitator UI
-- Game history model: record completed games with roles, player count, winner, duration
-- Game events model: timestamped log of actions within a game
-- Game history API: list, detail, stats summary
-- History page with filtering by date range and outcome
+- Tauri v2 project scaffolding within the monorepo (`src-tauri/` directory)
+- Tauri configuration for building with the existing React/Vite frontend
+- Tauri SQL plugin for native SQLite access (replacing sql.js Wasm in desktop context)
+- Platform detection layer: choose native SQLite (Tauri) vs. sql.js (browser) at runtime
+- App window configuration: minimum size, title bar, window state persistence
+- Bundled seed data: 30 official roles packaged with the app binary
+- macOS build: `.dmg` installer, code signing configuration
+- Windows build: `.msi` or `.exe` installer, code signing configuration
+- Linux build: `.AppImage` and `.deb` packages (best-effort, CI-built, not actively tested)
+- App icon and basic branding
+- Auto-update infrastructure (Tauri updater plugin) — check for updates when online
+- CI workflow: GitHub Actions builds for all three platforms on tag/release
 
 ### Out of Scope
-- Real-time conditional resolution during live games (conditions are for script generation only)
-- Custom condition types defined by users
-- Voice selection or custom audio settings
-- Video recording of games
-- Exporting game history to external formats
-- Social sharing of game results
+- Audio narration (Phase 07 — Narration Engine)
+- Mobile builds (Phase 08 — Mobile App)
+- Cloud connectivity or auth (Phase 09)
+- App store distribution (macOS App Store and Microsoft Store — Phase 13)
+- Custom title bar or native menus beyond defaults
+- Crash reporting or analytics telemetry
 
 ## Key Deliverables
 
 | # | Deliverable | Description | Likely Features |
 |---|-------------|-------------|-----------------|
-| 1 | Conditional Ability Model | Extended AbilityStep with condition_type, condition_params, else_ability_id | Model, migration |
-| 2 | Condition Validator | Service to validate conditional step configurations and parameter requirements | Backend service |
-| 3 | Conditional Builder UI | IF/THEN/ELSE builder component in the Role Builder wizard AbilitiesStep | Frontend component |
-| 4 | Content Moderation Service | AWS Comprehend integration for text analysis, sentiment, and toxicity detection | Backend service |
-| 5 | Moderation Integration | Auto-moderate on publish; flagged → queue, blocked → reject | Publishing workflow |
-| 6 | Audio Narration Service | AWS Polly TTS generation with S3 caching and presigned URL delivery | Backend service |
-| 7 | Audio Player | Frontend audio player component for night script playback | Frontend component |
-| 8 | Game History Models | GameHistory and GameEvent tables with relationships | Models, migrations |
-| 9 | Game History API | CRUD endpoints for recording and retrieving game history with stats | Router, service, schemas |
-| 10 | Game History Page | Frontend page for browsing and filtering past games | Frontend page |
+| 1 | Tauri Project Setup | Tauri v2 scaffolding, Cargo.toml, tauri.conf.json, Vite integration | Project configuration |
+| 2 | Native SQLite Bridge | Tauri SQL plugin wired to the repository layer from Phase 05 | Platform adapter |
+| 3 | Platform Detection | Runtime detection of Tauri vs. browser context; swap SQLite implementation | Adapter pattern |
+| 4 | App Shell Configuration | Window size, title, icon, state persistence | Tauri config |
+| 5 | macOS Build | `.dmg` installer with code signing config | Build pipeline |
+| 6 | Windows Build | `.msi`/`.exe` installer with code signing config | Build pipeline |
+| 7 | Linux Build | `.AppImage` and `.deb` packages | Build pipeline |
+| 8 | CI/CD Pipeline | GitHub Actions workflow: build all platforms on release tag | CI config |
+| 9 | Auto-Update | Tauri updater plugin: check for updates when online | Update mechanism |
 
 ## Technical Context
 
-- AbilityStep model: `app/models/ability_step.py` — currently has `modifier` field; needs `condition_type`, `condition_params`, `else_ability_id`
-- Script service: `app/services/script_service.py` — `_generate_step_instruction()` needs to render conditional prefixes
-- Role Builder: `src/components/RoleBuilder/steps/AbilitiesStep.tsx` — needs conditional builder sub-component
-- Publishing (Phase 05): the publish workflow endpoint needs a moderation check inserted before visibility change
-- GameSession model: `app/models/game_session.py` — game history extends this with outcome data
-- AWS services: boto3 client for Comprehend and Polly; requires AWS credentials in environment
-- S3: needed for audio file caching; bucket must be created (can be done manually or in Phase 08 Terraform)
+- Frontend entry: `yourwolf-frontend/src/main.tsx` — Tauri wraps this as-is via the Vite dev server (dev) or built static files (production)
+- Vite config: `yourwolf-frontend/vite.config.ts` — needs Tauri-specific adjustments (server host, HMR WebSocket)
+- Repository interfaces (Phase 05): the `SqliteRepository` implementation needs a platform-aware SQLite driver
+- sql.js (Phase 05): used in browser; Tauri SQL plugin (`@tauri-apps/plugin-sql`) used in native context
+- Tauri v2 uses Rust for the native backend — the Rust layer will be thin (SQLite plugin, file system, window management)
+- Tauri v2 supports both desktop (macOS, Windows, Linux) and mobile (iOS, Android) from the same project — mobile targets are deferred to Phase 08
+- Monorepo structure: Tauri project at `yourwolf-frontend/src-tauri/` (colocated with the frontend it wraps)
+- Build toolchain: Rust/Cargo for Tauri, Node.js for frontend, combined via `tauri build`
 
 ## Dependencies & Risks
 
-- **Dependency**: Phase 05 publishing workflow must exist for moderation integration
-- **Dependency**: AWS account with Comprehend and Polly access; free tier covers moderate usage
-- **Dependency**: S3 bucket for audio caching (can be provisioned manually before Phase 08 Terraform)
-- **Risk**: AWS Comprehend may produce false positives on game-specific vocabulary (e.g., "kill", "werewolf") — mitigate with a domain-specific allowlist
-- **Risk**: Polly audio generation latency (~1-3s per script) — mitigate with pre-generation on game creation and S3 caching
-- **Risk**: Conditional logic complexity — the condition type enum could grow large; start with the most common conditions and expand incrementally
+- **Dependency**: Phase 05 data layer with repository pattern must be complete — Tauri wires the native SQLite implementation
+- **Dependency**: Rust toolchain must be installed for development (rustup, Cargo)
+- **Dependency**: Xcode (macOS builds), Visual Studio Build Tools (Windows builds)
+- **Risk**: Platform-specific bugs — WebView rendering differences between macOS (WebKit), Windows (WebView2), Linux (WebKitGTK) — mitigate by testing on all three platforms in CI
+- **Risk**: Code signing costs and complexity — Apple Developer account ($99/year) required for macOS signing; Windows signing certificates have annual cost — can ship unsigned for initial testing
+- **Risk**: Tauri v2 is relatively new — potential for edge cases or missing features; mitigate by staying on stable releases and monitoring the Tauri GitHub issues
+- **Mitigation**: Start with macOS (primary development platform), then Windows, then Linux last
 
 ## Success Criteria
 
-- [ ] User creates a role with IF/THEN/ELSE conditional ability steps
-- [ ] Condition validator catches invalid configurations (missing params, invalid types)
-- [ ] Narrator preview renders conditional prefixes (e.g., "If you see a werewolf...")
-- [ ] Publishing a role triggers Comprehend analysis; clean roles publish immediately
-- [ ] Flagged role content enters moderation queue; blocked content returns error
-- [ ] Night script audio generates via Polly and is playable in the facilitator UI
-- [ ] Audio is cached in S3; repeat requests return cached file
-- [ ] Completed game is recorded with roles, winner, duration, and events
+- [ ] `tauri dev` launches the app in a native window with hot reload
+- [ ] `tauri build` produces installable binaries for macOS (.dmg) and Windows (.msi/.exe)
+- [ ] App works fully offline: browse seed roles, create custom roles, run games — no internet required
+- [ ] Local SQLite database persists data between app launches
+- [ ] Seed data loads on first launch in native context
+- [ ] Platform detection correctly chooses native SQLite (Tauri) vs. sql.js (browser)
+- [ ] GitHub Actions CI produces builds for macOS, Windows, and Linux on release
+- [ ] Auto-updater checks for updates when online (gracefully does nothing when offline)
+
+## QA Considerations
+
+- Full game flow must be manually tested on macOS and Windows: launch → browse roles → create game → run night phase → complete game
+- Test first launch (empty database → seed → ready) on each platform
+- Test offline behavior: disconnect network, verify all features work
+- Test window management: resize, minimize, restore, close → reopen preserves state
+- Linux builds should be smoke-tested in CI (virtual machine) but do not require manual QA
+
+## Notes for Feature - Decomposer
+
+Natural decomposition: Tauri scaffolding + Vite integration → native SQLite bridge → platform detection → app shell config → CI builds. The SQLite bridge is the most technically complex feature — it requires a clean adapter that fulfills the Phase 05 repository interface using the Tauri SQL plugin. CI builds should be a separate feature since they involve GitHub Actions configuration independent of the app code.
 - [ ] Game history page shows past games with filtering
 - [ ] Stats summary endpoint returns win counts and averages
 
