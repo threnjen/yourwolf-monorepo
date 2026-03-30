@@ -47,8 +47,8 @@ function shuffleArray<T>(arr: T[]): T[] {
   return shuffled;
 }
 
-function SortableTile({role}: {role: WakingRole}) {
-  const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: role.id});
+function SortableTile({role, disabled}: {role: WakingRole; disabled?: boolean}) {
+  const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: role.id, disabled});
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -59,7 +59,7 @@ function SortableTile({role}: {role: WakingRole}) {
     borderLeft: `4px solid ${TEAM_COLORS[role.team] ?? theme.colors.secondary}`,
     borderRadius: theme.borderRadius.md,
     color: theme.colors.text,
-    cursor: 'grab',
+    cursor: disabled ? 'default' : 'grab',
     display: 'flex',
     alignItems: 'center',
     gap: theme.spacing.sm,
@@ -217,7 +217,7 @@ export function WakeOrderResolutionPage() {
                   {(groupOrders[groupKey] ?? []).map((roleId) => {
                     const role = roleById.get(roleId);
                     if (!role) return null;
-                    return <SortableTile key={roleId} role={role} />;
+                    return <SortableTile key={roleId} role={role} disabled={(groupOrders[groupKey]?.length ?? 0) <= 1} />;
                   })}
                 </SortableContext>
               </div>

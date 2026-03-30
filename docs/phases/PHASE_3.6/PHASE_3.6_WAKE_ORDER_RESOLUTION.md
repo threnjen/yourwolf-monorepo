@@ -167,7 +167,7 @@ User-created roles (from the Role Builder) can also introduce new `wake_order` c
 | Frontend routes | `yourwolf-frontend/src/routes.tsx` — add `/games/new/wake-order` route |
 | Frontend game setup | `yourwolf-frontend/src/pages/GameSetup.tsx` — "Start Game" → "Next" |
 | Frontend game setup hook | `yourwolf-frontend/src/hooks/useGameSetup.ts` — `handleStartGame()` → navigation |
-| Frontend new page | `yourwolf-frontend/src/pages/ReviewWakeOrder.tsx` — new file |
+| Frontend new page | `yourwolf-frontend/src/pages/WakeOrderResolution.tsx` — new file |
 | Frontend API types | `yourwolf-frontend/src/types/game.ts` — `GameSessionCreate` |
 | Frontend API client | `yourwolf-frontend/src/api/games.ts` — unchanged (schema handles new field) |
 
