@@ -112,6 +112,8 @@ uvicorn app.main:app --reload --port 8000
 
 ## Running Tests
 
+### Backend Tests
+
 The backend container must be running. Tests connect to the PostgreSQL `db` service.
 
 ```bash
@@ -129,6 +131,25 @@ docker compose exec backend pytest tests/test_games_router.py
 ```
 
 Coverage settings are configured in `pyproject.toml` with a minimum threshold of 80%.
+
+### Frontend Tests
+
+Frontend tests run outside Docker (they use jsdom, not a real browser).
+
+```bash
+cd yourwolf-frontend
+
+# Run tests in watch mode
+npm test
+
+# Run tests once with coverage report
+npm run test:coverage
+
+# Interactive test UI
+npm run test:ui
+```
+
+Coverage thresholds are configured in `vite.config.ts` at 80% for lines, branches, functions, and statements.
 
 ---
 
