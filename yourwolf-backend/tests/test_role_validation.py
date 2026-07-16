@@ -584,6 +584,24 @@ class TestCreateValidateAgreement:
         role = service.create_role(data)
         assert role.name == "Agreeable Role"
 
+    def test_create_rejects_duplicate_name_like_validate(
+        self, db_session: Session, sample_role: Role
+    ) -> None:
+        """AC3: the duplicate-name rule agrees across validate and create.
+
+        Newly enforced on the create path; not covered by the parametrized
+        cases above because it needs an existing official role.
+        """
+        service = RoleService(db_session)
+        # sample_role is "Villager" with OFFICIAL visibility.
+        data = RoleCreate(**make_valid_role(name="villager"))
+
+        errors = service.validate_role(data)
+        assert any("already exists" in e for e in errors)
+
+        with pytest.raises(DomainValidationError, match="already exists"):
+            service.create_role(data)
+
     def test_create_role_endpoint_returns_400_for_invalid_payload(
         self, client: TestClient
     ) -> None:

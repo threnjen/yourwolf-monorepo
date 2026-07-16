@@ -507,6 +507,31 @@ class TestRoleCountMatchesPlayersAndCenter:
 
         assert len(game.game_roles) == 8
 
+    def test_count_rule_precedes_unknown_role_id_check(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """AC1: the count rule reports first when a payload also has unknown IDs.
+
+        The deleted router guard ran before any service rule, so a payload
+        violating both reported the count error. Placement inside
+        ``create_game`` preserves that precedence; this pins it.
+        """
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:4]] + [uuid.uuid4()]
+
+        with pytest.raises(DomainValidationError) as exc_info:
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+        message = str(exc_info.value)
+        assert "Must select exactly 8 roles (5 players + 3 center)" in message
+        assert "Unknown role IDs" not in message
+
 
 class TestCardCountValidation:
     """Tests for card count enforcement in game creation."""
