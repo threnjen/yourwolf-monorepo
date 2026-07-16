@@ -173,6 +173,28 @@ describe('roleSelection', () => {
       ).toEqual({[tanner.id]: 1});
     });
 
+    it('cascades one level only, leaving a transitive dependent orphaned', () => {
+      // A requires B; C requires A. Removing B drops A, but C — which requires the
+      // now-absent A — survives. This is the current (pre-extraction) behavior and is
+      // pinned deliberately: the cascade re-scans only for dependents of the *removed*
+      // role id, not of roles dropped by the cascade itself. Phase 04's engine must
+      // reproduce this exactly, or change it as a conscious, tested decision.
+      const b = createMockOfficialRole('B', 'village');
+      const a: RoleListItem = {
+        ...createMockOfficialRole('A', 'village'),
+        dependencies: [{required_role_id: b.id, required_role_name: 'B', dependency_type: 'requires'}],
+      };
+      const c: RoleListItem = {
+        ...createMockOfficialRole('C', 'village'),
+        dependencies: [{required_role_id: a.id, required_role_name: 'A', dependency_type: 'requires'}],
+      };
+      const roleMap = buildRoleMap([a, b, c]);
+
+      expect(removeRoleWithCascade({[a.id]: 1, [b.id]: 1, [c.id]: 1}, b.id, roleMap)).toEqual({
+        [c.id]: 1,
+      });
+    });
+
     it('leaves unrelated roles selected', () => {
       const {tanner, roleMap} = tannerPair();
       const seer = createMockOfficialRole('Seer', 'village', 4);

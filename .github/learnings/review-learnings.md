@@ -97,3 +97,59 @@ Durable, reusable review rules distilled from past feature reviews. No dates, no
 **Impact:** Without (d) especially, exemptions outlive the problem they documented and become permanent invisible holes. Without (a)/(b), the exemption also suppresses future unrelated violations on the same file — the hole widens over time with nobody deciding that it should.
 
 **Watch for:** Grade every deferred-violation exemption against all four properties. An exemption that cannot rot is a legitimate engineering tool and should be approved without friction; one that can rot is technical debt wearing a comment as a disguise.
+
+## A plan-cited regression anchor may not exist
+
+**Pattern:** A plan names an existing test as the regression anchor for its riskiest change ("`test_x.py` 404-vs-400 cases are the regression anchor for AC3"). The named file exists and the named endpoint appears in it — but only as happy-path *setup*, with nothing asserting the behavior the anchor is supposed to pin. The claim survives into the context doc and the AC traceability matrix by citation, never by verification.
+
+**Impact:** The central change of the feature ships with zero coverage, while every artifact says it is covered. Worse than an acknowledged gap: the false citation actively suppresses the instinct to write the test. Downstream features that inherit the claim compound it.
+
+**Watch for:** Never accept a cited anchor by filename. Open the baseline (`git show <base>:<path>`) and grep for an *assertion* on the specific contract — the endpoint merely appearing is not coverage. When an implementer reports that a planned anchor was fictional, verify both halves independently: that it was genuinely absent before, and that the replacement actually pins the distinction rather than restating post-change behavior. A characterization test written *after* a migration is only valid if its expected values were derived from the baseline.
+
+## An identifier that reads like one status but whose contract is another
+
+**Pattern:** A raise site is named or worded like one error category ("Unknown role IDs", "missing X") while its live HTTP contract is a different one (400, not 404). During a migration to typed exceptions, classifying it by what the *name* implies silently changes a production status code — and every service-level test still passes, because they assert on the exception type and message, not the status.
+
+**Impact:** A wrong-status regression that no test in the suite can see. Service tests are type-and-message assertions; only an HTTP-level test would catch it, and that layer is exactly where coverage is thinnest.
+
+**Watch for:** In any refactor that replaces prose/heuristic routing with typed dispatch, re-derive the mapping per-site from the baseline by tracing each raise through its *actual* caller's handler — do not accept the implementer's classification table, and do not classify by semantics. Sites where the name and the contract disagree are where the defect will be. Confirm each such site has an HTTP-level pin before approving.
+
+## Removing a heuristic catch also narrows what it incidentally caught
+
+**Pattern:** A broad `except ValueError` (or equivalent) wrapped around a service call was routing domain errors *and*, incidentally, any library exception subclassing the same builtin — `pydantic.ValidationError` is a `ValueError`. Replacing it with typed dispatch narrows this silently: what was a 400 becomes a 500.
+
+**Impact:** Usually correct and desirable — an internal library error should not be blamed on the client. But it is a real contract change on paths nobody enumerated, and it lands undocumented because the diff only shows domain exceptions being handled.
+
+**Watch for:** When a broad builtin catch is removed, ask what *else* subclassed that builtin and could surface from inside the try block. Decide explicitly whether the narrowing is intended, and record it as a documented deviation rather than letting it be an accident. Green tests prove nothing here — these paths are unreachable in practice, which is precisely why they are undocumented.
+
+## "No import-time side effects" is a claim about resources, not about code executing
+
+**Pattern:** A codebase establishes a direction — construct settings/engines/clients lazily, remove import-time globals. A later feature adds *something* at module scope (reading a bundled data file, building a lookup table, compiling a regex) and it gets flagged as regressing that direction by pattern-match on "work at import".
+
+**Impact:** Both errors are costly. Reflexively rejecting it produces a lazy accessor that buys nothing, adds indirection, and often *defers* a failure the eager version caught earlier. Reflexively accepting it lets genuinely environment-dependent work back in, one plausible exception at a time.
+
+**Watch for:** Do not adjudicate on "does code run at import" — enum classes, ORM declarative models, and settings classes all run at import; the rule as literally stated is unsatisfiable. Adjudicate on what the work *touches*: ambient environment, network, database, filesystem outside the package, mutable global state. A file shipped adjacent to the module (`Path(__file__).parent / ...`) is part of the package — reading it is nearer to parsing a literal than to opening a socket, and it fails identically in every environment. Settle it empirically: run the import under a stripped environment (`env -i`) and check whether the original invariant still holds; check whether the app's boot path even imports the module (`sys.modules` after importing the entrypoint). Also check what the code did *before* — if a literal was already built at import and a malformed one raised at import, preserving that is behavior preservation, not regression. Then record the precedent with its *actual* boundary, so it is not later cited to justify import-time work that does touch env or network.
+
+## A validating loader's guarantee stops where its callers' `[...]` begin
+
+**Pattern:** Data moves out of code into a data file behind a loader that validates "exhaustively" — file present, JSON well-formed, enum values known, cross-references resolve. The validation covers exactly the categories someone enumerated, while the consumer indexes a dozen fields with `data["field"]` that the loader never checked. The shipped file is valid, so every test passes and the gap is invisible.
+
+**Impact:** The loader's entire purpose is to convert malformed data into one clear error before any side effects. A field it does not check becomes a raw `KeyError` (or `AttributeError` on a non-dict entry) thrown *part-way through* the consumer's loop, after writes have begun — precisely the partial-failure the loader was introduced to prevent. An "exhaustive validation" docstring makes it worse: it is load-bearing documentation that is false, so the next person extends the data file trusting a guarantee that does not exist.
+
+**Watch for:** Derive the required-field set from the *consumer*, not from the loader — grep the seeding/consuming function for direct `[...]` subscripts and contrast with `.get(k, default)` calls; the former are mandatory, the latter genuinely optional (and their *absence* may be semantically load-bearing, so normalizing them changes behavior). Then probe negatively: feed the loader an entry missing each required field, a non-dict entry, and a scalar where a list is expected, and confirm every case raises the loader's own error type rather than leaking `KeyError`/`AttributeError`. Validating that a container is a list is not validating its elements. Never accept "validation is exhaustive" from a docstring — it is a testable claim, so test it.
+
+## Reference identity is load-bearing behavior when extracting pure functions out of React
+
+**Pattern:** React state reducers and event handlers signal "nothing happened" structurally, not explicitly — `setState(prev => prev)` (React bails out of the re-render) or a bare `return;` before `onChange(...)` (no callback fires). When those bodies are lifted into a pure domain module, the natural pure-function instinct is to always return a fresh object/array. That instinct is a behavior change: every rejected no-op now triggers a re-render, and every guarded early-return now fires a spurious callback with a new object. Nothing in a typical suite catches it — the *values* are all still correct, so `toEqual` assertions stay green.
+
+**Impact:** Silent render-loop and callback-storm regressions that pass every test, then surface as performance problems or duplicate side effects far from the refactor. Worse in a staged port: if the extracted module is the contract a later engine consumes, the drift is inherited before anyone notices.
+
+**Watch for:** Enumerate *every* no-op path in the baseline (`return prev`, bare `return`, rejected guards) and confirm the extracted function returns the **input reference**, not an equal copy. Then confirm the caller still checks it — a pure function that correctly returns `prev` is useless if the component unconditionally calls `onChange` with the result. Demand `toBe()` reference assertions, not `toEqual()`; `toEqual` cannot distinguish the two and its passing is not evidence. Note the asymmetry is often intentional: a sibling function may legitimately always return a new object because the baseline did too — mirror the baseline per-path rather than imposing one rule across the module.
+
+## A documented quirk with no test pinning it is an invitation to "fix" it
+
+**Pattern:** An extraction carefully documents a surprising behavior in a docstring — "the cascade is one-way and single-level", "deliberately does not renumber" — and the prose is accurate. But no test asserts it. The docstring is the only artifact holding the behavior in place.
+
+**Impact:** Strictly more dangerous than an undocumented quirk. Undocumented quirks get preserved by copy-paste inertia; *documented* ones read as a rationale a future implementer can disagree with. A downstream author porting the module sees "single-level cascade leaves a transitive dependent orphaned", reasonably concludes it is a bug, makes the cascade transitive — and every test still passes. The comment that was meant to protect the behavior is what licensed changing it.
+
+**Watch for:** For each behavioral claim in a new domain module's docstrings, grep the test file for an assertion pinning it. Where missing, add the test *and* say in a comment why it is pinned, so the next reader knows a change is a conscious decision rather than a cleanup. Derive the expected value by executing the baseline, never by reading the new implementation — a test written from the implementation pins whatever it currently does, including the drift you are checking for. This is the cheapest fix available at review time: pure test addition, zero behavior risk, and it converts prose into a gate.
