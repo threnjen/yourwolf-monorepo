@@ -413,7 +413,7 @@ class TestCreateGameUnknownRoleIds:
     def test_create_game_unknown_role_ids(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
-        """Game creation raises ValueError when role_ids contain unknown UUIDs."""
+        """Game creation raises DomainValidationError for unknown role UUIDs."""
         service = GameService(db_session)
         valid_ids = [r.id for r in seeded_roles[:7]]
         unknown_id = uuid.uuid4()
@@ -431,7 +431,7 @@ class TestCreateGameUnknownRoleIds:
     def test_create_game_multiple_unknown_role_ids(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
-        """ValueError lists all unknown IDs when multiple are unknown."""
+        """DomainValidationError lists all unknown IDs when multiple are unknown."""
         service = GameService(db_session)
         valid_ids = [r.id for r in seeded_roles[:6]]
         unknown1 = uuid.uuid4()

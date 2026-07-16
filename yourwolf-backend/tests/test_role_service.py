@@ -280,7 +280,7 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         sample_unlocked_role: Role,
         sample_ability,
     ) -> None:
-        """Steps with an unknown ability_type raise ValueError."""
+        """Steps with an unknown ability_type raise DomainValidationError."""
         from app.models.ability_step import AbilityStep
 
         service = RoleService(db_session)
@@ -386,7 +386,7 @@ class TestRoleServiceDeleteRole:
         db_session: Session,
         sample_role: Role,
     ) -> None:
-        """Deleting a locked role raises PermissionError."""
+        """Deleting a locked role raises LockedError."""
         service = RoleService(db_session)
 
         with pytest.raises(LockedError, match="locked"):
