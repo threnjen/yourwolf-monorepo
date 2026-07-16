@@ -1,7 +1,8 @@
 import {useState, useMemo} from 'react';
 import {useRoles} from '../hooks/useRoles';
 import {RoleCard} from '../components/RoleCard';
-import {theme, capitalize} from '../styles/theme';
+import {theme} from '../styles/theme';
+import {capitalize} from '../utils/format';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, loadingStyles, errorStyles, teamHeaderStyles} from '../styles/shared';
 import {groupRolesByTeam} from '../utils/roleSort';
 

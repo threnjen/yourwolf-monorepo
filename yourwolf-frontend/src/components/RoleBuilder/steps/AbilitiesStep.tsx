@@ -1,5 +1,11 @@
 import {useState} from 'react';
 import {RoleDraft, AbilityStepDraft, StepModifier} from '../../../types/role';
+import {
+  ABILITY_CATEGORIES,
+  MODIFIERS,
+  MODIFIER_LABELS,
+  STRING_TARGET_OPTIONS,
+} from '../../../domain/constants';
 import {useAbilities} from '../../../hooks/useAbilities';
 import {theme} from '../../../styles/theme';
 import {selectStyles} from '../../../styles/shared';
@@ -8,29 +14,6 @@ interface AbilitiesStepProps {
   draft: RoleDraft;
   onChange: (draft: RoleDraft) => void;
 }
-
-interface AbilityCategory {
-  id: string;
-  label: string;
-  types: string[];
-}
-
-const ABILITY_CATEGORIES: AbilityCategory[] = [
-  {id: 'card', label: 'Card Actions', types: ['view_card', 'swap_card', 'take_card', 'flip_card', 'copy_role']},
-  {id: 'info', label: 'Information', types: ['view_awake', 'thumbs_up', 'explicit_no_view']},
-  {id: 'physical', label: 'Physical', types: ['rotate_all', 'touch']},
-  {id: 'state', label: 'State Changes', types: ['change_to_team', 'perform_as', 'perform_immediately', 'stop']},
-  {id: 'other', label: 'Other', types: ['random_num_players']},
-];
-
-const MODIFIERS: StepModifier[] = ['none', 'and', 'or', 'if'];
-
-const MODIFIER_LABELS: Record<StepModifier, string> = {
-  none: '—',
-  and: 'And then',
-  or: 'Or instead',
-  if: 'Only if',
-};
 
 const tabRowStyles: React.CSSProperties = {
   display: 'flex',
@@ -122,21 +105,6 @@ const modifierLabelStyles: React.CSSProperties = {
   fontSize: '0.75rem',
   fontWeight: 600,
 };
-
-const STRING_TARGET_OPTIONS: string[] = [
-  'player.self',
-  'player.other',
-  'center.main',
-  'center.bonus',
-  'previous',
-  'viewed',
-  'team.werewolf',
-  'team.vampire',
-  'team.alien',
-  'team.village',
-  'role.mason',
-  'players.actions',
-];
 
 interface StepParameterInputsProps {
   stepIndex: number;

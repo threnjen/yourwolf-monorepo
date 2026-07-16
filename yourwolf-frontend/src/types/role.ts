@@ -1,4 +1,8 @@
-export type Team = 'village' | 'werewolf' | 'vampire' | 'alien' | 'neutral';
+import type {Team} from '../domain/teams';
+
+// Re-exported so existing transport-type consumers keep importing `Team` from here.
+export type {Team};
+
 export type Visibility = 'private' | 'public' | 'official';
 export type StepModifier = 'none' | 'and' | 'or' | 'if';
 

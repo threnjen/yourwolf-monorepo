@@ -1,6 +1,7 @@
 import type {Team, RoleListItem} from '../types/role';
+import {TEAMS} from '../domain/teams';
 
-export const TEAM_ORDER: Team[] = ['village', 'werewolf', 'vampire', 'alien', 'neutral'];
+export const TEAM_ORDER: readonly Team[] = TEAMS;
 
 export interface TeamGroup {
   team: Team;

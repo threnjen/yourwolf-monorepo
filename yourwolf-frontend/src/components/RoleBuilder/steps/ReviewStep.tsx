@@ -1,12 +1,6 @@
-import {RoleDraft, ValidationResult, Team, StepModifier} from '../../../types/role';
+import {RoleDraft, ValidationResult, Team} from '../../../types/role';
+import {MODIFIER_LABELS} from '../../../domain/constants';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
-
-const MODIFIER_LABELS: Record<StepModifier, string> = {
-  none: '—',
-  and: 'And then',
-  or: 'Or instead',
-  if: 'Only if',
-};
 
 interface ReviewStepProps {
   draft: RoleDraft;

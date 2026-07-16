@@ -2,27 +2,10 @@ import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../types/role';
 import {rolesApi} from '../api/roles';
+import {createEmptyDraft} from '../domain/roleDraft';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
-
-function createEmptyDraft(): RoleDraft {
-  const now = new Date().toISOString();
-  return {
-    id: crypto.randomUUID(),
-    name: '',
-    description: '',
-    team: 'village',
-    wake_order: 0,
-    wake_target: null,
-    votes: 1,
-    is_primary_team_role: false,
-    ability_steps: [],
-    win_conditions: [],
-    created_at: now,
-    updated_at: now,
-  };
-}
 
 export function RoleBuilderPage() {
   const navigate = useNavigate();

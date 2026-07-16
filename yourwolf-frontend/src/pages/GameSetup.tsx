@@ -2,7 +2,8 @@ import {useNavigate} from 'react-router-dom';
 import {useRoles} from '../hooks/useRoles';
 import {useGameSetup, PLAYER_COUNT_MIN, PLAYER_COUNT_MAX, CENTER_COUNT_MIN, CENTER_COUNT_MAX, TIMER_MIN_SECONDS, TIMER_MAX_SECONDS, TIMER_STEP_SECONDS} from '../hooks/useGameSetup';
 import {RoleCard} from '../components/RoleCard';
-import {theme, capitalize} from '../styles/theme';
+import {theme} from '../styles/theme';
+import {capitalize} from '../utils/format';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles, teamHeaderStyles} from '../styles/shared';
 import {groupRolesByTeam} from '../utils/roleSort';
 
