@@ -200,15 +200,12 @@ async def create_role(
 
     Returns:
         Created role with full details.
+
+    Raises:
+        DomainValidationError: 400 if an ability type is unknown.
     """
     service = RoleService(db)
-    try:
-        return service.create_role(role_data)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        ) from e
+    return service.create_role(role_data)
 
 
 @router.put("/{role_id}", response_model=RoleRead)
@@ -228,21 +225,12 @@ async def update_role(
         Updated role with full details.
 
     Raises:
-        HTTPException: If role not found or is locked.
+        LockedError: 403 if role is locked.
+        DomainValidationError: 400 if an ability type is unknown.
+        HTTPException: 404 if role not found.
     """
     service = RoleService(db)
-    try:
-        role = service.update_role(role_id, role_data)
-    except PermissionError as e:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(e),
-        ) from e
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        ) from e
+    role = service.update_role(role_id, role_data)
     if not role:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -263,16 +251,11 @@ async def delete_role(
         db: Database session.
 
     Raises:
-        HTTPException: If role not found or is locked.
+        LockedError: 403 if role is locked or official.
+        HTTPException: 404 if role not found.
     """
     service = RoleService(db)
-    try:
-        deleted = service.delete_role(role_id)
-    except PermissionError as e:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(e),
-        ) from e
+    deleted = service.delete_role(role_id)
     if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

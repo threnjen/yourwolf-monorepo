@@ -3,6 +3,7 @@
 import math
 from uuid import UUID
 
+from app.exceptions import DomainValidationError, LockedError
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
@@ -255,7 +256,7 @@ class RoleService:
             Updated role with full details or None if not found.
 
         Raises:
-            PermissionError: If role is locked and cannot be modified.
+            LockedError: If role is locked and cannot be modified.
         """
         role = self.db.query(Role).filter(Role.id == role_id).first()
         if not role:
@@ -263,9 +264,7 @@ class RoleService:
 
         # Check if role is locked
         if role.is_locked:
-            raise PermissionError(
-                f"Role '{role.name}' is locked and cannot be modified"
-            )
+            raise LockedError(f"Role '{role.name}' is locked and cannot be modified")
 
         # Update fields that are provided
         update_data = role_data.model_dump(exclude_unset=True)
@@ -308,7 +307,7 @@ class RoleService:
             steps_data: List of step dicts with ability_type, order, etc.
 
         Raises:
-            ValueError: If an ability type is unknown.
+            DomainValidationError: If an ability type is unknown.
         """
         step_types = [s["ability_type"] for s in steps_data]
         ability_map = (
@@ -325,7 +324,7 @@ class RoleService:
         for step_data in steps_data:
             ability = ability_map.get(step_data["ability_type"])
             if not ability:
-                raise ValueError(
+                raise DomainValidationError(
                     f"Unknown ability type: '{step_data['ability_type']}'"
                 )
             step = AbilityStep(
@@ -369,7 +368,7 @@ class RoleService:
             True if deleted, False if not found.
 
         Raises:
-            PermissionError: If role is locked and cannot be deleted.
+            LockedError: If role is locked or official and cannot be deleted.
         """
         role = self.db.query(Role).filter(Role.id == role_id).first()
         if not role:
@@ -377,11 +376,11 @@ class RoleService:
 
         # Check if role is locked
         if role.is_locked:
-            raise PermissionError(f"Role '{role.name}' is locked and cannot be deleted")
+            raise LockedError(f"Role '{role.name}' is locked and cannot be deleted")
 
         # Official roles cannot be deleted
         if role.visibility == Visibility.OFFICIAL:
-            raise PermissionError("Cannot delete official roles")
+            raise LockedError("Cannot delete official roles")
 
         self.db.delete(role)
         self.db.commit()

@@ -36,6 +36,7 @@ async def create_game(
 
     Raises:
         HTTPException: 400 if role count doesn't match player + center.
+        DomainValidationError: 400 if roles violate a domain rule.
     """
     total_cards = game.player_count + game.center_card_count
     if len(game.role_ids) != total_cards:
@@ -49,12 +50,7 @@ async def create_game(
         )
 
     service = GameService(db)
-    try:
-        return service.create_game(game)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        ) from e
+    return service.create_game(game)
 
 
 @router.get("/", response_model=GameSessionPaginatedResponse)
@@ -120,21 +116,11 @@ async def start_game(
         Updated game session.
 
     Raises:
-        HTTPException: 400 if game is not in setup phase.
-        HTTPException: 404 if game not found.
+        NotFoundError: 404 if game not found.
+        DomainValidationError: 400 if game is not in setup phase.
     """
     service = GameService(db)
-    try:
-        game = service.start_game(game_id)
-    except ValueError as e:
-        if "not found" in str(e).lower():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-            ) from e
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        ) from e
-    return game
+    return service.start_game(game_id)
 
 
 @router.post("/{game_id}/advance", response_model=GameSessionResponse)
@@ -152,16 +138,11 @@ async def advance_phase(
         Updated game session.
 
     Raises:
-        HTTPException: 400 if game is already in complete phase.
+        DomainValidationError: 400 if game is already in complete phase.
         HTTPException: 404 if game not found.
     """
     service = GameService(db)
-    try:
-        game = service.advance_phase(game_id)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        ) from e
+    game = service.advance_phase(game_id)
     if not game:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"

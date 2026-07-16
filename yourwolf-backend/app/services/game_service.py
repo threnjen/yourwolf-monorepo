@@ -7,6 +7,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from uuid import UUID
 
+from app.exceptions import DomainValidationError, NotFoundError
 from app.models.game_role import GameRole
 from app.models.game_session import GamePhase, GameSession
 from app.models.role import Role, Team
@@ -56,7 +57,8 @@ class GameService:
             Created game session response (may include warnings).
 
         Raises:
-            ValueError: If card counts or required dependencies are violated.
+            DomainValidationError: If card counts or required dependencies
+                are violated.
         """
         # Fetch roles and validate
         roles = self.db.query(Role).filter(Role.id.in_(data.role_ids)).all()
@@ -65,7 +67,7 @@ class GameService:
         # Reject unknown role IDs
         unknown_ids = set(data.role_ids) - set(role_map.keys())
         if unknown_ids:
-            raise ValueError(
+            raise DomainValidationError(
                 f"Unknown role IDs: {', '.join(str(uid) for uid in unknown_ids)}"
             )
 
@@ -73,25 +75,25 @@ class GameService:
         role_id_counts = Counter(data.role_ids)
         errors = self._validate_card_counts(role_map, role_id_counts)
         if errors:
-            raise ValueError("; ".join(errors))
+            raise DomainValidationError("; ".join(errors))
 
         # Validate primary team roles
         errors = self._validate_primary_teams(role_map)
         if errors:
-            raise ValueError("; ".join(errors))
+            raise DomainValidationError("; ".join(errors))
 
         # Validate dependencies
         present_role_ids = set(data.role_ids)
         dep_errors, warnings = self._validate_dependencies(present_role_ids)
         if dep_errors:
-            raise ValueError("; ".join(dep_errors))
+            raise DomainValidationError("; ".join(dep_errors))
 
         # Validate wake_order_sequence if provided
         wake_order_sequence_str: list[str] | None = None
         if data.wake_order_sequence is not None:
             seq_errors = self._validate_wake_sequence(data, roles, role_map)
             if seq_errors:
-                raise ValueError("; ".join(seq_errors))
+                raise DomainValidationError("; ".join(seq_errors))
             wake_order_sequence_str = [str(uid) for uid in data.wake_order_sequence]
 
         # Create game
@@ -289,19 +291,20 @@ class GameService:
             Updated game session response.
 
         Raises:
-            ValueError: If game not found or not in setup phase.
+            NotFoundError: If the game does not exist.
+            DomainValidationError: If the game is not in setup phase.
         """
         game = self.get_game_with_roles(game_id)
         if not game:
             logger.error("Cannot start game %s: not found", game_id)
-            raise ValueError("Game not found")
+            raise NotFoundError("Game not found")
         if game.phase != GamePhase.SETUP:
             logger.error(
                 "Cannot start game %s: not in setup phase (current: %s)",
                 game_id,
                 game.phase.value,
             )
-            raise ValueError("Game cannot be started: not in setup phase")
+            raise DomainValidationError("Game cannot be started: not in setup phase")
 
         game_roles = list(game.game_roles)
         random.shuffle(game_roles)
@@ -354,7 +357,9 @@ class GameService:
 
         if game.phase == GamePhase.COMPLETE:
             logger.error("Cannot advance game %s: already in complete phase", game_id)
-            raise ValueError("Game cannot be advanced: already in complete phase")
+            raise DomainValidationError(
+                "Game cannot be advanced: already in complete phase"
+            )
 
         current_index = self.PHASE_ORDER.index(game.phase)
         if current_index < len(self.PHASE_ORDER) - 1:

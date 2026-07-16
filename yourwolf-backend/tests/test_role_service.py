@@ -3,6 +3,7 @@
 import uuid
 
 import pytest
+from app.exceptions import DomainValidationError, LockedError
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
 from app.schemas.role import (
@@ -317,7 +318,7 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
                 ),
             ]
         )
-        with pytest.raises(ValueError, match="Unknown ability type"):
+        with pytest.raises(DomainValidationError, match="Unknown ability type"):
             service.update_role(sample_unlocked_role.id, update_data)
 
     def test_update_role_omitting_win_conditions_leaves_them_unchanged(
@@ -388,5 +389,5 @@ class TestRoleServiceDeleteRole:
         """Deleting a locked role raises PermissionError."""
         service = RoleService(db_session)
 
-        with pytest.raises(PermissionError, match="locked"):
+        with pytest.raises(LockedError, match="locked"):
             service.delete_role(sample_role.id)

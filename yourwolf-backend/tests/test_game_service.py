@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 import pytest
+from app.exceptions import DomainValidationError, NotFoundError
 from app.models.game_session import GamePhase
 from app.models.role import Role, Team
 from app.schemas.game import GameSessionCreate
@@ -170,12 +171,12 @@ class TestStartGame:
             db_session.refresh(role)
             assert role.use_count == 1
 
-    def test_raises_value_error_for_nonexistent_game(
+    def test_raises_not_found_error_for_nonexistent_game(
         self, db_session: Session, seeded_roles: list[Role]
     ) -> None:
         service = GameService(db_session)
 
-        with pytest.raises(ValueError, match="Game not found"):
+        with pytest.raises(NotFoundError, match="Game not found"):
             service.start_game(uuid.uuid4())
 
     def test_raises_400_if_not_in_setup_phase(
@@ -185,7 +186,7 @@ class TestStartGame:
         game = self._create_game(service, seeded_roles)
         service.start_game(game.id)
 
-        with pytest.raises(ValueError, match="not in setup phase"):
+        with pytest.raises(DomainValidationError, match="not in setup phase"):
             service.start_game(game.id)
 
 
@@ -245,7 +246,7 @@ class TestAdvancePhase:
         for _ in range(4):
             game = service.advance_phase(game.id)
 
-        with pytest.raises(ValueError, match="already in complete phase"):
+        with pytest.raises(DomainValidationError, match="already in complete phase"):
             service.advance_phase(game.id)
 
     def test_returns_none_for_nonexistent_game(
@@ -418,7 +419,7 @@ class TestCreateGameUnknownRoleIds:
         unknown_id = uuid.uuid4()
         role_ids = valid_ids + [unknown_id]
 
-        with pytest.raises(ValueError, match=str(unknown_id)):
+        with pytest.raises(DomainValidationError, match=str(unknown_id)):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -437,7 +438,7 @@ class TestCreateGameUnknownRoleIds:
         unknown2 = uuid.uuid4()
         role_ids = valid_ids + [unknown1, unknown2]
 
-        with pytest.raises(ValueError, match="Unknown role IDs"):
+        with pytest.raises(DomainValidationError, match="Unknown role IDs"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -472,7 +473,7 @@ class TestCardCountValidation:
             role_map["Robber"].id,
         ]
 
-        with pytest.raises(ValueError, match="at most 2"):
+        with pytest.raises(DomainValidationError, match="at most 2"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -497,7 +498,7 @@ class TestCardCountValidation:
         ][:7]
         role_ids = [mason.id] + other_ids
 
-        with pytest.raises(ValueError, match="at least 2"):
+        with pytest.raises(DomainValidationError, match="at least 2"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -561,7 +562,7 @@ class TestDependencyValidation:
             role_map["Villager"].id,
         ]
 
-        with pytest.raises(ValueError, match="requires.*Tanner"):
+        with pytest.raises(DomainValidationError, match="requires.*Tanner"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -682,7 +683,7 @@ class TestPrimaryTeamRoleValidation:
             role_map["Villager"].id,
         ]
 
-        with pytest.raises(ValueError, match="(?i)werewolf"):
+        with pytest.raises(DomainValidationError, match="(?i)werewolf"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -737,7 +738,7 @@ class TestPrimaryTeamRoleValidation:
             role_map["Villager"].id,
         ]
 
-        with pytest.raises(ValueError, match="(?i)werewolf"):
+        with pytest.raises(DomainValidationError, match="(?i)werewolf"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -780,7 +781,7 @@ class TestPrimaryTeamRoleValidation:
             role_map["Villager"].id,
         ]
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(DomainValidationError) as exc_info:
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -829,7 +830,7 @@ class TestWakeOrderSequenceValidation:
         # Add an extra random ID
         sequence = waking_ids + [uuid.uuid4()]
 
-        with pytest.raises(ValueError, match="not in.*role_ids"):
+        with pytest.raises(DomainValidationError, match="not in.*role_ids"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -848,7 +849,7 @@ class TestWakeOrderSequenceValidation:
         # Only include 4 of 5 waking roles
         sequence = [r.id for r in seeded_roles[:4]]
 
-        with pytest.raises(ValueError, match="[Mm]issing.*waking"):
+        with pytest.raises(DomainValidationError, match="[Mm]issing.*waking"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -868,7 +869,7 @@ class TestWakeOrderSequenceValidation:
         # Duplicate the first one
         sequence = waking_ids + [waking_ids[0]]
 
-        with pytest.raises(ValueError, match="[Dd]uplicate"):
+        with pytest.raises(DomainValidationError, match="[Dd]uplicate"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,
@@ -939,7 +940,7 @@ class TestWakeOrderSequenceValidation:
         non_waking_id = seeded_roles[5].id
         sequence = waking_ids + [non_waking_id]
 
-        with pytest.raises(ValueError, match="not.*waking"):
+        with pytest.raises(DomainValidationError, match="not.*waking"):
             service.create_game(
                 GameSessionCreate(
                     player_count=5,

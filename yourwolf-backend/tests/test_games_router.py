@@ -49,6 +49,85 @@ class TestCreateGameEndpoint:
         assert "Must select exactly 8 roles" in response.json()["detail"]
 
 
+class TestStartGameEndpoint:
+    """Tests for POST /api/v1/games/{id}/start.
+
+    Regression anchor for the removal of the ``"not found" in str(e).lower()``
+    substring routing: a missing game and an invalid phase both surfaced as
+    ValueError and were told apart by message prose. They are now distinct
+    domain exception types mapped by the registered handlers, and these tests
+    pin the resulting status codes end-to-end through the real app.
+    """
+
+    def test_returns_404_for_nonexistent_game(self, client: TestClient) -> None:
+        response = client.post(f"/api/v1/games/{uuid.uuid4()}/start")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Game not found"
+
+    def test_returns_400_when_not_in_setup_phase(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        resp = client.post(
+            "/api/v1/games",
+            json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
+        )
+        game_id = resp.json()["id"]
+        assert client.post(f"/api/v1/games/{game_id}/start").status_code == 200
+
+        # Second start: game has already left the setup phase.
+        response = client.post(f"/api/v1/games/{game_id}/start")
+
+        assert response.status_code == 400
+        assert "not in setup phase" in response.json()["detail"]
+
+
+class TestAdvancePhaseEndpoint:
+    """Tests for POST /api/v1/games/{id}/advance."""
+
+    def test_returns_404_for_nonexistent_game(self, client: TestClient) -> None:
+        response = client.post(f"/api/v1/games/{uuid.uuid4()}/advance")
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Game not found"
+
+    def test_returns_400_when_already_complete(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:8]]
+        resp = client.post(
+            "/api/v1/games",
+            json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
+        )
+        game_id = resp.json()["id"]
+        client.post(f"/api/v1/games/{game_id}/start")
+        for _ in range(4):
+            client.post(f"/api/v1/games/{game_id}/advance")
+
+        response = client.post(f"/api/v1/games/{game_id}/advance")
+
+        assert response.status_code == 400
+        assert "already in complete phase" in response.json()["detail"]
+
+
+class TestCreateGameUnknownRoleIds:
+    """Unknown role IDs read like a not-found, but the contract is 400."""
+
+    def test_returns_400_for_unknown_role_ids(
+        self, client: TestClient, seeded_roles: list[Role]
+    ) -> None:
+        role_ids = [str(r.id) for r in seeded_roles[:7]] + [str(uuid.uuid4())]
+
+        response = client.post(
+            "/api/v1/games",
+            json={"player_count": 5, "center_card_count": 3, "role_ids": role_ids},
+        )
+
+        assert response.status_code == 400
+        assert "Unknown role IDs" in response.json()["detail"]
+
+
 class TestGetNightScriptEndpoint:
     """Tests for GET /api/v1/games/{id}/script."""
 
