@@ -57,9 +57,18 @@ class GameService:
             Created game session response (may include warnings).
 
         Raises:
-            DomainValidationError: If card counts or required dependencies
-                are violated.
+            DomainValidationError: If the role count, card counts, or required
+                dependencies are violated.
         """
+        # Validate role count against players + center cards
+        total_cards = data.player_count + data.center_card_count
+        if len(data.role_ids) != total_cards:
+            raise DomainValidationError(
+                f"Must select exactly {total_cards} roles "
+                f"({data.player_count} players + "
+                f"{data.center_card_count} center)"
+            )
+
         # Fetch roles and validate
         roles = self.db.query(Role).filter(Role.id.in_(data.role_ids)).all()
         role_map = {r.id: r for r in roles}

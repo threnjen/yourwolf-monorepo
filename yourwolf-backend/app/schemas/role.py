@@ -60,7 +60,7 @@ class AbilityStepInRole(BaseModel):
 class RoleBase(BaseModel):
     """Base schema for roles."""
 
-    name: str = Field(..., min_length=1, max_length=100)
+    name: str = Field(..., min_length=2, max_length=50)
     description: str = Field(..., min_length=1)
     team: Team
     wake_order: int | None = Field(default=None, ge=0, le=40)
@@ -118,7 +118,7 @@ class AbilityStepCreateInRole(BaseModel):
 class RoleUpdate(BaseModel):
     """Schema for updating a role."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=100)
+    name: str | None = Field(default=None, min_length=2, max_length=50)
     description: str | None = Field(default=None, min_length=1)
     team: Team | None = None
     wake_order: int | None = Field(default=None, ge=0, le=40)

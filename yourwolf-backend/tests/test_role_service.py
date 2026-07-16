@@ -76,6 +76,7 @@ class TestRoleServiceCreateRole:
             description="The main werewolf",
             team=Team.WEREWOLF,
             is_primary_team_role=True,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         created = service.create_role(role_data)
         assert created.is_primary_team_role is True
@@ -362,6 +363,7 @@ class TestRoleServiceCreateRoleCreatorId:
             description="Role with owner",
             team=Team.VILLAGE,
             creator_id=creator_id,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         result = service.create_role(role_data)
         assert result.creator_id == creator_id
@@ -373,6 +375,7 @@ class TestRoleServiceCreateRoleCreatorId:
             name="Anonymous Role",
             description="Role without owner",
             team=Team.VILLAGE,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         result = service.create_role(role_data)
         assert result.creator_id is None

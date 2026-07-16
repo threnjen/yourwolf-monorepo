@@ -448,6 +448,66 @@ class TestCreateGameUnknownRoleIds:
             )
 
 
+class TestRoleCountMatchesPlayersAndCenter:
+    """Role count must equal player_count + center_card_count.
+
+    Relocated from the games router guard (AC1): calling ``create_game``
+    directly now enforces this rule, so the service is authoritative.
+    """
+
+    def test_rejects_too_few_roles(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:5]]
+
+        with pytest.raises(
+            DomainValidationError,
+            match=r"Must select exactly 8 roles \(5 players \+ 3 center\)",
+        ):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=5,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_rejects_too_many_roles(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+
+        with pytest.raises(
+            DomainValidationError,
+            match=r"Must select exactly 7 roles \(4 players \+ 3 center\)",
+        ):
+            service.create_game(
+                GameSessionCreate(
+                    player_count=4,
+                    center_card_count=3,
+                    role_ids=role_ids,
+                )
+            )
+
+    def test_accepts_exact_role_count(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        service = GameService(db_session)
+        role_ids = [r.id for r in seeded_roles[:8]]
+
+        game = service.create_game(
+            GameSessionCreate(
+                player_count=5,
+                center_card_count=3,
+                role_ids=role_ids,
+            )
+        )
+
+        assert len(game.game_roles) == 8
+
+
 class TestCardCountValidation:
     """Tests for card count enforcement in game creation."""
 

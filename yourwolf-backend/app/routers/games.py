@@ -35,20 +35,8 @@ async def create_game(
         Created game session.
 
     Raises:
-        HTTPException: 400 if role count doesn't match player + center.
         DomainValidationError: 400 if roles violate a domain rule.
     """
-    total_cards = game.player_count + game.center_card_count
-    if len(game.role_ids) != total_cards:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Must select exactly {total_cards} roles "
-                f"({game.player_count} players + "
-                f"{game.center_card_count} center)"
-            ),
-        )
-
     service = GameService(db)
     return service.create_game(game)
 

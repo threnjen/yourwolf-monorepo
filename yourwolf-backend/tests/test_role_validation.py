@@ -3,11 +3,13 @@
 import uuid
 
 import pytest
+from app.exceptions import DomainValidationError
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
 from app.schemas.role import RoleCreate
 from app.services.role_service import RoleService
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
@@ -55,17 +57,30 @@ class TestValidateRole:
 
     # AC3 — name length -------------------------------------------------------
 
-    def test_name_too_short(self, db_session: Session) -> None:
-        """AC3: Name with 1 character fails validation."""
-        service = RoleService(db_session)
-        data = RoleCreate(**make_valid_role(name="a"))
-        errors = service.validate_role(data)
-        assert any("name" in e.lower() for e in errors)
+    def test_name_too_short_rejected_by_schema(self) -> None:
+        """AC3/AC4: A 1-character name is now rejected at the schema layer.
 
-    def test_name_too_long(self, db_session: Session) -> None:
-        """AC3: Name with 51 characters fails validation."""
+        Bounds were reconciled to 2-50 (feature 07), so ``RoleCreate`` refuses
+        the payload before ``validate_role`` is ever reached.
+        """
+        with pytest.raises(ValidationError):
+            RoleCreate(**make_valid_role(name="a"))
+
+    def test_name_too_long_rejected_by_schema(self) -> None:
+        """AC3/AC4: A 51-character name is now rejected at the schema layer."""
+        with pytest.raises(ValidationError):
+            RoleCreate(**make_valid_role(name="a" * 51))
+
+    def test_name_short_after_strip_still_fails_in_service(
+        self, db_session: Session
+    ) -> None:
+        """AC3: The service's own 2-char guard still fires for schema-valid input.
+
+        ``" a "`` passes the schema (3 chars) but strips to 1, so the service
+        rule remains reachable and is not dead code.
+        """
         service = RoleService(db_session)
-        data = RoleCreate(**make_valid_role(name="a" * 51))
+        data = RoleCreate(**make_valid_role(name=" a "))
         errors = service.validate_role(data)
         assert any("name" in e.lower() for e in errors)
 
@@ -369,12 +384,25 @@ class TestValidateEndpoint:
 
     def test_validate_endpoint_invalid_role(self, client: TestClient) -> None:
         """AC1, AC12: Invalid role returns 200 with is_valid=false and non-empty errors."""
-        payload = make_valid_role(name="a", win_conditions=[])
+        payload = make_valid_role(win_conditions=[])
         response = client.post("/api/v1/roles/validate", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert data["is_valid"] is False
         assert len(data["errors"]) > 0
+
+    def test_validate_endpoint_422s_on_out_of_bounds_name(
+        self, client: TestClient
+    ) -> None:
+        """AC4 contract change: name-length violations now 422 at request parsing.
+
+        Previously ``/roles/validate`` returned 200 with the length complaint in
+        its ``errors`` list. After bounds were reconciled to 2-50 in the schema
+        (feature 07), pydantic rejects the payload first. This is a deliberate,
+        user-visible shift recorded in the implementation record.
+        """
+        response = client.post("/api/v1/roles/validate", json=make_valid_role(name="a"))
+        assert response.status_code == 422
 
     def test_validate_endpoint_returns_warnings(
         self, client: TestClient, sample_ability: Ability
@@ -453,3 +481,112 @@ class TestCheckNameEndpoint:
         """AC2: Whitespace-only name returns 422 after strip."""
         response = client.get("/api/v1/roles/check-name?name=++++")
         assert response.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# AC3 — create_role and validate_role agree
+# ---------------------------------------------------------------------------
+
+
+class TestCreateValidateAgreement:
+    """AC3: ``create_role`` must reject anything ``validate_role`` rejects.
+
+    ``POST /roles`` can never accept a payload ``POST /roles/validate`` calls
+    invalid — one rule set, two reporting modes (list vs. raise).
+    """
+
+    @pytest.mark.parametrize(
+        "overrides, reason",
+        [
+            ({"win_conditions": []}, "no win conditions"),
+            (
+                {
+                    "win_conditions": [
+                        {"condition_type": "team_wins", "is_primary": True},
+                        {"condition_type": "solo_wins", "is_primary": True},
+                    ]
+                },
+                "two primary win conditions",
+            ),
+            (
+                {
+                    "win_conditions": [
+                        {"condition_type": "team_wins", "is_primary": False}
+                    ]
+                },
+                "no primary win condition",
+            ),
+            ({"name": " a "}, "name too short after strip"),
+            (
+                {
+                    "ability_steps": [
+                        {"ability_type": "view_card", "order": 1, "modifier": "and"}
+                    ]
+                },
+                "first step modifier not 'none'",
+            ),
+            (
+                {
+                    "ability_steps": [
+                        {
+                            "ability_type": "no_such_ability",
+                            "order": 1,
+                            "modifier": "none",
+                        }
+                    ]
+                },
+                "unknown ability type",
+            ),
+            (
+                {
+                    "ability_steps": [
+                        {"ability_type": "view_card", "order": 2, "modifier": "none"}
+                    ]
+                },
+                "orders not sequential from 1",
+            ),
+        ],
+    )
+    def test_create_rejects_what_validate_rejects(
+        self,
+        db_session: Session,
+        sample_ability: Ability,
+        overrides: dict,
+        reason: str,
+    ) -> None:
+        """Every payload validate_role flags must also make create_role raise."""
+        service = RoleService(db_session)
+        data = RoleCreate(**make_valid_role(**overrides))
+
+        errors = service.validate_role(data)
+        assert errors, f"expected validate_role to reject: {reason}"
+
+        with pytest.raises(DomainValidationError):
+            service.create_role(data)
+
+    def test_create_accepts_what_validate_accepts(
+        self, db_session: Session, sample_ability: Ability
+    ) -> None:
+        """A payload validate_role passes must be creatable."""
+        service = RoleService(db_session)
+        data = RoleCreate(
+            **make_valid_role(
+                name="Agreeable Role",
+                wake_order=1,
+                ability_steps=[
+                    {"ability_type": "view_card", "order": 1, "modifier": "none"}
+                ],
+            )
+        )
+
+        assert service.validate_role(data) == []
+
+        role = service.create_role(data)
+        assert role.name == "Agreeable Role"
+
+    def test_create_role_endpoint_returns_400_for_invalid_payload(
+        self, client: TestClient
+    ) -> None:
+        """AC3/AC4: domain-rule violations map to 400 on the create endpoint."""
+        response = client.post("/api/v1/roles", json=make_valid_role(win_conditions=[]))
+        assert response.status_code == 400

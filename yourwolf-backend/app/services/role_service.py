@@ -202,12 +202,23 @@ class RoleService:
     def create_role(self, role_data: RoleCreate) -> RoleRead:
         """Create a new role with ability steps and win conditions.
 
+        Runs the same rule evaluation as :meth:`validate_role` so that
+        ``POST /roles`` can never accept a payload ``POST /roles/validate``
+        rejects — one rule set, two reporting modes (list vs. raise).
+
         Args:
             role_data: Role creation data.
 
         Returns:
             Created role with full details.
+
+        Raises:
+            DomainValidationError: If the payload violates any role rule.
         """
+        errors = self.validate_role(role_data)
+        if errors:
+            raise DomainValidationError("; ".join(errors))
+
         # Create the role
         role = Role(
             name=role_data.name,

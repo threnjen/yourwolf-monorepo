@@ -202,7 +202,8 @@ async def create_role(
         Created role with full details.
 
     Raises:
-        DomainValidationError: 400 if an ability type is unknown.
+        DomainValidationError: 400 if the payload violates any role rule —
+            the same rule set ``POST /roles/validate`` reports.
     """
     service = RoleService(db)
     return service.create_role(role_data)

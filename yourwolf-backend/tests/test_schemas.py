@@ -91,22 +91,40 @@ class TestRoleCreateSchema:
             )
 
     def test_name_min_length(self) -> None:
-        """Test name minimum length."""
+        """AC2: names shorter than 2 characters are rejected by the schema."""
         with pytest.raises(ValidationError):
             RoleCreate(
-                name="",
-                description="Empty name",
+                name="x",
+                description="Name too short",
                 team=Team.VILLAGE,
             )
 
     def test_name_max_length(self) -> None:
-        """Test name maximum length."""
+        """AC2: names longer than 50 characters are rejected by the schema."""
         with pytest.raises(ValidationError):
             RoleCreate(
-                name="x" * 101,
+                name="x" * 51,
                 description="Name too long",
                 team=Team.VILLAGE,
             )
+
+    def test_name_accepts_lower_bound(self) -> None:
+        """AC2: a 2-character name sits exactly on the accepted lower bound."""
+        role = RoleCreate(
+            name="Ox",
+            description="Shortest allowed name",
+            team=Team.VILLAGE,
+        )
+        assert role.name == "Ox"
+
+    def test_name_accepts_upper_bound(self) -> None:
+        """AC2: a 50-character name sits exactly on the accepted upper bound."""
+        role = RoleCreate(
+            name="x" * 50,
+            description="Longest allowed name",
+            team=Team.VILLAGE,
+        )
+        assert len(role.name) == 50
 
     def test_description_required(self) -> None:
         """Test that description is required."""
@@ -246,6 +264,7 @@ class TestAbilityStepModifierTyping:
                         "modifier": "none",
                     }
                 ],
+                "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
             },
         )
         assert response.status_code == 201
@@ -312,6 +331,16 @@ class TestRoleUpdateSchema:
         """Test name validation applies to updates."""
         with pytest.raises(ValidationError):
             RoleUpdate(name="")
+
+    def test_update_name_bounds_match_create(self) -> None:
+        """AC2: RoleUpdate.name carries the same 2-50 bounds as RoleBase.name."""
+        with pytest.raises(ValidationError):
+            RoleUpdate(name="x")
+        with pytest.raises(ValidationError):
+            RoleUpdate(name="x" * 51)
+
+        assert RoleUpdate(name="Ox").name == "Ox"
+        assert len(RoleUpdate(name="x" * 50).name or "") == 50
 
 
 class TestRoleListItemSchema:
