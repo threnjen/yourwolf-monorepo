@@ -5,7 +5,7 @@ from logging.config import fileConfig
 from alembic import context
 
 # Import the app configuration and models
-from app.config import settings
+from app.config import get_settings
 from app.database import Base
 from app.models import Ability  # noqa: F401 - Import all models for metadata
 from app.models import AbilityStep, GameRole, GameSession, Role, User, WinCondition
@@ -15,7 +15,7 @@ from sqlalchemy import engine_from_config, pool
 config = context.config
 
 # Set the SQLAlchemy URL from app settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:

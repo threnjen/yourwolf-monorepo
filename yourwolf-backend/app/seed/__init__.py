@@ -2,7 +2,7 @@
 
 import logging
 
-from app.database import SessionLocal
+from app.database import get_session_factory
 from app.seed.abilities import seed_abilities
 from app.seed.roles import seed_role_dependencies, seed_roles
 from sqlalchemy import exc as sa_exc
@@ -19,7 +19,7 @@ def run_seed() -> None:
     """
     logger.info("Starting database seeding...")
 
-    db = SessionLocal()
+    db = get_session_factory()()
     try:
         # Seed abilities first (roles depend on them)
         abilities_created = seed_abilities(db)

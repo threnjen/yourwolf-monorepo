@@ -5,17 +5,9 @@ import uuid
 from collections.abc import Generator
 from typing import Any
 
-# Set test environment variables BEFORE importing any app modules.
-# This MUST happen at module level before the imports below,
-# preventing the database module from trying to connect to PostgreSQL.
-# Note: pytest_configure() cannot be used here because Python executes
-# module-level imports before pytest invokes the hook.
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["ENVIRONMENT"] = "test"
-
 import pytest
+from app.config import get_settings
 from app.database import Base, get_db
-from app.main import app
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
@@ -35,6 +27,17 @@ test_engine = create_engine(
     poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+
+def pytest_configure() -> None:
+    """Supply the test database URL before any test module is collected.
+
+    Settings are resolved lazily via ``get_settings()``, so this hook runs
+    early enough for every consumer without depending on import order.
+    """
+    os.environ.setdefault("DATABASE_URL", SQLALCHEMY_TEST_DATABASE_URL)
+    os.environ.setdefault("ENVIRONMENT", "test")
+    get_settings.cache_clear()
 
 
 @pytest.fixture(scope="function")
@@ -63,6 +66,7 @@ def client(db_session: Session) -> Generator[TestClient, Any, None]:
     Yields:
         TestClient: FastAPI test client.
     """
+    from app.main import app
 
     def override_get_db() -> Generator[Session, Any, None]:
         try:
