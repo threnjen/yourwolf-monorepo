@@ -27,6 +27,15 @@ DATA_FILE = Path(__file__).parent / "data" / "roles.json"
 RoleData = dict[str, Any]
 RoleDependencyData = tuple[str, str, DependencyType]
 
+# Ability types the seeding routine can resolve to a real Ability row.
+KNOWN_ABILITY_TYPES = {ability["type"] for ability in ABILITIES_DATA}
+
+# Fields ``seed_roles`` indexes directly; absent ones would raise KeyError
+# part-way through seeding rather than up front.
+REQUIRED_ROLE_KEYS = ("wake_order", "wake_target", "description", "votes")
+REQUIRED_STEP_KEYS = ("order", "modifier", "ability_type", "is_required", "parameters")
+REQUIRED_WIN_CONDITION_KEYS = ("condition_type", "is_primary", "overrides_team")
+
 
 class SeedDataError(RuntimeError):
     """Raised when the seed data file is missing, malformed, or inconsistent.
@@ -34,6 +43,46 @@ class SeedDataError(RuntimeError):
     Loading fails before any database work begins, so a bad data file can
     never produce a partial seed.
     """
+
+
+def _require_keys(entry: dict[str, Any], keys: tuple[str, ...], what: str) -> None:
+    """Check that a data-file entry carries every field the seeder indexes.
+
+    Args:
+        entry: The entry to check.
+        keys: Field names that must be present.
+        what: Description of the entry, for error messages.
+
+    Raises:
+        SeedDataError: If any required field is absent.
+    """
+    missing = [key for key in keys if key not in entry]
+    if missing:
+        raise SeedDataError(
+            f"{what} is missing required field(s): {', '.join(missing)}"
+        )
+
+
+def _require_entry_list(role_name: str, section: Any, key: str) -> list[dict[str, Any]]:
+    """Return a role's required list-of-objects section.
+
+    Args:
+        role_name: The owning role's name, for error messages.
+        section: The raw section value.
+        key: The section name.
+
+    Returns:
+        The section's entries.
+
+    Raises:
+        SeedDataError: If the section is not a list of objects.
+    """
+    if not isinstance(section, list):
+        raise SeedDataError(f"Role {role_name!r} must have a {key!r} list")
+    for entry in section:
+        if not isinstance(entry, dict):
+            raise SeedDataError(f"Role {role_name!r} has a non-object {key!r} entry")
+    return section
 
 
 def _read_data_file(path: Path) -> dict[str, Any]:
@@ -101,8 +150,9 @@ def _parse_role(role: Any, path: Path) -> RoleData:
         The role dict with ``team`` reconstructed as a ``Team`` member.
 
     Raises:
-        SeedDataError: If the entry is malformed or references unknown enum
-            values or unknown ability types.
+        SeedDataError: If the entry is malformed, omits a field the seeding
+            routine requires, or references unknown enum values or unknown
+            ability types.
     """
     if not isinstance(role, dict):
         raise SeedDataError(f"Seed role entries must be objects: {path}")
@@ -120,9 +170,13 @@ def _parse_role(role: Any, path: Path) -> RoleData:
             f"Role {name!r} has unknown team {role['team']!r}",
         ) from exc
 
-    known_ability_types = {ability["type"] for ability in ABILITIES_DATA}
-    for step in role.get("ability_steps", []):
-        modifier = step.get("modifier")
+    _require_keys(role, REQUIRED_ROLE_KEYS, f"Role {name!r}")
+
+    steps = _require_entry_list(name, role.get("ability_steps"), "ability_steps")
+    for step in steps:
+        _require_keys(step, REQUIRED_STEP_KEYS, f"Role {name!r} ability step")
+
+        modifier = step["modifier"]
         try:
             StepModifier(modifier)
         except ValueError as exc:
@@ -131,12 +185,24 @@ def _parse_role(role: Any, path: Path) -> RoleData:
                 f"modifier {modifier!r}",
             ) from exc
 
-        ability_type = step.get("ability_type")
-        if ability_type not in known_ability_types:
+        ability_type = step["ability_type"]
+        if ability_type not in KNOWN_ABILITY_TYPES:
             raise SeedDataError(
                 f"Role {name!r} step {step.get('order')} references unknown "
                 f"ability_type {ability_type!r}",
             )
+
+    win_conditions = _require_entry_list(
+        name,
+        role.get("win_conditions"),
+        "win_conditions",
+    )
+    for win_condition in win_conditions:
+        _require_keys(
+            win_condition,
+            REQUIRED_WIN_CONDITION_KEYS,
+            f"Role {name!r} win condition",
+        )
 
     return {**role, "team": team}
 
@@ -194,9 +260,11 @@ def load_seed_data(
 ) -> tuple[list[RoleData], list[RoleDependencyData]]:
     """Load and validate the official role seed data.
 
-    Validation is exhaustive and happens up front: a missing file, malformed
-    JSON, an unknown enum value, or a dangling role/ability reference raises
-    before any seeding is attempted.
+    Validation happens up front: a missing file, malformed JSON, a field the
+    seeding routine requires, an unknown enum value, or a dangling
+    role/ability reference all raise before any seeding is attempted, so a
+    bad data file can never produce a partial seed. Field *values* beyond
+    enum members are not type-checked; the database schema enforces those.
 
     Args:
         path: Path to the JSON data file. Defaults to the file shipped with

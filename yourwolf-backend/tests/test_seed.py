@@ -474,6 +474,149 @@ class TestSeedDataLoader:
         with pytest.raises(SeedDataError, match="dependency_type"):
             load_seed_data(path)
 
+    def test_role_missing_seeder_required_field_raises(self, tmp_path: Path) -> None:
+        """A role omitting a field seed_roles() indexes fails at load, not seed.
+
+        Without this, the role loads cleanly and seed_roles() raises KeyError
+        part-way through the insert loop.
+        """
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "ability_steps": [],
+                        "win_conditions": [],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="missing required field"):
+            load_seed_data(path)
+
+    def test_role_missing_win_conditions_raises(self, tmp_path: Path) -> None:
+        """A role with no 'win_conditions' section fails fast at load."""
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "wake_order": None,
+                        "wake_target": None,
+                        "description": "d",
+                        "votes": 1,
+                        "ability_steps": [],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="win_conditions"):
+            load_seed_data(path)
+
+    def test_non_object_ability_step_raises(self, tmp_path: Path) -> None:
+        """A non-object ability step raises SeedDataError, not AttributeError."""
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "wake_order": None,
+                        "wake_target": None,
+                        "description": "d",
+                        "votes": 1,
+                        "ability_steps": ["not an object"],
+                        "win_conditions": [],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="non-object"):
+            load_seed_data(path)
+
+    def test_non_list_ability_steps_raises(self, tmp_path: Path) -> None:
+        """A scalar 'ability_steps' raises SeedDataError, not AttributeError."""
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "wake_order": None,
+                        "wake_target": None,
+                        "description": "d",
+                        "votes": 1,
+                        "ability_steps": "nope",
+                        "win_conditions": [],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="ability_steps"):
+            load_seed_data(path)
+
+    def test_step_missing_required_field_raises(self, tmp_path: Path) -> None:
+        """An ability step omitting a field seed_roles() indexes fails fast."""
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "wake_order": None,
+                        "wake_target": None,
+                        "description": "d",
+                        "votes": 1,
+                        "ability_steps": [
+                            {
+                                "order": 1,
+                                "modifier": "none",
+                                "ability_type": "view_card",
+                            }
+                        ],
+                        "win_conditions": [],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="missing required field"):
+            load_seed_data(path)
+
+    def test_win_condition_missing_required_field_raises(self, tmp_path: Path) -> None:
+        """A win condition omitting a field seed_roles() indexes fails fast."""
+        path = self._write(
+            tmp_path,
+            {
+                "roles": [
+                    {
+                        "name": "Bogus",
+                        "team": "village",
+                        "wake_order": None,
+                        "wake_target": None,
+                        "description": "d",
+                        "votes": 1,
+                        "ability_steps": [],
+                        "win_conditions": [{"condition_type": "team_wins"}],
+                    }
+                ],
+                "role_dependencies": [],
+            },
+        )
+        with pytest.raises(SeedDataError, match="missing required field"):
+            load_seed_data(path)
+
     def test_shipped_data_file_loads(self) -> None:
         """The data file shipped with the package loads and validates."""
         roles, deps = load_seed_data()
