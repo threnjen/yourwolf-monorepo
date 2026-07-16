@@ -1,4 +1,4 @@
-import {Ability} from '../../../types/role';
+import {Ability} from '../../../types/transport';
 import {ABILITY_CATEGORIES} from '../../../domain/constants';
 import {theme} from '../../../styles/theme';
 

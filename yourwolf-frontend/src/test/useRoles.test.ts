@@ -3,7 +3,7 @@ import {renderHook, waitFor, act} from '@testing-library/react';
 import {useRoles} from '../hooks/useRoles';
 import {rolesApi} from '../api/roles';
 import {createMockRoles} from './mocks';
-import {RoleListItem} from '../types/role';
+import {RoleListItem} from '../types/transport';
 
 // Mock the roles API
 vi.mock('../api/roles', () => ({

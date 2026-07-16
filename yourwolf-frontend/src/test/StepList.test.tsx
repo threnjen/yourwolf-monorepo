@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
 import {StepList, ReadOnlyStepList} from '../components/RoleBuilder/steps/StepList';
-import {AbilityStepDraft} from '../types/role';
+import {AbilityStepDraft} from '../domain/roleDraft';
 
 /**
  * Unit tests for the ability step list, exercised in isolation.

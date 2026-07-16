@@ -1,4 +1,17 @@
-import type {RoleListItem, Team} from '../types/role';
+import type {Team} from './teams';
+
+/**
+ * A role from the catalog, projected down to what wake ordering reads.
+ *
+ * Declared here rather than imported from the transport DTOs; the API's
+ * `RoleListItem` satisfies it structurally, so callers pass it directly.
+ */
+export interface WakeCandidateRole {
+  id: string;
+  name: string;
+  team: Team;
+  wake_order?: number;
+}
 
 /** A distinct role that wakes during the night, projected down to what the ordering needs. */
 export interface WakingRole {
@@ -30,7 +43,7 @@ export function shuffleArray<T>(arr: readonly T[], rng: RandomFn = Math.random):
  */
 export function collectWakingRoles(
   selectedRoleCounts: Readonly<Record<string, number>>,
-  roles: readonly RoleListItem[],
+  roles: readonly WakeCandidateRole[],
 ): WakingRole[] {
   const seen = new Set<string>();
   const result: WakingRole[] = [];

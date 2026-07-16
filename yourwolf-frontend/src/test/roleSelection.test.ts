@@ -7,7 +7,7 @@ import {
   adjustRoleCount,
 } from '../domain/roleSelection';
 import {createMockOfficialRole} from './mocks';
-import type {RoleListItem} from '../types/role';
+import type {RoleListItem} from '../types/transport';
 
 function withCounts(role: RoleListItem, defaultCount: number, min: number, max: number): RoleListItem {
   return {...role, default_count: defaultCount, min_count: min, max_count: max};

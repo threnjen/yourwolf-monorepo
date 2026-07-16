@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useDrafts} from '../hooks/useDrafts';
-import {RoleDraft} from '../types/role';
+import {RoleDraft} from '../domain/roleDraft';
 
 const STORAGE_KEY = 'yourwolf_drafts';
 

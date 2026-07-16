@@ -1,5 +1,7 @@
 import {apiClient} from './client';
-import {Role, RoleListItem, RoleDraft, ValidationResult, NameCheckResult, Team, Visibility, NarratorPreviewResponse} from '../types/role';
+import {Role, RoleListItem, ValidationResult, NameCheckResult, Visibility, NarratorPreviewResponse} from '../types/transport';
+import {RoleDraft} from '../domain/roleDraft';
+import {Team} from '../domain/teams';
 
 interface RoleListParams {
   team?: string;

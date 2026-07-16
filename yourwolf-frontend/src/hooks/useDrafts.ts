@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback} from 'react';
-import {RoleDraft} from '../types/role';
+import {RoleDraft} from '../domain/roleDraft';
 
 const STORAGE_KEY = 'yourwolf_drafts';
 

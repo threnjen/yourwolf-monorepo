@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import {MemoryRouter} from 'react-router-dom';
 import {WakeOrderResolutionPage} from '../pages/WakeOrderResolution';
 import {createMockOfficialRole, createMockGameSession} from './mocks';
-import type {RoleListItem} from '../types/role';
+import type {RoleListItem} from '../types/transport';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {

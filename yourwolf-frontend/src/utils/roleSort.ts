@@ -1,4 +1,5 @@
-import type {Team, RoleListItem} from '../types/role';
+import type {RoleListItem} from '../types/transport';
+import type {Team} from '../domain/teams';
 import {TEAMS} from '../domain/teams';
 
 export const TEAM_ORDER: readonly Team[] = TEAMS;

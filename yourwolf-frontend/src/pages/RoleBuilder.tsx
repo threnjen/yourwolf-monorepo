@@ -1,8 +1,8 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../types/role';
+import {ValidationResult, NarratorPreviewResponse} from '../types/transport';
 import {rolesApi} from '../api/roles';
-import {createEmptyDraft} from '../domain/roleDraft';
+import {createEmptyDraft, RoleDraft} from '../domain/roleDraft';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';

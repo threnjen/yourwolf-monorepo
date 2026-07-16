@@ -1,11 +1,23 @@
+/**
+ * Transport DTOs — the shapes the roles API sends and receives over the wire.
+ *
+ * These mirror the server's contract and nothing else. The UI/editing model lives
+ * in `src/domain` (see `domain/roleDraft.ts`), and the two meet in exactly one
+ * place: `draftToPayload`/`draftToPreviewPayload` in `src/api/roles.ts`.
+ *
+ * Dependencies point inward: this module may import domain types (`Team`,
+ * `StepModifier`), never the reverse.
+ *
+ * Named `transport` rather than `api` to stay distinct from the `src/api` HTTP
+ * layer — these are the wire shapes, not the client that fetches them.
+ */
+import type {StepModifier} from '../domain/roleDraft';
 import type {Team} from '../domain/teams';
 
-// Re-exported so existing transport-type consumers keep importing `Team` from here.
-export type {Team};
-
+/** Who may see a role, as recorded by the server. */
 export type Visibility = 'private' | 'public' | 'official';
-export type StepModifier = 'none' | 'and' | 'or' | 'if';
 
+/** An ability step as persisted and returned by the server. */
 export interface AbilityStep {
   id: string;
   order: number;
@@ -18,6 +30,7 @@ export interface AbilityStep {
   ability_name: string;
 }
 
+/** A win condition as persisted and returned by the server. */
 export interface WinCondition {
   id: string;
   condition_type: string;
@@ -26,6 +39,7 @@ export interface WinCondition {
   overrides_team: boolean;
 }
 
+/** A single role in full, as returned by `GET /roles/{id}`. */
 export interface Role {
   id: string;
   name: string;
@@ -44,43 +58,21 @@ export interface Role {
   win_conditions: WinCondition[];
 }
 
-export type AbilityStepDraft = AbilityStep;
-
-export interface WinConditionDraft {
-  id: string;
-  condition_type: string;
-  condition_params?: Record<string, unknown>;
-  is_primary: boolean;
-  overrides_team: boolean;
-}
-
-export interface RoleDraft {
-  id: string;
-  name: string;
-  description: string;
-  team: Team;
-  wake_order: number | null;
-  wake_target: string | null;
-  votes: number;
-  is_primary_team_role: boolean;
-  ability_steps: AbilityStepDraft[];
-  win_conditions: WinConditionDraft[];
-  created_at: string;
-  updated_at: string;
-}
-
+/** Outcome of `POST /roles/validate`. */
 export interface ValidationResult {
   is_valid: boolean;
   errors: string[];
   warnings: string[];
 }
 
+/** Outcome of `GET /roles/check-name`. */
 export interface NameCheckResult {
   name: string;
   is_available: boolean;
   message: string;
 }
 
+/** An ability definition from the abilities catalog. */
 export interface Ability {
   id: string;
   type: string;
@@ -91,6 +83,7 @@ export interface Ability {
   created_at: string;
 }
 
+/** An edge in a role's dependency graph, as returned in role listings. */
 export interface RoleDependency {
   id?: string;
   required_role_id: string;
@@ -98,6 +91,7 @@ export interface RoleDependency {
   dependency_type: 'requires' | 'recommends';
 }
 
+/** A role as returned by the list endpoints (`GET /roles`, `GET /roles/official`). */
 export interface RoleListItem {
   id: string;
   name: string;
@@ -115,12 +109,14 @@ export interface RoleListItem {
   created_at: string;
 }
 
+/** One narrator instruction line in a script preview. */
 export interface NarratorPreviewAction {
   order: number;
   instruction: string;
   is_section_header: boolean;
 }
 
+/** Outcome of `POST /roles/preview-script`. */
 export interface NarratorPreviewResponse {
   actions: NarratorPreviewAction[];
 }

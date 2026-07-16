@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {rolesApi} from '../api/roles';
 import {createMockRoles, createMockRole, createMockDraft, createMockPreviewResponse} from './mocks';
-import {RoleListItem} from '../types/role';
+import {RoleListItem} from '../types/transport';
 
 // Mock the API client module
 vi.mock('../api/client', () => ({

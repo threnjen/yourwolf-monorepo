@@ -1,4 +1,4 @@
-import type {AbilityStepDraft, StepModifier} from '../types/role';
+import type {AbilityStepDraft, StepModifier} from './roleDraft';
 
 /** A JSON-Schema-ish parameter descriptor as delivered by the abilities API. */
 type ParametersSchema = Record<string, unknown>;

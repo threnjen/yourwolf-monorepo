@@ -1,4 +1,4 @@
-import type {StepModifier} from '../types/role';
+import type {StepModifier} from './roleDraft';
 
 export interface AbilityCategory {
   readonly id: string;

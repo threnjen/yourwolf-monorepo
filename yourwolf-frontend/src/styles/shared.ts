@@ -1,5 +1,5 @@
 import {theme, TEAM_COLORS} from './theme';
-import type {Team} from '../types/role';
+import type {Team} from '../domain/teams';
 
 export const loadingStyles: React.CSSProperties = {
   display: 'flex',

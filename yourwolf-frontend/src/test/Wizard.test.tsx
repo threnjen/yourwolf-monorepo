@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {createMockDraft, createMockPreviewResponse} from './mocks';
-import {ValidationResult} from '../types/role';
+import {ValidationResult} from '../types/transport';
 
 const mockOnChange = vi.fn();
 const mockOnSave = vi.fn();

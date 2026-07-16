@@ -2,7 +2,8 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen} from '@testing-library/react';
 import {ReviewStep} from '../components/RoleBuilder/steps/ReviewStep';
 import {createMockDraft} from './mocks';
-import {ValidationResult, AbilityStepDraft, WinConditionDraft} from '../types/role';
+import {ValidationResult} from '../types/transport';
+import {AbilityStepDraft, WinConditionDraft} from '../domain/roleDraft';
 
 describe('ReviewStep', () => {
   beforeEach(() => {

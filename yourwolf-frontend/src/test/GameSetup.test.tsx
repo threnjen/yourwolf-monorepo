@@ -4,7 +4,7 @@ import {BrowserRouter} from 'react-router-dom';
 import {GameSetupPage} from '../pages/GameSetup';
 import {useRoles} from '../hooks/useRoles';
 import {createMockOfficialRole} from './mocks';
-import type {RoleListItem} from '../types/role';
+import type {RoleListItem} from '../types/transport';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {

@@ -1,5 +1,5 @@
 import {useState, useMemo, useCallback} from 'react';
-import type {RoleListItem} from '../types/role';
+import type {RoleListItem} from '../types/transport';
 import type {WakeOrderRouterState} from '../types/routerState';
 import {
   buildRoleMap,

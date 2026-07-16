@@ -1,4 +1,6 @@
-import {RoleListItem, Team, Visibility, Ability, AbilityStepDraft, WinConditionDraft, RoleDraft, NarratorPreviewAction, NarratorPreviewResponse} from '../types/role';
+import {RoleListItem, Visibility, Ability, NarratorPreviewAction, NarratorPreviewResponse} from '../types/transport';
+import {AbilityStepDraft, WinConditionDraft, RoleDraft} from '../domain/roleDraft';
+import {Team} from '../domain/teams';
 import type {
   GameSession,
   GameSessionListItem,

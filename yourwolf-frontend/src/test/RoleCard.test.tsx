@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {render, screen} from '@testing-library/react';
 import {RoleCard} from '../components/RoleCard';
 import {createMockRole} from './mocks';
-import {RoleListItem} from '../types/role';
+import {RoleListItem} from '../types/transport';
 
 describe('RoleCard', () => {
   describe('rendering', () => {

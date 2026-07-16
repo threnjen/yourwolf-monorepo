@@ -1,4 +1,6 @@
-import {RoleDraft, ValidationResult, Team} from '../../../types/role';
+import {ValidationResult} from '../../../types/transport';
+import {RoleDraft} from '../../../domain/roleDraft';
+import {Team} from '../../../domain/teams';
 import {MODIFIER_LABELS} from '../../../domain/constants';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
 

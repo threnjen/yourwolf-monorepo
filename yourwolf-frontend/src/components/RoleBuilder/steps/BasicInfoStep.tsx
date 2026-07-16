@@ -1,11 +1,11 @@
 import {useState, useEffect, useRef} from 'react';
-import {RoleDraft, Team} from '../../../types/role';
+import {RoleDraft} from '../../../domain/roleDraft';
 // TODO(12-frontend-dead-code-and-tests): BasicInfoStep calls the API layer directly for
 // its name-availability check. Feature 12 moves this behind a hook; until then this known
 // boundary violation is exempted rather than fixed here.
 // eslint-disable-next-line no-restricted-imports
 import {rolesApi} from '../../../api/roles';
-import {TEAMS} from '../../../domain/teams';
+import {TEAMS, Team} from '../../../domain/teams';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
 import {capitalize} from '../../../utils/format';
 

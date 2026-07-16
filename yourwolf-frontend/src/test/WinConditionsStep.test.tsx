@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
 import {WinConditionsStep} from '../components/RoleBuilder/steps/WinConditionsStep';
 import {createMockDraft} from './mocks';
-import {WinConditionDraft} from '../types/role';
+import {WinConditionDraft} from '../domain/roleDraft';
 
 describe('WinConditionsStep', () => {
   const mockOnChange = vi.fn();

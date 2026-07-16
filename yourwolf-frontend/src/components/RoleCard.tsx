@@ -1,4 +1,5 @@
-import {RoleListItem, Team} from '../types/role';
+import {RoleListItem} from '../types/transport';
+import {Team} from '../domain/teams';
 import {theme, TEAM_COLORS} from '../styles/theme';
 import {capitalize} from '../utils/format';
 

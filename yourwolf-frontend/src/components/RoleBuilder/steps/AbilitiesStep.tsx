@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {RoleDraft, AbilityStepDraft, StepModifier} from '../../../types/role';
+import {RoleDraft, AbilityStepDraft, StepModifier} from '../../../domain/roleDraft';
 import {
   appendAbilityStep,
   removeStepAt,

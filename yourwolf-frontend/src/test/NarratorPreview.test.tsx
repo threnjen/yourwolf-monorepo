@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {render, screen} from '@testing-library/react';
 import {NarratorPreview} from '../components/RoleBuilder/NarratorPreview';
 import {createMockPreviewResponse} from './mocks';
-import {NarratorPreviewAction} from '../types/role';
+import {NarratorPreviewAction} from '../types/transport';
 
 describe('NarratorPreview', () => {
   describe('rendering actions (AC2)', () => {

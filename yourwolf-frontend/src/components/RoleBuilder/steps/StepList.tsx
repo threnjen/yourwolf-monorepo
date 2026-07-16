@@ -1,4 +1,4 @@
-import {AbilityStepDraft, StepModifier} from '../../../types/role';
+import {AbilityStepDraft, StepModifier} from '../../../domain/roleDraft';
 import {MODIFIERS, MODIFIER_LABELS} from '../../../domain/constants';
 import {theme} from '../../../styles/theme';
 import {selectStyles} from '../../../styles/shared';

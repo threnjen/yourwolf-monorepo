@@ -1,14 +1,40 @@
-import type {RoleListItem} from '../types/role';
-
 /** How many copies of each role id the setup screen currently has selected. */
 export type RoleCounts = Readonly<Record<string, number>>;
 
-/** Role metadata indexed by role id — the lookup the cascade rules read from. */
-export type RoleMap = Readonly<Record<string, RoleListItem>>;
+/** A dependency edge, projected down to what the cascade rules read. */
+export interface RoleDependencyRule {
+  required_role_id: string;
+  dependency_type: 'requires' | 'recommends';
+}
 
-/** Indexes a role list by id so the selection rules can resolve dependencies. */
-export function buildRoleMap(roles: readonly RoleListItem[]): RoleMap {
-  const map: Record<string, RoleListItem> = {};
+/**
+ * A role projected down to what the selection rules need.
+ *
+ * Declared here rather than imported from the transport DTOs so the rules depend
+ * on the handful of fields they actually read. The API's `RoleListItem` satisfies
+ * this structurally, so callers pass it directly with no conversion or cast.
+ */
+export interface SelectableRole {
+  id: string;
+  default_count: number;
+  min_count: number;
+  max_count: number;
+  dependencies: readonly RoleDependencyRule[];
+}
+
+/** Role metadata indexed by role id — the lookup the cascade rules read from. */
+export type RoleMap = Readonly<Record<string, SelectableRole>>;
+
+/**
+ * Indexes a role list by id so the selection rules can resolve dependencies.
+ *
+ * Generic over the role type so callers keep the full type they passed in; the
+ * rules themselves only ever read the `SelectableRole` fields.
+ */
+export function buildRoleMap<T extends SelectableRole>(
+  roles: readonly T[],
+): Readonly<Record<string, T>> {
+  const map: Record<string, T> = {};
   for (const role of roles) {
     map[role.id] = role;
   }

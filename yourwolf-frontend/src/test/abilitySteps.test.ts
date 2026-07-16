@@ -11,7 +11,7 @@ import {
   setStepParameter,
   renumberSteps,
 } from '../domain/abilitySteps';
-import type {AbilityStepDraft, StepModifier} from '../types/role';
+import type {AbilityStepDraft, StepModifier} from '../domain/roleDraft';
 
 function makeStep(
   id: string,

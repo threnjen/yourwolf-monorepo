@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {TEAM_ORDER, sortRolesByTeam, groupRolesByTeam} from '../utils/roleSort';
 import {createMockOfficialRole} from './mocks';
-import type {Team} from '../types/role';
+import type {Team} from '../domain/teams';
 
 describe('roleSort', () => {
   describe('TEAM_ORDER', () => {

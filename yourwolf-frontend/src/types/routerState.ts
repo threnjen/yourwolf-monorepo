@@ -1,4 +1,4 @@
-import type {RoleListItem} from './role';
+import type {RoleListItem} from './transport';
 
 /**
  * The `location.state` contract for `/games/new/wake-order`.

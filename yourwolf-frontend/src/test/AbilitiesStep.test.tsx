@@ -3,7 +3,7 @@ import {render, screen, fireEvent} from '@testing-library/react';
 import {AbilitiesStep} from '../components/RoleBuilder/steps/AbilitiesStep';
 import {useAbilities} from '../hooks/useAbilities';
 import {createMockDraft, createMockAbility} from './mocks';
-import {AbilityStepDraft} from '../types/role';
+import {AbilityStepDraft} from '../domain/roleDraft';
 
 vi.mock('../hooks/useAbilities', () => ({
   useAbilities: vi.fn(),
