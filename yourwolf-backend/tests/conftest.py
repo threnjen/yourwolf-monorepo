@@ -34,9 +34,14 @@ def pytest_configure() -> None:
 
     Settings are resolved lazily via ``get_settings()``, so this hook runs
     early enough for every consumer without depending on import order.
+
+    The values are assigned unconditionally rather than via ``setdefault`` so
+    that a test run never resolves settings against a developer's ambient
+    ``DATABASE_URL``. Tests that need a different URL should use
+    ``monkeypatch.setenv`` plus ``get_settings.cache_clear()``.
     """
-    os.environ.setdefault("DATABASE_URL", SQLALCHEMY_TEST_DATABASE_URL)
-    os.environ.setdefault("ENVIRONMENT", "test")
+    os.environ["DATABASE_URL"] = SQLALCHEMY_TEST_DATABASE_URL
+    os.environ["ENVIRONMENT"] = "test"
     get_settings.cache_clear()
 
 
