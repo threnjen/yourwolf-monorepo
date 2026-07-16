@@ -11,7 +11,15 @@ Implements refactor-audit findings 2.3, 6.1, 6.3 across the backend schema surfa
 
 All work followed Red-Green-Refactor: barrel tests and enum-typing tests were written and confirmed failing before the corresponding source change.
 
-**Intended behavior change (per plan section B):** a payload with an invalid `modifier` now returns **422** at the API boundary instead of a 500 from an unwrapped `ValueError` at `role_service.py:335`. This is verified end-to-end by `test_invalid_modifier_returns_422_at_api_boundary`.
+**Intended behavior change (corrected during review — was 400, not 500):** a payload with an invalid `modifier` now returns **422** at the schema boundary. The plan's AC3 text, the original commit message, and this record previously described the prior behavior as "a 500 from an unwrapped `ValueError` at `role_service.py:335`". That is **incorrect**: `app/routers/roles.py:207-211` (create) and `:241-245` (update) both catch `ValueError` and re-raise it as **HTTP 400**. `StepModifier("bogus")` raises `ValueError` (verified), so the real change is **400 → 422**.
+
+Consequences of the corrected framing:
+
+- The response body shape changed for this case, from `{"detail": "'bogus' is not a valid StepModifier"}` (a string) to FastAPI's structured `{"detail": [{"loc": [...], "msg": ..., "type": "enum"}]}` (a list).
+- **No test depended on the old behavior** — verified: no test in `tests/` asserts a 400 for an invalid modifier.
+- **No client depended on the old behavior** — verified: no code under `yourwolf-frontend/src` reads the `detail` field of an error response. Actual client risk is therefore Low, but this is a genuine contract change rather than the "nobody depends on a 500" freebie the original framing implied. Logged to `.github/learnings/cross-phase-decisions.md` for features 08/11.
+
+Verified end-to-end by `test_invalid_modifier_returns_422_at_api_boundary`, which now also pins the error to `loc == ["ability_steps", 0, "modifier"]` / `type == "enum"`.
 
 ## Sibling Features
 
@@ -29,7 +37,7 @@ Scanned all 12 sibling feature directories (plan titles only). Relevant notes:
 | AC1 | AC1 | [PROPOSED - name TBD] → `test_exports_narrator_preview_schemas` | Barrel exports the 3 narrator-preview schemas | Complete | `yourwolf-backend/app/schemas/__init__.py` | `yourwolf-backend/tests/test_schemas.py::TestSchemaBarrel::test_exports_narrator_preview_schemas` | PENDING | PENDING |
 | AC2 | AC2 | [PROPOSED - name TBD] → `test_does_not_export_dead_ability_step_schemas`, `test_dead_classes_removed_from_ability_module` | Dead classes absent from module + barrel; grep shows zero importers | Complete | `yourwolf-backend/app/schemas/ability.py`, `yourwolf-backend/app/schemas/__init__.py` | `yourwolf-backend/tests/test_schemas.py::TestSchemaBarrel::test_does_not_export_dead_ability_step_schemas`, `::test_dead_classes_removed_from_ability_module`; grep evidence below | PENDING | PENDING |
 | AC3 | AC3 | [PROPOSED - name TBD] → `test_invalid_modifier_rejected_on_role_create`, `test_invalid_modifier_returns_422_at_api_boundary`, `test_openapi_exposes_modifier_enum_values` | Invalid modifier rejected (ValidationError + 422); OpenAPI exposes enum set | Complete | `yourwolf-backend/app/schemas/role.py` | `yourwolf-backend/tests/test_schemas.py::TestAbilityStepModifierTyping` (9 tests) | PENDING | PENDING |
-| AC4 | AC4 | existing suite + `test_modifier_serializes_to_bare_string` | Full suite passes; serialization unchanged | Complete | n/a (verification) | `yourwolf-backend/tests/test_schemas.py::TestAbilityStepModifierTyping::test_modifier_serializes_to_bare_string`, `::test_ability_step_in_role_serializes_to_bare_string`; full-suite run | PENDING | PENDING |
+| AC4 | AC4 | existing suite + `test_modifier_serializes_to_bare_string` | Full suite passes; serialization unchanged | Complete | n/a (verification) | `yourwolf-backend/tests/test_schemas.py::TestAbilityStepModifierTyping::test_modifier_serializes_to_bare_string`, `::test_ability_step_in_role_serializes_to_bare_string`, `::test_modifier_serializes_to_bare_string_in_api_response` (added in review — asserts wire format through a real HTTP response, not just `model_dump`); full-suite run | PENDING | PENDING |
 
 ## Acceptance Criteria Status
 

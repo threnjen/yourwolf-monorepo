@@ -223,6 +223,34 @@ class TestAbilityStepModifierTyping:
                 parameters={},
             )
 
+    def test_modifier_serializes_to_bare_string_in_api_response(
+        self, client: TestClient, sample_abilities: list[Ability]
+    ) -> None:
+        """AC4: the enum retype does not change the value on the wire.
+
+        The schema-level `model_dump(mode="json")` tests are a proxy; this
+        asserts the real response body a client receives still carries
+        `modifier` as a bare string rather than a serialized enum object.
+        """
+        response = client.post(
+            "/api/v1/roles/",
+            json={
+                "name": "Wire Format Role",
+                "description": "Checks on-the-wire modifier value",
+                "team": Team.VILLAGE.value,
+                "wake_order": 1,
+                "ability_steps": [
+                    {
+                        "ability_type": sample_abilities[0].type,
+                        "order": 1,
+                        "modifier": "none",
+                    }
+                ],
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()["ability_steps"][0]["modifier"] == "none"
+
     def test_openapi_exposes_modifier_enum_values(self) -> None:
         """AC3: the valid value set appears in the OpenAPI/JSON schema contract."""
         schema = AbilityStepCreateInRole.model_json_schema()
@@ -233,7 +261,17 @@ class TestAbilityStepModifierTyping:
     def test_invalid_modifier_returns_422_at_api_boundary(
         self, client: TestClient, sample_abilities: list[Ability]
     ) -> None:
-        """AC3: invalid modifier is rejected with 422, not an unwrapped 500."""
+        """AC3: invalid modifier is rejected with 422 at the schema boundary.
+
+        Previously this payload reached `role_service._create_ability_steps`,
+        where `StepModifier("bogus")` raised a ValueError that the router
+        caught and re-raised as a 400 (see `app/routers/roles.py`). Typing the
+        field as `StepModifier` moves rejection to the schema, yielding a 422.
+
+        The error must be attributable to `modifier` specifically — asserting
+        only on the status code would also pass if some unrelated field in the
+        payload were invalid.
+        """
         response = client.post(
             "/api/v1/roles/",
             json={
@@ -250,6 +288,9 @@ class TestAbilityStepModifierTyping:
             },
         )
         assert response.status_code == 422
+        errors = response.json()["detail"]
+        assert [e["loc"][-3:] for e in errors] == [["ability_steps", 0, "modifier"]]
+        assert errors[0]["type"] == "enum"
 
 
 class TestRoleUpdateSchema:
