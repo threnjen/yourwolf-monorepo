@@ -160,6 +160,78 @@ class TestScriptWakeOrder:
         assert "Villager" not in role_names
 
 
+class TestDuplicateRoleDeduplication:
+    """A role dealt to several players is narrated exactly once.
+
+    Section B edge case: a game can hold more than one card of the same role
+    (e.g. two Werewolves), producing multiple ``GameRole`` rows that share a
+    ``role_id``. The narrator must still address that role a single time.
+
+    Note on mechanism: the role-ID set in ``ScriptService._get_waking_roles``
+    is *not* what enforces this today — ``Role.id.in_([x, x])`` already returns
+    each Role row once, so removing the set does not change the output
+    (verified by mutation). The set only avoids sending duplicate bind params.
+    These tests therefore pin the observable *behavior* rather than the
+    mechanism, which is what the Phase 04 TypeScript port must reproduce: a
+    port using a different data-access path gets no help from SQL ``IN``
+    semantics and must de-duplicate explicitly.
+    """
+
+    def test_role_dealt_twice_is_narrated_once(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        werewolf = seeded_roles[0]
+        assert werewolf.name == "Werewolf"
+
+        # Deal a second copy of the same role to another player seat.
+        db_session.add(
+            GameRole(
+                game_session_id=game.id,
+                role_id=werewolf.id,
+                position=99,
+                is_center=False,
+                current_team=werewolf.team,
+            )
+        )
+        db_session.commit()
+
+        script = ScriptService(db_session).generate_night_script(game)
+
+        wake_lines = [
+            a
+            for a in script.actions
+            if a.instruction == "Werewolves, wake up and look for other werewolves."
+        ]
+        assert len(wake_lines) == 1
+
+        close_lines = [
+            a for a in script.actions if a.instruction == "Werewolf, close your eyes."
+        ]
+        assert len(close_lines) == 1
+
+    def test_duplicate_role_does_not_disturb_sequential_ordering(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """De-duplication must not leave gaps in the action order sequence."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        db_session.add(
+            GameRole(
+                game_session_id=game.id,
+                role_id=seeded_roles[0].id,
+                position=99,
+                is_center=False,
+                current_team=seeded_roles[0].team,
+            )
+        )
+        db_session.commit()
+
+        script = ScriptService(db_session).generate_night_script(game)
+
+        orders = [a.order for a in script.actions]
+        assert orders == list(range(1, len(orders) + 1))
+
+
 class TestScriptInstructions:
     """Tests for specific ability type instruction generation."""
 

@@ -91,6 +91,15 @@ def _thumbs_up_instruction(params: dict[str, Any]) -> str:
         return "Put your thumb out so others can see it."
     elif target.startswith("team."):
         team = target.replace("team.", "")
+        # KNOWN COPY BUG — DO NOT "FIX" HERE. This naive pluralization renders
+        # team.werewolf as "Werewolfs", while build_wake_instruction says
+        # "Werewolves". The wrong spelling is the shipped, pre-refactor output;
+        # narrator copy is frozen (feature 10, AC4), so it is preserved
+        # verbatim and pinned in tests/test_narration_templates.py.
+        # Phase 04 port note: transcribe this bug faithfully into TypeScript —
+        # the port is correct only when it reproduces "Werewolfs". Correcting
+        # the spelling is a copy change and belongs in a dedicated copy-fix
+        # feature that updates the pinned test and the TS port together.
         return f"{team.title()}s, put your thumbs out."
     elif target.startswith("role."):
         target_role = target.replace("role.", "").replace("_", " ")
