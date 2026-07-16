@@ -6,6 +6,14 @@ import {
   MODIFIER_LABELS,
   STRING_TARGET_OPTIONS,
 } from '../../../domain/constants';
+import {
+  appendAbilityStep,
+  removeStepAt,
+  moveStepUp,
+  moveStepDown,
+  setStepModifier,
+  setStepParameter,
+} from '../../../domain/abilitySteps';
 import {useAbilities} from '../../../hooks/useAbilities';
 import {theme} from '../../../styles/theme';
 import {selectStyles} from '../../../styles/shared';
@@ -272,83 +280,55 @@ export function AbilitiesStep({draft, onChange}: AbilitiesStepProps) {
     );
   }
 
+  function schemaFor(abilityType: string): Record<string, unknown> | undefined {
+    return abilities.find((a) => a.type === abilityType)?.parameters_schema;
+  }
+
+  function updateSteps(steps: AbilityStepDraft[]) {
+    onChange({...draft, ability_steps: steps});
+  }
+
   function handleAddAbility(abilityType: string, abilityName: string) {
-    const nextOrder = draft.ability_steps.length + 1;
-    const ability = abilities.find((a) => a.type === abilityType);
-    const schema = ability?.parameters_schema as Record<string, unknown> | undefined;
-    const properties = schema?.properties as Record<string, Record<string, unknown>> | undefined;
-    const initialParameters: Record<string, unknown> = {};
-    if (properties) {
-      for (const [key, prop] of Object.entries(properties)) {
-        if (prop.type === 'integer') {
-          initialParameters[key] = (prop.default as number | undefined) ?? 1;
-        }
-      }
-    }
-    const newStep: AbilityStepDraft = {
-      id: crypto.randomUUID(),
-      ability_type: abilityType,
-      ability_name: abilityName,
-      order: nextOrder,
-      modifier: nextOrder === 1 ? 'none' : 'and',
-      is_required: false,
-      parameters: initialParameters,
-    };
-    onChange({...draft, ability_steps: [...draft.ability_steps, newStep]});
+    updateSteps(
+      appendAbilityStep(draft.ability_steps, {
+        abilityType,
+        abilityName,
+        parametersSchema: schemaFor(abilityType),
+      }),
+    );
   }
 
   function handleRemoveStep(index: number) {
-    const updated = draft.ability_steps
-      .filter((_, i) => i !== index)
-      .map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
-    onChange({...draft, ability_steps: updated});
+    updateSteps(removeStepAt(draft.ability_steps, index));
   }
 
   function handleMoveUp(index: number) {
-    if (index === 0) return;
-    const steps = [...draft.ability_steps];
-    [steps[index - 1], steps[index]] = [steps[index], steps[index - 1]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
-    onChange({...draft, ability_steps: renumbered});
+    const steps = moveStepUp(draft.ability_steps, index);
+    if (steps === draft.ability_steps) return; // already first — no-op, as before
+    updateSteps(steps);
   }
 
   function handleMoveDown(index: number) {
-    if (index === draft.ability_steps.length - 1) return;
-    const steps = [...draft.ability_steps];
-    [steps[index], steps[index + 1]] = [steps[index + 1], steps[index]];
-    const renumbered = steps.map((step, i) => ({...step, order: i + 1, modifier: i === 0 ? 'none' as StepModifier : (step.modifier === 'none' ? 'and' as StepModifier : step.modifier)}));
-    onChange({...draft, ability_steps: renumbered});
+    const steps = moveStepDown(draft.ability_steps, index);
+    if (steps === draft.ability_steps) return; // already last — no-op, as before
+    updateSteps(steps);
   }
 
   function handleModifierChange(index: number, modifier: StepModifier) {
-    const updated = draft.ability_steps.map((step, i) =>
-      i === index ? {...step, modifier} : step,
-    );
-    onChange({...draft, ability_steps: updated});
+    updateSteps(setStepModifier(draft.ability_steps, index, modifier));
   }
 
   function handleParameterChange(stepIndex: number, paramKey: string, value: unknown) {
     const step = draft.ability_steps[stepIndex];
-    const ability = abilities.find((a) => a.type === step.ability_type);
-    const schema = ability?.parameters_schema as Record<string, unknown> | undefined;
-    const properties = schema?.properties as Record<string, Record<string, unknown>> | undefined;
-    const propType = properties?.[paramKey]?.type as string | undefined;
-
-    let parsedValue: unknown = value;
-    if (propType === 'integer') {
-      const num = parseInt(value as string, 10);
-      parsedValue = isNaN(num) || num < 1 ? 1 : num;
-    } else if (propType === 'array') {
-      parsedValue = (value as string)
-        .split(',')
-        .map((s) => parseInt(s.trim(), 10))
-        .filter((n) => !isNaN(n));
-    }
-
-    const updated = draft.ability_steps.map((s, i) =>
-      i === stepIndex ? {...s, parameters: {...s.parameters, [paramKey]: parsedValue}} : s,
+    updateSteps(
+      setStepParameter(
+        draft.ability_steps,
+        stepIndex,
+        paramKey,
+        value,
+        schemaFor(step.ability_type),
+      ),
     );
-    onChange({...draft, ability_steps: updated});
   }
 
   return (

@@ -100,8 +100,13 @@ export function GameSetupPage() {
     canStart,
     selectRole,
     adjustCount,
-    handleNext,
-  } = useGameSetup(roles, navigate);
+    wakeOrderPayload,
+  } = useGameSetup(roles);
+
+  function handleNext() {
+    if (!wakeOrderPayload) return;
+    navigate('/games/new/wake-order', {state: wakeOrderPayload});
+  }
 
   if (loading) {
     return (
