@@ -34,6 +34,13 @@ export default tseslint.config(
         'error',
         {argsIgnorePattern: '^_', varsIgnorePattern: '^_'},
       ],
+      // `recommended-latest` ships exhaustive-deps as a warning, so it only gates
+      // CI by way of `--max-warnings 0` in the lint script. Promoting it to an error
+      // keeps the rule blocking on its own merits rather than on a CLI flag that a
+      // future change could relax without anyone noticing the rule went quiet.
+      // Currently a no-op: `--max-warnings 0` already passes, so there are no
+      // outstanding exhaustive-deps warnings for this to newly surface.
+      'react-hooks/exhaustive-deps': 'error',
     },
   },
   {
