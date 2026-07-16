@@ -1,5 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
 // Layers that the pure-TypeScript domain/engine modules must never depend on.
@@ -17,6 +18,10 @@ function layerPatterns(layers) {
 export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  // Enforces rules-of-hooks and exhaustive-deps. Both were referenced by an
+  // eslint-disable in src/hooks/useRoles.ts long before the plugin was actually
+  // installed, so neither rule was enforced anywhere until now.
+  reactHooks.configs['recommended-latest'],
   {
     languageOptions: {
       globals: {

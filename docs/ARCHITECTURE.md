@@ -31,11 +31,11 @@ flowchart TD
 flowchart LR
     subgraph Frontend["yourwolf-frontend"]
         direction TB
-        Pages["Pages<br>Home, Roles, GameSetup,<br>WakeOrderResolution,<br>GameFacilitator, RoleBuilder"]
+        Pages["Pages<br>HomePage, RolesPage, GameSetup,<br>WakeOrderResolution,<br>GameFacilitator, RoleBuilder"]
         Components["Components<br>Layout, Header, Sidebar,<br>ScriptReader, Timer, RoleCard,<br>ErrorBanner, RoleBuilder/"]
-        Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useDrafts, useFetch"]
-        API["API Clients<br>client.ts, games.ts,<br>roles.ts, abilities.ts"]
-        Types["Types<br>game.ts, role.ts"]
+        Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useNameCheck, useFetch"]
+        API["API Clients<br>client.ts, games.ts,<br>roles.ts, abilities.ts,<br>errors.ts"]
+        Types["Types<br>game.ts, transport.ts,<br>routerState.ts"]
         Styles["Styles<br>theme.ts, shared.ts"]
 
         Pages --> Components

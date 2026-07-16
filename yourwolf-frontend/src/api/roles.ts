@@ -29,16 +29,6 @@ export const rolesApi = {
     return data.items;
   },
 
-  listOfficial: async (): Promise<RoleListItem[]> => {
-    const {data} = await apiClient.get<RoleListResponse>('/roles/official');
-    return data.items;
-  },
-
-  getById: async (id: string): Promise<Role> => {
-    const {data} = await apiClient.get<Role>(`/roles/${id}`);
-    return data;
-  },
-
   validate: async (draft: RoleDraft): Promise<ValidationResult> => {
     const {data} = await apiClient.post<ValidationResult>('/roles/validate', draftToPayload(draft));
     return data;

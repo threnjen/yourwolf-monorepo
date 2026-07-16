@@ -3,7 +3,6 @@ import {AbilityStepDraft, WinConditionDraft, RoleDraft} from '../domain/roleDraf
 import {Team} from '../domain/teams';
 import type {
   GameSession,
-  GameSessionListItem,
   GamePhase,
   GameRole,
   NarratorAction,
@@ -132,21 +131,6 @@ export function createMockGameSession(
     started_at: null,
     ended_at: null,
     game_roles: [],
-    ...overrides,
-  };
-}
-
-/**
- * Creates a mock GameSessionListItem for testing.
- */
-export function createMockGameListItem(
-  overrides: Partial<GameSessionListItem> = {},
-): GameSessionListItem {
-  return {
-    id: 'game-uuid-1234',
-    player_count: 5,
-    phase: 'setup' as GamePhase,
-    created_at: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }

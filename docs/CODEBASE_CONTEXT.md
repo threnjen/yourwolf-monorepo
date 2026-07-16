@@ -79,8 +79,9 @@ yourwolf-frontend/
 │   ├── routes.tsx           # React Router v6 route definitions
 │   ├── api/                 # Axios clients
 │   │   ├── client.ts        # Axios instance (baseURL: VITE_API_URL/api/v1)
-│   │   ├── games.ts         # gamesApi: create, list, getById, start, advancePhase, getNightScript, delete
-│   │   ├── roles.ts         # rolesApi: list, getById, create, validate, previewScript, checkName
+│   │   ├── games.ts         # gamesApi: create, getById, start, advancePhase, getNightScript, delete
+│   │   ├── roles.ts         # rolesApi: list, create, validate, previewScript, checkName
+│   │   ├── errors.ts        # Reads FastAPI 422 detail arrays and domain-error string details
 │   │   └── abilities.ts     # abilitiesApi: list
 │   ├── hooks/
 │   │   ├── useFetch.ts      # Generic fetch hook (callers MUST wrap fetcher in useCallback)
@@ -88,10 +89,10 @@ yourwolf-frontend/
 │   │   ├── useGameSetup.ts  # Role selection, card count validation, navigate to wake order
 │   │   ├── useRoles.ts      # Role list with filtering
 │   │   ├── useAbilities.ts  # Abilities list
-│   │   └── useDrafts.ts     # Local draft storage for role builder
+│   │   └── useNameCheck.ts  # Debounced, race-safe role-name availability check
 │   ├── pages/
-│   │   ├── Home.tsx
-│   │   ├── Roles.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── RolesPage.tsx
 │   │   ├── RoleBuilder.tsx          # Wizard-based role creation, live validation + preview
 │   │   ├── GameSetup.tsx            # Role selection grid, player/center count config
 │   │   ├── WakeOrderResolution.tsx  # Drag-to-reorder (@dnd-kit), calls gamesApi.create()
@@ -102,13 +103,22 @@ yourwolf-frontend/
 │   │   ├── Timer.tsx                # Countdown timer for discussion phase
 │   │   ├── RoleCard.tsx, ErrorBanner.tsx
 │   │   └── RoleBuilder/            # Wizard.tsx, NarratorPreview.tsx, steps/
+│   ├── domain/              # Pure TypeScript game model — no React, no transport DTOs
+│   │   ├── teams.ts         # Team, TEAMS
+│   │   ├── constants.ts     # Shared domain constants
+│   │   ├── roleDraft.ts     # RoleDraft, AbilityStepDraft, WinConditionDraft, StepModifier
+│   │   ├── roleSelection.ts # Role selection/card-count rules
+│   │   ├── abilitySteps.ts  # Ability step rules
+│   │   └── wakeOrder.ts     # Wake order rules
 │   ├── types/
 │   │   ├── game.ts          # GameSession, GamePhase, NarratorAction, NightScript, GameSessionCreate
-│   │   └── role.ts          # Role, AbilityStep, StepModifier, Team, Visibility, RoleDraft, NarratorPreviewAction/Response
+│   │   ├── transport.ts     # Wire DTOs: Role, AbilityStep, Visibility, ValidationResult, NameCheckResult, NarratorPreviewAction/Response
+│   │   └── routerState.ts   # Typed router-state contracts
 │   ├── styles/
 │   │   ├── theme.ts         # Dark theme object (colors, spacing, borderRadius, shadows)
 │   │   └── shared.ts        # Reusable style functions
 │   └── utils/
+│       ├── format.ts        # String formatting helpers
 │       └── roleSort.ts      # Role sorting utility
 ├── vite.config.ts           # Vite + React plugin, test config, @ alias
 ├── package.json
@@ -120,7 +130,7 @@ yourwolf-frontend/
 - Styling: inline styles with centralized `theme` object, no CSS-in-JS library
 - State: React useState/useCallback hooks, no global state library
 - API calls: Axios with typed wrappers, error interceptor logs in dev
-- Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`
+- Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`; `src/test/` mirrors the source tree (`api/`, `hooks/`, `domain/`, `components/`, `pages/`, `utils/`)
 - Named exports only (no `export default` — enforced since Phase 2.5)
 - `useFetch` generic hook: wraps fetcher in loading/error/data/refetch pattern
 - Coverage threshold: 80% lines/branches/functions/statements
@@ -129,9 +139,9 @@ yourwolf-frontend/
 
 | Path | Page Component | Key Dependencies |
 |------|---------------|------------------|
-| `/` | Home | — |
-| `/roles` | Roles | useRoles |
-| `/roles/new` | RoleBuilderPage | rolesApi.validate, rolesApi.previewScript, useAbilities, useDrafts |
+| `/` | HomePage | — |
+| `/roles` | RolesPage | useRoles |
+| `/roles/new` | RoleBuilderPage | rolesApi.validate, rolesApi.previewScript, useAbilities, useNameCheck |
 | `/games/new` | GameSetupPage | useGameSetup, useRoles |
 | `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, gamesApi.create |
 | `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, gamesApi.start/advancePhase |

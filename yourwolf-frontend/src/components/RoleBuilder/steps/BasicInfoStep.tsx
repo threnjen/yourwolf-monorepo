@@ -1,10 +1,6 @@
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect} from 'react';
 import {RoleDraft} from '../../../domain/roleDraft';
-// TODO(12-frontend-dead-code-and-tests): BasicInfoStep calls the API layer directly for
-// its name-availability check. Feature 12 moves this behind a hook; until then this known
-// boundary violation is exempted rather than fixed here.
-// eslint-disable-next-line no-restricted-imports
-import {rolesApi} from '../../../api/roles';
+import {useNameCheck, NameStatus} from '../../../hooks/useNameCheck';
 import {TEAMS, Team} from '../../../domain/teams';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
 import {capitalize} from '../../../utils/format';
@@ -13,8 +9,6 @@ interface BasicInfoStepProps {
   draft: RoleDraft;
   onChange: (draft: RoleDraft) => void;
 }
-
-type NameStatus = 'idle' | 'checking' | 'available' | 'taken';
 
 const fieldGroupStyles: React.CSSProperties = {
   marginBottom: theme.spacing.lg,
@@ -78,49 +72,13 @@ function getTeamButtonStyles(team: Team, isSelected: boolean): React.CSSProperti
 }
 
 export function BasicInfoStep({draft, onChange}: BasicInfoStepProps) {
-  const [nameStatus, setNameStatus] = useState<NameStatus>('idle');
   const [localName, setLocalName] = useState(draft.name);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const nameCheckIdRef = useRef(0);
+  const nameStatus = useNameCheck(localName);
 
   // Sync localName when draft.name changes externally (e.g., draft restore)
   useEffect(() => {
     setLocalName(draft.name);
   }, [draft.name]);
-
-  useEffect(() => {
-    if (!localName.trim() || localName.trim().length < 2) {
-      setNameStatus('idle');
-      return;
-    }
-
-    setNameStatus('checking');
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    const requestId = ++nameCheckIdRef.current;
-
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const result = await rolesApi.checkName(localName.trim());
-        if (requestId === nameCheckIdRef.current) {
-          setNameStatus(result.is_available ? 'available' : 'taken');
-        }
-      } catch {
-        if (requestId === nameCheckIdRef.current) {
-          setNameStatus('idle');
-        }
-      }
-    }, 500);
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [localName]);
 
   function handleNameChange(value: string) {
     setLocalName(value);
