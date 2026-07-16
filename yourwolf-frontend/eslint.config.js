@@ -35,10 +35,12 @@ export default tseslint.config(
     // Import boundary: src/domain (and the future src/engine) is a pure TypeScript
     // layer. It must not reach up into React or any UI/transport layer.
     //
-    // Uses the typescript-eslint variant so the restriction also covers
-    // `import type` (with `allowTypeImports` left at its default of false) — the
-    // base rule's type-import handling is what let transport DTOs leak into the
-    // domain before the transport/domain type split.
+    // Transport DTOs leaked into the domain before the transport/domain type split
+    // because `types` was simply absent from the restricted groups below, not
+    // because of any type-import blind spot: both the base and typescript-eslint
+    // rules report `import type` against a path pattern. The typescript-eslint
+    // variant is used here for the `allowTypeImports` option (left at its default
+    // of false), which the base rule does not offer.
     files: ['src/domain/**/*.{ts,tsx}', 'src/engine/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': 'off',
