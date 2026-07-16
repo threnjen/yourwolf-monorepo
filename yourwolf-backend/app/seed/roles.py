@@ -1,918 +1,235 @@
-"""Seed data for official roles."""
+"""Seed data loader for official roles.
 
+The role definitions live in ``data/roles.json`` rather than in this module so
+that the same data file can be bundled with non-server distributions of the
+game. This module reads that single known file, validates it, and exposes the
+same ``ROLES_DATA`` / ``ROLE_DEPENDENCIES_DATA`` structures the seeding
+routines have always consumed.
+"""
+
+import json
 import logging
+from pathlib import Path
+from typing import Any
 
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.models.win_condition import WinCondition
+from app.seed.abilities import ABILITIES_DATA
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-# 30 Official Roles from One Night Ultimate Werewolf
-ROLES_DATA = [
-    {
-        "name": "Villager",
-        "team": Team.VILLAGE,
-        "wake_order": None,
-        "wake_target": None,
-        "description": "You are a simple villager. You have no special abilities, but your vote counts!",
-        "votes": 1,
-        "default_count": 3,
-        "min_count": 1,
-        "max_count": 3,
-        "ability_steps": [],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Werewolf",
-        "team": Team.WEREWOLF,
-        "wake_order": 1,
-        "wake_target": "team.werewolf",
-        "description": "You wake with other werewolves. If alone, view one center card.",
-        "votes": 1,
-        "default_count": 2,
-        "min_count": 1,
-        "max_count": 2,
-        "is_primary_team_role": True,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_awake",
-                "parameters": {"target": "team.werewolf"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "if",
-                "ability_type": "view_card",
-                "parameters": {"target": "center.main"},
-                "condition_type": "no_other_awake",
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Insomniac",
-        "team": Team.VILLAGE,
-        "wake_order": 9,
-        "wake_target": "player.self",
-        "description": "You wake at the end of the night to check if your card changed.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.self"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Tanner",
-        "team": Team.NEUTRAL,
-        "wake_order": None,
-        "wake_target": None,
-        "description": "You hate your job. You only win if you are eliminated.",
-        "votes": 1,
-        "ability_steps": [],
-        "win_conditions": [
-            {
-                "condition_type": "special_win_dead",
-                "is_primary": True,
-                "overrides_team": True,
-            }
-        ],
-    },
-    {
-        "name": "Robber",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "You may steal another player's role.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "take_card",
-                "parameters": {"target": "player.other"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.self"},
-                "is_required": True,
-            },
-            {
-                "order": 3,
-                "modifier": "and",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "player.self", "target_b": "previous"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins_as_current",
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Troublemaker",
-        "team": Team.VILLAGE,
-        "wake_order": 5,
-        "wake_target": "player.self",
-        "description": "You may swap two other players' cards without looking.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "player.other", "target_b": "player.other"},
-                "is_required": False,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "explicit_no_view",
-                "parameters": {},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Drunk",
-        "team": Team.VILLAGE,
-        "wake_order": 6,
-        "wake_target": "player.self",
-        "description": "You swap your card with a center card without looking.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "player.self", "target_b": "center.main"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "explicit_no_view",
-                "parameters": {},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins_as_current",
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Minion",
-        "team": Team.WEREWOLF,
-        "wake_order": 2,
-        "wake_target": "player.self",
-        "description": "You see who the werewolves are. You win if they survive.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "team.werewolf"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Mason",
-        "team": Team.VILLAGE,
-        "wake_order": 3,
-        "wake_target": "player.self",
-        "description": "You wake with other Masons and know each other.",
-        "votes": 1,
-        "default_count": 2,
-        "min_count": 2,
-        "max_count": 2,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_awake",
-                "parameters": {"target": "role.mason"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Apprentice Seer",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "You may look at one center card.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "center.main", "count": 1},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Seer",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "You may look at one player's card or two center cards.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other", "count": 1},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "or",
-                "ability_type": "view_card",
-                "parameters": {"target": "center.main", "count": 2},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Witch",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "View a center card. You may swap it with any player's card.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "center.main"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "viewed", "target_b": "player.other"},
-                "is_required": False,
-            },
-            {
-                "order": 3,
-                "modifier": "or",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "viewed", "target_b": "player.self"},
-                "is_required": False,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Marksman",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "You may look at one other player's card.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Mystic Wolf",
-        "team": Team.WEREWOLF,
-        "wake_order": 2,
-        "wake_target": "player.self",
-        "description": "You are a werewolf. You may look at one other player's card.",
-        "votes": 1,
-        "is_primary_team_role": True,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Doppelganger",
-        "team": Team.VILLAGE,
-        "wake_order": 1,
-        "wake_target": "player.self",
-        "description": "Look at another player's card and become that role.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "copy_role",
-                "parameters": {},
-                "is_required": True,
-            },
-            {
-                "order": 3,
-                "modifier": "and",
-                "ability_type": "perform_immediately",
-                "parameters": {},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins_as_current",
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Bodyguard",
-        "team": Team.VILLAGE,
-        "wake_order": 8,
-        "wake_target": "player.self",
-        "description": "Protect one player from elimination.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other", "protect": True},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Copycat",
-        "team": Team.VILLAGE,
-        "wake_order": 1,
-        "wake_target": "player.self",
-        "description": "Look at a center card and become that role.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "center.main"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "copy_role",
-                "parameters": {},
-                "is_required": True,
-            },
-            {
-                "order": 3,
-                "modifier": "and",
-                "ability_type": "perform_as",
-                "parameters": {},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins_as_current",
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Revealer",
-        "team": Team.VILLAGE,
-        "wake_order": 7,
-        "wake_target": "player.self",
-        "description": "Flip a player's card. If werewolf/tanner, flip it back.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "flip_card",
-                "parameters": {"target": "player.other"},
-                "condition_type": "only_if_opponent",
-                "condition_params": {"team": "village"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Dream Wolf",
-        "team": Team.WEREWOLF,
-        "wake_order": 1,
-        "wake_target": "team.werewolf",
-        "description": "You don't wake with wolves, but they see your thumb.",
-        "votes": 1,
-        "is_primary_team_role": True,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "player.self"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Alpha Wolf",
-        "team": Team.WEREWOLF,
-        "wake_order": 2,
-        "wake_target": "player.self",
-        "description": "Swap the center wolf card with another player's card.",
-        "votes": 1,
-        "is_primary_team_role": True,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "swap_card",
-                "parameters": {"target_a": "center.bonus", "target_b": "player.other"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Paranormal Investigator",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "Look at up to two cards. If you see a werewolf, become one.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other", "count": 2},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "if",
-                "ability_type": "change_to_team",
-                "parameters": {"team": "werewolf"},
-                "condition_type": "only_if_team",
-                "condition_params": {"team": "werewolf"},
-                "is_required": True,
-            },
-            {
-                "order": 3,
-                "modifier": "and",
-                "ability_type": "stop",
-                "parameters": {},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins_as_current",
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Village Idiot",
-        "team": Team.VILLAGE,
-        "wake_order": 5,
-        "wake_target": "player.self",
-        "description": "You may rotate all player cards one position.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "rotate_all",
-                "parameters": {"direction": "left", "count": 1},
-                "is_required": False,
-            },
-            {
-                "order": 2,
-                "modifier": "or",
-                "ability_type": "rotate_all",
-                "parameters": {"direction": "right", "count": 1},
-                "is_required": False,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Aura Seer",
-        "team": Team.VILLAGE,
-        "wake_order": 7,
-        "wake_target": "player.self",
-        "description": "See who viewed or moved cards tonight.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "players.actions"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Apprentice Tanner",
-        "team": Team.NEUTRAL,
-        "wake_order": 2,
-        "wake_target": "player.self",
-        "description": "See who the Tanner is. You win if Tanner is eliminated.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "role.tanner"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "special_win_alive",
-                "condition_params": {"role": "tanner", "eliminated": True},
-                "is_primary": True,
-                "overrides_team": True,
-            }
-        ],
-    },
-    {
-        "name": "Beholder",
-        "team": Team.VILLAGE,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "You see who the Seer and Apprentice Seer are.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "role.seer"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "role.apprentice_seer"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Squire",
-        "team": Team.WEREWOLF,
-        "wake_order": 2,
-        "wake_target": "player.self",
-        "description": "See who wolves are and view one of their cards.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "team.werewolf"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "view_card",
-                "parameters": {"target": "role.werewolf"},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "werewolf"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Thing",
-        "team": Team.VILLAGE,
-        "wake_order": 8,
-        "wake_target": "player.self",
-        "description": "Tap an adjacent player to let them know you exist.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "touch",
-                "parameters": {
-                    "who": "player.self",
-                    "target": "player.adjacent",
-                    "location": "adjacent",
-                },
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Cow",
-        "team": Team.VILLAGE,
-        "wake_order": 1,
-        "wake_target": "team.alien",
-        "description": "Wake when aliens wake. Adjacent aliens must tip you.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "thumbs_up",
-                "parameters": {"target": "role.cow"},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "if",
-                "ability_type": "touch",
-                "parameters": {
-                    "who": "team.alien",
-                    "target": "role.cow",
-                    "location": "adjacent",
-                },
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "team_wins",
-                "condition_params": {"team": "village"},
-                "is_primary": True,
-                "overrides_team": False,
-            }
-        ],
-    },
-    {
-        "name": "Mortician",
-        "team": Team.NEUTRAL,
-        "wake_order": 4,
-        "wake_target": "player.self",
-        "description": "Randomly view cards and may join viewed roles.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other", "random": [0, 1]},
-                "is_required": True,
-            },
-            {
-                "order": 2,
-                "modifier": "and",
-                "ability_type": "view_card",
-                "parameters": {"target": "player.other", "random": [0, 1]},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "special_win_alive",
-                "condition_params": {"with": "viewed_players"},
-                "is_primary": True,
-                "overrides_team": True,
-            }
-        ],
-    },
-    {
-        "name": "Blob",
-        "team": Team.NEUTRAL,
-        "wake_order": 10,
-        "wake_target": "player.self",
-        "description": "Absorb 2-4 adjacent players. You all win together.",
-        "votes": 1,
-        "ability_steps": [
-            {
-                "order": 1,
-                "modifier": "none",
-                "ability_type": "random_num_players",
-                "parameters": {"options": [2, 3, 4]},
-                "is_required": True,
-            },
-        ],
-        "win_conditions": [
-            {
-                "condition_type": "self_must_live",
-                "is_primary": True,
-                "overrides_team": True,
-            },
-            {
-                "condition_type": "special_win_alive",
-                "condition_params": {"with": "absorbed_players"},
-                "is_primary": False,
-                "overrides_team": True,
-            },
-        ],
-    },
-]
+DATA_FILE = Path(__file__).parent / "data" / "roles.json"
+
+RoleData = dict[str, Any]
+RoleDependencyData = tuple[str, str, DependencyType]
+
+
+class SeedDataError(RuntimeError):
+    """Raised when the seed data file is missing, malformed, or inconsistent.
+
+    Loading fails before any database work begins, so a bad data file can
+    never produce a partial seed.
+    """
+
+
+def _read_data_file(path: Path) -> dict[str, Any]:
+    """Read and parse the seed data file.
+
+    Args:
+        path: Path to the JSON data file.
+
+    Returns:
+        The parsed top-level object.
+
+    Raises:
+        SeedDataError: If the file is missing, unreadable, not valid JSON, or
+            not a JSON object.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SeedDataError(f"Seed data file not found: {path}") from exc
+    except OSError as exc:
+        raise SeedDataError(f"Seed data file could not be read: {path}") from exc
+
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SeedDataError(f"Seed data file is not valid JSON: {path}: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise SeedDataError(
+            f"Seed data file must contain a JSON object: {path}",
+        )
+    return payload
+
+
+def _require_list(payload: dict[str, Any], key: str, path: Path) -> list[Any]:
+    """Return a required list-valued section of the data file.
+
+    Args:
+        payload: The parsed data file.
+        key: The section name.
+        path: Path to the data file, for error messages.
+
+    Returns:
+        The section's list value.
+
+    Raises:
+        SeedDataError: If the section is absent or is not a list.
+    """
+    section = payload.get(key)
+    if not isinstance(section, list):
+        raise SeedDataError(
+            f"Seed data file must contain a {key!r} list: {path}",
+        )
+    return section
+
+
+def _parse_role(role: Any, path: Path) -> RoleData:
+    """Validate one role entry and reconstruct its enum-valued fields.
+
+    Args:
+        role: The raw role entry.
+        path: Path to the data file, for error messages.
+
+    Returns:
+        The role dict with ``team`` reconstructed as a ``Team`` member.
+
+    Raises:
+        SeedDataError: If the entry is malformed or references unknown enum
+            values or unknown ability types.
+    """
+    if not isinstance(role, dict):
+        raise SeedDataError(f"Seed role entries must be objects: {path}")
+
+    name = role.get("name")
+    if not isinstance(name, str) or not name:
+        raise SeedDataError(f"Seed role is missing a 'name': {path}")
+
+    try:
+        team = Team(role["team"])
+    except KeyError as exc:
+        raise SeedDataError(f"Role {name!r} is missing 'team'") from exc
+    except ValueError as exc:
+        raise SeedDataError(
+            f"Role {name!r} has unknown team {role['team']!r}",
+        ) from exc
+
+    known_ability_types = {ability["type"] for ability in ABILITIES_DATA}
+    for step in role.get("ability_steps", []):
+        modifier = step.get("modifier")
+        try:
+            StepModifier(modifier)
+        except ValueError as exc:
+            raise SeedDataError(
+                f"Role {name!r} step {step.get('order')} has unknown "
+                f"modifier {modifier!r}",
+            ) from exc
+
+        ability_type = step.get("ability_type")
+        if ability_type not in known_ability_types:
+            raise SeedDataError(
+                f"Role {name!r} step {step.get('order')} references unknown "
+                f"ability_type {ability_type!r}",
+            )
+
+    return {**role, "team": team}
+
+
+def _parse_dependency(
+    dependency: Any,
+    role_names: set[str],
+    path: Path,
+) -> RoleDependencyData:
+    """Validate one dependency entry and reconstruct its enum-valued field.
+
+    Args:
+        dependency: The raw dependency entry.
+        role_names: Names of every role defined in the data file.
+        path: Path to the data file, for error messages.
+
+    Returns:
+        A ``(source, target, DependencyType)`` tuple.
+
+    Raises:
+        SeedDataError: If the entry is malformed, names an unknown dependency
+            type, or points at a role that is not defined in the data file.
+    """
+    if not isinstance(dependency, dict):
+        raise SeedDataError(f"Seed dependency entries must be objects: {path}")
+
+    source = dependency.get("source")
+    target = dependency.get("target")
+    for label, value in (("source", source), ("target", target)):
+        if not isinstance(value, str):
+            raise SeedDataError(f"Seed dependency is missing {label!r}: {path}")
+        if value not in role_names:
+            raise SeedDataError(
+                f"Dependency {source!r} -> {target!r} names undefined "
+                f"role {value!r}",
+            )
+
+    try:
+        dep_type = DependencyType(dependency["dependency_type"])
+    except KeyError as exc:
+        raise SeedDataError(
+            f"Dependency {source!r} -> {target!r} is missing 'dependency_type'",
+        ) from exc
+    except ValueError as exc:
+        raise SeedDataError(
+            f"Dependency {source!r} -> {target!r} has unknown dependency_type "
+            f"{dependency['dependency_type']!r}",
+        ) from exc
+
+    return (str(source), str(target), dep_type)
+
+
+def load_seed_data(
+    path: Path = DATA_FILE,
+) -> tuple[list[RoleData], list[RoleDependencyData]]:
+    """Load and validate the official role seed data.
+
+    Validation is exhaustive and happens up front: a missing file, malformed
+    JSON, an unknown enum value, or a dangling role/ability reference raises
+    before any seeding is attempted.
+
+    Args:
+        path: Path to the JSON data file. Defaults to the file shipped with
+            this package.
+
+    Returns:
+        A ``(roles, role_dependencies)`` pair.
+
+    Raises:
+        SeedDataError: If the data file is missing, malformed, or inconsistent.
+    """
+    payload = _read_data_file(path)
+
+    raw_roles = _require_list(payload, "roles", path)
+    raw_dependencies = _require_list(payload, "role_dependencies", path)
+
+    roles = [_parse_role(role, path) for role in raw_roles]
+
+    role_names = {role["name"] for role in roles}
+    if len(role_names) != len(roles):
+        raise SeedDataError(f"Seed data file contains duplicate role names: {path}")
+
+    dependencies = [
+        _parse_dependency(dependency, role_names, path)
+        for dependency in raw_dependencies
+    ]
+
+    return roles, dependencies
+
+
+# 30 Official Roles from One Night Ultimate Werewolf, plus the dependencies
+# between them. (source_role_name, target_role_name, dependency_type)
+ROLES_DATA, ROLE_DEPENDENCIES_DATA = load_seed_data()
 
 
 def seed_roles(db: Session) -> int:
@@ -1008,21 +325,6 @@ def seed_roles(db: Session) -> int:
 
     db.commit()
     return created_count
-
-
-# Dependencies between official roles
-# (source_role_name, target_role_name, dependency_type)
-ROLE_DEPENDENCIES_DATA = [
-    ("Apprentice Tanner", "Tanner", DependencyType.REQUIRES),
-    ("Minion", "Werewolf", DependencyType.RECOMMENDS),
-    ("Mystic Wolf", "Werewolf", DependencyType.RECOMMENDS),
-    ("Dream Wolf", "Werewolf", DependencyType.RECOMMENDS),
-    ("Alpha Wolf", "Werewolf", DependencyType.RECOMMENDS),
-    ("Squire", "Werewolf", DependencyType.RECOMMENDS),
-    ("Paranormal Investigator", "Werewolf", DependencyType.RECOMMENDS),
-    ("Beholder", "Seer", DependencyType.RECOMMENDS),
-    ("Beholder", "Apprentice Seer", DependencyType.RECOMMENDS),
-]
 
 
 def seed_role_dependencies(db: Session) -> int:
