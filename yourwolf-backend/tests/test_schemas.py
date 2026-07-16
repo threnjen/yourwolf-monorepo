@@ -4,15 +4,52 @@ import uuid
 from datetime import datetime
 
 import pytest
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from app.models.ability import Ability
+from app.models.ability_step import StepModifier
 from app.models.game_session import GamePhase
 from app.models.role import Team, Visibility
 from app.schemas.game import GameSessionCreate, GameSessionResponse
 from app.schemas.role import (
+    AbilityStepCreateInRole,
+    AbilityStepInRole,
     RoleCreate,
     RoleListItem,
     RoleUpdate,
 )
-from pydantic import ValidationError
+
+
+class TestSchemaBarrel:
+    """Tests that app.schemas barrel matches the live schema surface."""
+
+    def test_exports_narrator_preview_schemas(self) -> None:
+        """AC1: narrator-preview schemas are importable from the barrel."""
+        import app.schemas as barrel
+
+        for name in (
+            "NarratorPreviewAction",
+            "NarratorPreviewResponse",
+            "PreviewScriptRequest",
+        ):
+            assert name in barrel.__all__
+            assert getattr(barrel, name) is not None
+
+    def test_does_not_export_dead_ability_step_schemas(self) -> None:
+        """AC2: deleted dead classes are gone from the barrel."""
+        import app.schemas as barrel
+
+        for name in ("AbilityStepBase", "AbilityStepCreate", "AbilityStepRead"):
+            assert name not in barrel.__all__
+            assert not hasattr(barrel, name)
+
+    def test_dead_classes_removed_from_ability_module(self) -> None:
+        """AC2: dead classes no longer exist in app.schemas.ability."""
+        import app.schemas.ability as ability_schemas
+
+        for name in ("AbilityStepBase", "AbilityStepCreate", "AbilityStepRead"):
+            assert not hasattr(ability_schemas, name)
 
 
 class TestRoleCreateSchema:
@@ -106,6 +143,113 @@ class TestRoleCreateSchema:
                 team=Team.VILLAGE,
                 votes=15,
             )
+
+
+class TestAbilityStepModifierTyping:
+    """AC3: `modifier` is typed as StepModifier at the schema boundary."""
+
+    @staticmethod
+    def _step(modifier: object) -> dict:
+        return {"ability_type": "kill", "order": 1, "modifier": modifier}
+
+    def test_invalid_modifier_rejected_on_role_create(self) -> None:
+        """AC3: an invalid modifier fails validation instead of reaching the service."""
+        with pytest.raises(ValidationError):
+            RoleCreate(
+                name="Bad Modifier",
+                description="Invalid step modifier",
+                team=Team.VILLAGE,
+                ability_steps=[self._step("bogus")],
+            )
+
+    def test_invalid_modifier_rejected_on_role_update(self) -> None:
+        """AC3: the same validation applies to updates."""
+        with pytest.raises(ValidationError):
+            RoleUpdate(ability_steps=[self._step("bogus")])
+
+    @pytest.mark.parametrize("value", ["none", "and", "or", "if"])
+    def test_valid_modifier_values_accepted(self, value: str) -> None:
+        """AC3: every StepModifier value is still accepted as a bare string."""
+        role = RoleCreate(
+            name="Good Modifier",
+            description="Valid step modifier",
+            team=Team.VILLAGE,
+            ability_steps=[self._step(value)],
+        )
+        assert role.ability_steps[0].modifier == StepModifier(value)
+
+    def test_modifier_defaults_to_none_enum(self) -> None:
+        """AC3: the default stays equivalent to 'none'."""
+        role = RoleCreate(
+            name="Default Modifier",
+            description="Omitted step modifier",
+            team=Team.VILLAGE,
+            ability_steps=[{"ability_type": "kill", "order": 1}],
+        )
+        assert role.ability_steps[0].modifier is StepModifier.NONE
+
+    def test_modifier_serializes_to_bare_string(self) -> None:
+        """AC4: JSON serialization is unchanged (str-enum -> bare string)."""
+        role = RoleCreate(
+            name="Serialize",
+            description="Check serialization",
+            team=Team.VILLAGE,
+            ability_steps=[self._step("and")],
+        )
+        dumped = role.model_dump(mode="json")
+        assert dumped["ability_steps"][0]["modifier"] == "and"
+
+    def test_ability_step_in_role_serializes_to_bare_string(self) -> None:
+        """AC4: read-side schema also serializes modifier as a bare string."""
+        step = AbilityStepInRole(
+            id=uuid.uuid4(),
+            ability_id=uuid.uuid4(),
+            order=1,
+            modifier="or",
+            is_required=True,
+            parameters={},
+        )
+        assert step.model_dump(mode="json")["modifier"] == "or"
+
+    def test_ability_step_in_role_rejects_invalid_modifier(self) -> None:
+        """AC3: read-side schema rejects values outside the enum."""
+        with pytest.raises(ValidationError):
+            AbilityStepInRole(
+                id=uuid.uuid4(),
+                ability_id=uuid.uuid4(),
+                order=1,
+                modifier="bogus",
+                is_required=True,
+                parameters={},
+            )
+
+    def test_openapi_exposes_modifier_enum_values(self) -> None:
+        """AC3: the valid value set appears in the OpenAPI/JSON schema contract."""
+        schema = AbilityStepCreateInRole.model_json_schema()
+        defs = schema.get("$defs", {})
+        assert "StepModifier" in defs
+        assert set(defs["StepModifier"]["enum"]) == {"none", "and", "or", "if"}
+
+    def test_invalid_modifier_returns_422_at_api_boundary(
+        self, client: TestClient, sample_abilities: list[Ability]
+    ) -> None:
+        """AC3: invalid modifier is rejected with 422, not an unwrapped 500."""
+        response = client.post(
+            "/api/v1/roles/",
+            json={
+                "name": "Boundary Role",
+                "description": "Invalid step modifier",
+                "team": Team.VILLAGE.value,
+                "ability_steps": [
+                    {
+                        "ability_type": sample_abilities[0].type,
+                        "order": 1,
+                        "modifier": "bogus",
+                    }
+                ],
+            },
+        )
+        assert response.status_code == 422
 
 
 class TestRoleUpdateSchema:

@@ -1,11 +1,6 @@
 """Pydantic schemas package."""
 
-from app.schemas.ability import (
-    AbilityCreate,
-    AbilityRead,
-    AbilityStepCreate,
-    AbilityStepRead,
-)
+from app.schemas.ability import AbilityCreate, AbilityRead
 from app.schemas.base import PaginatedResponse
 from app.schemas.game import (
     GameRoleResponse,
@@ -19,6 +14,9 @@ from app.schemas.game import (
 from app.schemas.role import (
     AbilityStepCreateInRole,
     AbilityStepInRole,
+    NarratorPreviewAction,
+    NarratorPreviewResponse,
+    PreviewScriptRequest,
     RoleCreate,
     RoleDependencyResponse,
     RoleListItem,
@@ -34,18 +32,19 @@ from app.schemas.role import (
 __all__ = [
     "AbilityCreate",
     "AbilityRead",
-    "AbilityStepCreate",
     "AbilityStepCreateInRole",
     "AbilityStepInRole",
-    "AbilityStepRead",
     "GameRoleResponse",
     "GameSessionCreate",
     "GameSessionListResponse",
     "GameSessionPaginatedResponse",
     "GameSessionResponse",
     "NarratorAction",
+    "NarratorPreviewAction",
+    "NarratorPreviewResponse",
     "NightScript",
     "PaginatedResponse",
+    "PreviewScriptRequest",
     "RoleCreate",
     "RoleDependencyResponse",
     "RoleListItem",
