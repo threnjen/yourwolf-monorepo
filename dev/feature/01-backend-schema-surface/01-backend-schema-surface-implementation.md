@@ -114,7 +114,7 @@ StepModifier.NONE != "none"   -> False                        # role_service.py:
 - **`app/schemas/ability.py` `modifier` retype skipped (AC3).** The plan hedged this as "if the class survives AC2". It did not — the field belonged to `AbilityStepBase`, deleted by AC2. AC3 therefore reduced to `role.py` only. This matches the context Discovery Delta.
 - **No test updates needed for AC2.** The plan's "existing tests to update" item was a no-op; `tests/test_schemas.py` never referenced the deleted classes. Confirmed by grep. New regression guards were added instead.
 - **`role_service.py:335` left as-is, not simplified.** The plan permitted either. Left unchanged to honor the "no changes to services beyond what AC3 requires" constraint; verified still correct (evidence above).
-- **Added an API-level 422 test.** The plan's must-have test allowed "ValidationError / 422 at the API boundary". Both are covered: schema-level `ValidationError` tests plus one `TestClient` test asserting a real 422 through `POST /api/v1/roles/`, since AC3's stated benefit is specifically the 500→422 boundary change.
+- **Added an API-level 422 test.** The plan's must-have test allowed "ValidationError / 422 at the API boundary". Both are covered: schema-level `ValidationError` tests plus one `TestClient` test asserting a real 422 through `POST /api/v1/roles/`, since AC3's stated benefit is specifically the 400→422 boundary change.
 - **`isort` reflow applied** to `app/schemas/role.py` and `tests/test_schemas.py` after adding imports, per the repo's configured `isort` (profile black).
 
 ## Gaps
@@ -125,7 +125,7 @@ StepModifier.NONE != "none"   -> False                        # role_service.py:
 ## Reviewer Focus Areas
 
 - **`app/schemas/role.py:50` and `:110`** — the `str` → `StepModifier` retype. Confirm the `AbilityStepInRole` (read-side) change is safe given it is populated `from_attributes` off the ORM model, whose `modifier` column is already a `StepModifier`.
-- **Intended 500 → 422 behavior change** — any client previously sending an out-of-enum `modifier` now gets a 422. Verify this is acceptable to the frontend (note: feature 11 `frontend-type-split` and feature 08 `frontend-abilities-step` touch role/ability step types).
+- **Intended 400 → 422 behavior change** — any client previously sending an out-of-enum `modifier` previously got a 400 (`ValueError` re-raised by `app/routers/roles.py`) and now gets a 422 with a structured `detail` list instead of a string. Verify this is acceptable to the frontend (note: feature 11 `frontend-type-split` and feature 08 `frontend-abilities-step` touch role/ability step types).
 - **`role_service.py:440` `first_step.modifier != "none"`** — relies on `StepModifier` being a `str`-subclass enum for the comparison to keep working. Verified `False`, but it is now an implicit str-enum dependency worth a look.
 - **`app/schemas/ability.py`** — confirm the remaining imports (`Any`, `UUID`, `datetime`, `ConfigDict`, `Field`, `BaseModel`) are all still used after the 36-line deletion (they are; `black`/`isort` clean).
 - **Concurrent sibling edits** — feature 02 modified `app/models/ability_step.py` (the source of `StepModifier`) during this run. Worth a final confirmation that `StepModifier` values are unchanged at merge time.

@@ -94,6 +94,6 @@ verification could not be executed, or (b) the evidence exists only outside a re
 
 ## Summary
 
-- Total ACs classified: 62
-- Manual QA needed: 11 (2 highest-priority, 4 confirm-intent-only, 5 walkthrough/thin)
-- Manual QA not needed: 51
+- Total ACs classified: 69
+- Manual QA needed: 11 (1 highest-priority, 3 confirm-intent-only, 7 walkthrough/thin)
+- Manual QA not needed: 58

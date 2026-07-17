@@ -60,15 +60,19 @@ See [PROJECT_SETUP.md](docs/PROJECT_SETUP.md) for first-time installation and [L
 yourwolf-monorepo/
 ├── yourwolf-backend/     Python 3.14, FastAPI, SQLAlchemy, PostgreSQL
 │   ├── app/              Application code (models, routers, schemas, services, seed)
+│   │   ├── services/narration/   Pure night-script generation (no DB)
+│   │   └── seed/data/            Seed role definitions as JSON
 │   ├── alembic/          Database migrations
 │   └── tests/            Pytest suite (SQLite in-memory, 80% coverage threshold)
 ├── yourwolf-frontend/    React 18, TypeScript, Vite
 │   ├── src/api/          Axios API clients
 │   ├── src/components/   Reusable UI components
+│   ├── src/domain/       Pure game rules — no React, no API (Phase 04 engine contract)
 │   ├── src/hooks/        Custom React hooks
 │   ├── src/pages/        Route-level page components
-│   ├── src/types/        TypeScript type definitions
-│   └── src/test/         Vitest suite (jsdom, 80% coverage threshold)
+│   ├── src/types/        Transport DTOs and router state types
+│   ├── src/utils/        Formatting and sorting helpers
+│   └── src/test/         Vitest suite (jsdom, 80% coverage threshold; mirrors src/)
 └── docs/                 Planning documents, phase specs, data model reference
     └── phases/           Per-phase summary documents
 ```
@@ -108,5 +112,5 @@ yourwolf-monorepo/
 | [12](docs/phases/PHASE_12/) | Analytics & Balance | Planned |
 | [13](docs/phases/PHASE_13/) | Production Deployment | Planned |
 
-See [PHASES_OVERVIEW.md](docs/phases/PHASES_OVERVIEW.md) for the full roadmap with dependencies and architecture notes.
+See [PROJECT_ROADMAP.md](docs/phases/PROJECT_ROADMAP.md) for the full roadmap with dependencies and architecture notes.
 

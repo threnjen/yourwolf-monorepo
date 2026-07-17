@@ -36,6 +36,7 @@ flowchart LR
         Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useNameCheck, useFetch"]
         API["API Clients<br>client.ts, games.ts,<br>roles.ts, abilities.ts,<br>errors.ts"]
         Types["Types<br>game.ts, transport.ts,<br>routerState.ts"]
+        Domain["Domain (pure TS)<br>teams, constants, roleDraft,<br>roleSelection, abilitySteps,<br>wakeOrder"]
         Styles["Styles<br>theme.ts, shared.ts"]
 
         Pages --> Components
@@ -44,6 +45,9 @@ flowchart LR
         Pages --> Types
         Components --> Types
         API --> Types
+        Pages --> Domain
+        Components --> Domain
+        Types --> Domain
         Pages --> Styles
         Components --> Styles
     end
@@ -52,16 +56,24 @@ flowchart LR
         direction TB
         Routers["Routers<br>/api/v1/roles<br>/api/v1/abilities<br>/api/v1/games<br>/health"]
         Services["Services<br>RoleService<br>GameService<br>ScriptService<br>AbilityService"]
-        Models["Models<br>Role, Ability, AbilityStep,<br>GameSession, GameRole,<br>RoleDependency, WinCondition, User"]
+        Validators["Validators and Helpers<br>role_validation<br>game_setup_validation<br>pagination"]
+        Narration["Narration (pure)<br>inputs, templates,<br>script_builder"]
+        Exceptions["Exceptions<br>NotFoundError<br>DomainValidationError<br>LockedError"]
+        Models["Models<br>base.Base, Role, Ability, AbilityStep,<br>GameSession, GameRole,<br>RoleDependency, WinCondition, User"]
         Schemas["Schemas<br>role.py, game.py,<br>ability.py, base.py"]
-        Seed["Seed<br>abilities.py, roles.py"]
+        Seed["Seed<br>abilities.py, roles.py loader<br>data/roles.json"]
 
         Routers --> Services
+        Services --> Validators
+        Services --> Narration
+        Services --> Exceptions
         Services --> Models
         Routers --> Schemas
         Services --> Schemas
         Seed --> Models
     end
+
+    Main["main.py<br>exception handlers"] -.->|"maps DomainError<br>to HTTP status"| Exceptions
 
     API -->|"Axios HTTP<br>/api/v1/*"| Routers
     Models --> DB[(PostgreSQL)]
@@ -75,16 +87,41 @@ flowchart LR
 |-------|-----------|----------------|
 | Routers | `app/routers/` | HTTP endpoints, request/response handling, dependency injection |
 | Services | `app/services/` | Business logic, validation, orchestration |
-| Models | `app/models/` | SQLAlchemy ORM models, enums (`Team`, `Visibility`, `GamePhase`, `StepModifier`) |
+| Narration | `app/services/narration/` | Pure narrator copy generation — no DB, ORM, or session |
+| Exceptions | `app/exceptions.py` | Domain error vocabulary; no framework imports |
+| Models | `app/models/` | SQLAlchemy ORM models, enums (`Team`, `Visibility`, `GamePhase`, `StepModifier`); `base.py` holds `Base` |
 | Schemas | `app/schemas/` | Pydantic models for request/response serialization |
-| Seed | `app/seed/` | Idempotent seed data loader (15 abilities, 30 base roles) |
+| Seed | `app/seed/` | Idempotent seed loader (15 abilities inline, 30 roles from `data/roles.json`) |
+
+### Configuration and Database Access
+
+`app/config.py` and `app/database.py` expose cached accessors rather than module-level globals:
+
+- `get_settings()`, `get_engine()`, `get_session_factory()` — each wrapped in `functools.cache`, constructed on first use.
+- `Base` lives in `app/models/base.py` so importing a model never triggers engine creation. It is re-exported from `app.database` for compatibility.
+
+This removes the import-order hazard that previously forced tests to mutate `os.environ` before importing any app module.
+
+### Error Handling
+
+Services raise typed exceptions from `app/exceptions.py`. `app/main.py` registers a handler per type, mapping each to a status code and returning the message as `detail`. Routers therefore contain no prose-matching status logic.
+
+| Exception | Status |
+|-----------|--------|
+| `NotFoundError` | 404 |
+| `DomainValidationError` | 400 |
+| `LockedError` | 403 |
+
+Unregistered exceptions are left to the framework's 500 path. Schema-level violations (field bounds, enum coercion) are handled by FastAPI and return 422.
 
 ### Key Services
 
-- **ScriptService** (`script_service.py`, ~540 lines): Night script generation. Takes a game session, resolves wake order, generates `NarratorAction[]` with instructions from 15 ability type templates. Also provides `preview_role_script()` for the Role Builder.
-- **GameService** (`game_service.py`): Game session lifecycle — create, start, advance phase, validate card counts and dependencies, shuffle role assignments.
-- **RoleService** (`role_service.py`): Role CRUD, validation, duplicate name checking, dependency management.
+- **ScriptService** (`script_service.py`, ~195 lines): Persistence and adaptation only. Loads the game's waking roles, adapts ORM objects and preview payloads into narration input dataclasses, and delegates script assembly to `app/services/narration/`.
+- **narration package**: Pure functions over frozen input dataclasses (`RoleScriptInput`, `AbilityStepInput`). `templates.py` holds `STEP_DURATIONS`, the 15 ability-type instruction templates, and wake instructions; `script_builder.py` assembles night scripts and previews. This package is the reference implementation for the Phase 04 TypeScript port — its purity is what makes the port a transcription rather than a redesign.
+- **GameService** (`game_service.py`): Game session lifecycle — start, advance phase (`PHASE_ORDER`), shuffle role assignments, get/list/delete. Setup validation delegates to `game_setup_validation.py`.
+- **RoleService** (`role_service.py`): Role CRUD and persistence. Rule checking delegates to `role_validation.py`.
 - **AbilityService** (`ability_service.py`): Ability primitive queries.
+- **pagination.py**: Shared `paginate(query, page, limit)` → `PageMeta`, used by both list endpoints.
 
 ### Database
 
@@ -104,21 +141,45 @@ PostgreSQL 16 with SQLAlchemy ORM and Alembic migrations. Core tables:
 
 React Router v6 with these routes:
 
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/` | Home | Landing page |
-| `/roles` | Roles | Browse and filter all roles |
-| `/roles/new` | RoleBuilder | Step-by-step custom role creation wizard |
-| `/games/new` | GameSetup | Select roles, set player count, configure timer |
-| `/games/new/wake-order` | WakeOrderResolution | Drag-to-reorder roles within wake groups |
-| `/games/:gameId` | GameFacilitator | Run a game through all phases |
+| Route | Page Component | Source File | Purpose |
+|-------|---------------|-------------|---------|
+| `/` | `HomePage` | `pages/HomePage.tsx` | Landing page |
+| `/roles` | `RolesPage` | `pages/RolesPage.tsx` | Browse and filter all roles |
+| `/roles/new` | `RoleBuilderPage` | `pages/RoleBuilder.tsx` | Step-by-step custom role creation wizard |
+| `/games/new` | `GameSetupPage` | `pages/GameSetup.tsx` | Select roles, set player count, configure timer |
+| `/games/new/wake-order` | `WakeOrderResolutionPage` | `pages/WakeOrderResolution.tsx` | Drag-to-reorder roles within wake groups |
+| `/games/:gameId` | `GameFacilitatorPage` | `pages/GameFacilitator.tsx` | Run a game through all phases |
+
+### Domain Layer
+
+`src/domain/` holds the game's rules as pure TypeScript — role selection and card-count math, ability-step manipulation, wake-order grouping, and draft shapes — extracted out of React components. It has no React, no API, and no transport-DTO dependencies.
+
+Two reasons this layer exists:
+
+1. **Testability**: rules are exercised directly, without rendering a component.
+2. **Phase 04 contract**: it is the shape the TypeScript engine will consume, so the port does not have to reverse-engineer rules out of JSX.
+
+Purity is enforced by ESLint, not convention — see Import Boundaries below.
+
+### Import Boundaries
+
+`eslint.config.js` enforces layer direction with `no-restricted-imports`:
+
+| Layer | Must not import |
+|-------|-----------------|
+| `src/domain/**`, `src/engine/**` | `react`, `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` |
+| `src/components/**` | `src/api` — data arrives through hooks |
+
+Dependencies point inward: transport types may depend on domain types, never the reverse. Rules for `src/engine/` are already active even though the directory does not exist yet. The `react-hooks` plugin is also wired, with `exhaustive-deps` promoted to `error`.
 
 ### Data Flow
 
 1. **API Client** (`api/client.ts`): Axios instance pointing at `VITE_API_URL/api/v1`
 2. **Resource Clients** (`api/games.ts`, `api/roles.ts`, `api/abilities.ts`): Typed wrappers around API endpoints
-3. **Hooks** (`hooks/`): React hooks that call API clients and manage loading/error state via `useFetch`
-4. **Pages**: Consume hooks, render components, handle user actions
+3. **Error Adapter** (`api/errors.ts`): Reads FastAPI 422 detail arrays and domain-error string details into displayable messages
+4. **Hooks** (`hooks/`): React hooks that call API clients and manage loading/error state via `useFetch`
+5. **Domain** (`domain/`): Pure rule functions consumed by pages and components
+6. **Pages**: Consume hooks and domain rules, render components, handle user actions
 
 ### Styling
 
@@ -141,13 +202,19 @@ flowchart TD
 
 ### Night Script Generation
 
-The script engine (currently Python `ScriptService`, being ported to TypeScript in Phase 04):
+Split across two layers (the pure half is what Phase 04 ports to TypeScript):
 
+`ScriptService` (impure — DB and adaptation):
 1. Filters game roles to those with `wake_order > 0`
 2. Sorts by wake order (custom sequence overrides default)
-3. For each role: generates wake instruction → ability step instructions → close eyes
-4. Wraps with opening ("close your eyes") and closing ("open your eyes") narration
-5. Each action has timed duration based on ability type
+3. Adapts each ORM `Role` into a `RoleScriptInput`
+
+`app/services/narration/` (pure — no DB):
+4. For each role: wake instruction → ability step instructions → close eyes
+5. Wraps with opening ("close your eyes") and closing ("open your eyes") narration
+6. Assigns each action a duration from `STEP_DURATIONS` by ability type
+
+**Narrator copy is frozen.** It is reproduced verbatim from the pre-refactor implementation, including a known pluralization inconsistency (`thumbs_up` renders `team.werewolf` as "Werewolfs" while the wake instruction says "Werewolves"). This is pinned at the source and in `tests/test_narration_templates.py`, and the Phase 04 port must reproduce it — a correct port is one that matches, not one that improves. Changing copy is a separate, deliberate change that must update source, pinned tests, and the port together.
 
 ## Testing
 
@@ -156,12 +223,18 @@ The script engine (currently Python `ScriptService`, being ported to TypeScript 
 | Backend | pytest | `pyproject.toml` | 80% coverage, `--cov-fail-under=80` |
 | Frontend | Vitest | `vite.config.ts` | 80% lines/branches/functions/statements |
 
-Backend tests use an **in-memory SQLite** database (set via `conftest.py` overriding `DATABASE_URL`). Frontend tests use **jsdom** with `@testing-library/react` and mock Axios via `vi.mock`.
+Backend tests use an **in-memory SQLite** database. `conftest.py` sets `DATABASE_URL` and `ENVIRONMENT` in a `pytest_configure()` hook and clears the settings cache; because settings resolve lazily, this no longer depends on running before app imports.
+
+Frontend tests use **jsdom** with `@testing-library/react` and mock Axios via `vi.mock`. `src/test/` mirrors the source tree (`api/`, `hooks/`, `domain/`, `components/`, `pages/`, `utils/`), so a test's location is derivable from the module it covers.
 
 ## Key Design Decisions
 
 - **Offline-first**: Core game runs without internet. Backend is only for cloud features (auth, community, analytics) starting Phase 09.
 - **Ability composition**: Roles are built from 15 atomic ability primitives with AND/OR/IF sequencing, not hardcoded behaviors.
+- **Purity at the port boundary**: The logic Phase 04 must port (`app/services/narration/`, `src/domain/`) is kept free of framework, ORM, and transport dependencies. Both sides are enforced — Python by package discipline and dataclass-only inputs, TypeScript by ESLint import boundaries — so the port is a transcription rather than a rewrite.
+- **Lazy configuration**: Settings, engine, and session factory are cached accessors rather than import-time globals, so importing a module has no side effects and tests need no import-order choreography.
+- **Typed domain errors**: Services raise a small exception vocabulary; HTTP mapping is registered once in `app/main.py`. Status codes are a property of the error type, not of message wording.
+- **Seed data as data**: Role definitions live in `app/seed/data/roles.json`, not in Python, so the same file can ship with non-server distributions.
 - **Monorepo**: Backend and frontend in one repo with shared docs. Docker Compose for local orchestration.
 - **Tauri v2** (planned): Single codebase produces desktop (macOS/Windows) and mobile (iOS/Android) apps.
 - **Dual data path** (planned): SQLite for local/offline, PostgreSQL via FastAPI for cloud/online.
