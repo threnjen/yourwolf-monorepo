@@ -1,5 +1,6 @@
 import {useState} from 'react';
-import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../../types/role';
+import {ValidationResult, NarratorPreviewResponse} from '../../types/transport';
+import {RoleDraft} from '../../domain/roleDraft';
 import {theme} from '../../styles/theme';
 import {BasicInfoStep} from './steps/BasicInfoStep';
 import {AbilitiesStep} from './steps/AbilitiesStep';

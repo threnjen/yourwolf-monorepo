@@ -21,31 +21,15 @@ import {gamesApi} from '../api/games';
 import {theme, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
-import type {RoleListItem, Team} from '../types/role';
-
-interface WakeOrderRouterState {
-  playerCount: number;
-  centerCount: number;
-  timerSeconds: number;
-  selectedRoleCounts: Record<string, number>;
-  roles: RoleListItem[];
-}
-
-interface WakingRole {
-  id: string;
-  name: string;
-  team: Team;
-  wake_order: number;
-}
-
-function shuffleArray<T>(arr: T[]): T[] {
-  const shuffled = [...arr];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+import type {WakeOrderRouterState} from '../types/routerState';
+import {
+  collectWakingRoles,
+  getWakeGroupKeys,
+  buildGroupOrders,
+  flattenWakeOrder,
+  expandRoleIds,
+} from '../domain/wakeOrder';
+import type {WakingRole} from '../domain/wakeOrder';
 
 function SortableTile({role, disabled}: {role: WakingRole; disabled?: boolean}) {
   const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: role.id, disabled});
@@ -90,40 +74,18 @@ export function WakeOrderResolutionPage() {
     }
   }, [state, navigate]);
 
-  const wakingRoles: WakingRole[] = (() => {
-    if (!state) return [];
-    const seen = new Set<string>();
-    const result: WakingRole[] = [];
-    for (const [roleId, count] of Object.entries(state.selectedRoleCounts)) {
-      if (count <= 0) continue;
-      if (seen.has(roleId)) continue;
-      seen.add(roleId);
-      const role = state.roles.find((r) => r.id === roleId);
-      if (!role || !role.wake_order || role.wake_order <= 0) continue;
-      result.push({
-        id: role.id,
-        name: role.name,
-        team: role.team,
-        wake_order: role.wake_order,
-      });
-    }
-    result.sort((a, b) => a.wake_order - b.wake_order);
-    return result;
-  })();
+  const wakingRoles: WakingRole[] = state
+    ? collectWakingRoles(state.selectedRoleCounts, state.roles)
+    : [];
 
   const roleById = new Map(wakingRoles.map((r) => [r.id, r]));
 
-  // Group roles by wake_order, shuffle within each group on mount
-  const sortedGroupKeys = [...new Set(wakingRoles.map((r) => r.wake_order))].sort((a, b) => a - b);
+  const sortedGroupKeys = getWakeGroupKeys(wakingRoles);
 
-  const [groupOrders, setGroupOrders] = useState<Record<number, string[]>>(() => {
-    const groups: Record<number, string[]> = {};
-    for (const key of sortedGroupKeys) {
-      const ids = wakingRoles.filter((r) => r.wake_order === key).map((r) => r.id);
-      groups[key] = shuffleArray(ids);
-    }
-    return groups;
-  });
+  // Shuffled once on mount; drag-and-drop reorders within a group from there.
+  const [groupOrders, setGroupOrders] = useState<Record<number, string[]>>(() =>
+    buildGroupOrders(wakingRoles),
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -153,15 +115,8 @@ export function WakeOrderResolutionPage() {
     setSubmitting(true);
     setError(null);
 
-    const selectedRoleIds: string[] = [];
-    for (const [roleId, count] of Object.entries(state.selectedRoleCounts)) {
-      for (let i = 0; i < count; i++) {
-        selectedRoleIds.push(roleId);
-      }
-    }
-
-    // Flatten group orders into a single sequence, ordered by group number
-    const flatSequence = sortedGroupKeys.flatMap((key) => groupOrders[key] ?? []);
+    const selectedRoleIds = expandRoleIds(state.selectedRoleCounts);
+    const flatSequence = flattenWakeOrder(sortedGroupKeys, groupOrders);
 
     try {
       const game = await gamesApi.create({

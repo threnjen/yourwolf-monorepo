@@ -1,6 +1,6 @@
 import {useCallback, useMemo} from 'react';
 import {rolesApi} from '../api/roles';
-import {RoleListItem} from '../types/role';
+import {RoleListItem} from '../types/transport';
 import {useFetch} from './useFetch';
 
 interface UseRolesResult {

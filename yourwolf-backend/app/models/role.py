@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from app.database import Base
+from app.models.base import Base
 from app.models.types import UUID
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship

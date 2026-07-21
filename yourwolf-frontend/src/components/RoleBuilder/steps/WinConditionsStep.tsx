@@ -1,4 +1,4 @@
-import {RoleDraft, WinConditionDraft} from '../../../types/role';
+import {RoleDraft, WinConditionDraft} from '../../../domain/roleDraft';
 import {theme} from '../../../styles/theme';
 import {selectStyles} from '../../../styles/shared';
 

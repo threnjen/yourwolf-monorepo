@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {abilitiesApi} from '../api/abilities';
-import {Ability} from '../types/role';
+import {Ability} from '../types/transport';
 import {useFetch} from './useFetch';
 
 interface UseAbilitiesResult {

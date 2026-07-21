@@ -1,34 +1,10 @@
 import {apiClient} from './client';
-import type {
-  GameSession,
-  GameSessionCreate,
-  GameSessionListItem,
-  NightScript,
-} from '../types/game';
-
-interface GameListParams {
-  phase?: string;
-  page?: number;
-  limit?: number;
-}
-
-interface GameListResponse {
-  items: GameSessionListItem[];
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
+import type {GameSession, GameSessionCreate, NightScript} from '../types/game';
 
 export const gamesApi = {
   create: async (data: GameSessionCreate): Promise<GameSession> => {
     const {data: game} = await apiClient.post<GameSession>('/games', data);
     return game;
-  },
-
-  list: async (params?: GameListParams): Promise<GameSessionListItem[]> => {
-    const {data} = await apiClient.get<GameListResponse>('/games', {params});
-    return data.items;
   },
 
   getById: async (gameId: string): Promise<GameSession> => {

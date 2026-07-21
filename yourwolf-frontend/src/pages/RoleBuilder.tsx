@@ -1,28 +1,12 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {RoleDraft, ValidationResult, NarratorPreviewResponse} from '../types/role';
+import {ValidationResult, NarratorPreviewResponse} from '../types/transport';
 import {rolesApi} from '../api/roles';
+import {extractApiErrorMessages} from '../api/errors';
+import {createEmptyDraft, RoleDraft} from '../domain/roleDraft';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
-
-function createEmptyDraft(): RoleDraft {
-  const now = new Date().toISOString();
-  return {
-    id: crypto.randomUUID(),
-    name: '',
-    description: '',
-    team: 'village',
-    wake_order: 0,
-    wake_target: null,
-    votes: 1,
-    is_primary_team_role: false,
-    ability_steps: [],
-    win_conditions: [],
-    created_at: now,
-    updated_at: now,
-  };
-}
 
 export function RoleBuilderPage() {
   const navigate = useNavigate();
@@ -59,7 +43,15 @@ export function RoleBuilderPage() {
         if (validationSettled.status === 'fulfilled') {
           setValidation(validationSettled.value);
         } else {
-          setValidation({is_valid: false, errors: ['Validation service unavailable'], warnings: []});
+          // A rejection is not necessarily an outage: the server rejects a draft that
+          // breaks its schema (a too-short name, say) with a 422 describing the field.
+          // Show that where we have it, and keep the generic message for real failures.
+          const serverErrors = extractApiErrorMessages(validationSettled.reason);
+          setValidation({
+            is_valid: false,
+            errors: serverErrors ?? ['Validation service unavailable'],
+            warnings: [],
+          });
         }
       }
 

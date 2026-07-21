@@ -1,8 +1,10 @@
 """Role business logic service."""
 
-import math
 from uuid import UUID
 
+from sqlalchemy.orm import Session, joinedload, selectinload
+
+from app.exceptions import DomainValidationError, LockedError
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
@@ -18,8 +20,8 @@ from app.schemas.role import (
     RoleUpdate,
     WinConditionRead,
 )
-from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload, selectinload
+from app.services import role_validation
+from app.services.pagination import paginate
 
 
 class RoleService:
@@ -75,12 +77,7 @@ class RoleService:
             else:
                 query = query.filter(Role.visibility == visibility)
 
-        # Get total count
-        total = query.count()
-
-        # Calculate pagination
-        pages = math.ceil(total / limit) if total > 0 else 1
-        offset = (page - 1) * limit
+        meta = paginate(query, page, limit)
 
         # Get paginated results with eager-loaded dependencies
         roles = (
@@ -90,7 +87,7 @@ class RoleService:
                 ),
             )
             .order_by(Role.name)
-            .offset(offset)
+            .offset(meta.offset)
             .limit(limit)
             .all()
         )
@@ -120,10 +117,10 @@ class RoleService:
 
         return RoleListResponse(
             items=items,
-            total=total,
-            page=page,
-            limit=limit,
-            pages=pages,
+            total=meta.total,
+            page=meta.page,
+            limit=meta.limit,
+            pages=meta.pages,
         )
 
     def get_role(self, role_id: UUID) -> RoleRead | None:
@@ -201,12 +198,23 @@ class RoleService:
     def create_role(self, role_data: RoleCreate) -> RoleRead:
         """Create a new role with ability steps and win conditions.
 
+        Runs the same rule evaluation as :meth:`validate_role` so that
+        ``POST /roles`` can never accept a payload ``POST /roles/validate``
+        rejects — one rule set, two reporting modes (list vs. raise).
+
         Args:
             role_data: Role creation data.
 
         Returns:
             Created role with full details.
+
+        Raises:
+            DomainValidationError: If the payload violates any role rule.
         """
+        errors = self.validate_role(role_data)
+        if errors:
+            raise DomainValidationError("; ".join(errors))
+
         # Create the role
         role = Role(
             name=role_data.name,
@@ -226,14 +234,10 @@ class RoleService:
         self.db.flush()  # Get the role ID
 
         # Create ability steps and win conditions via shared helpers
-        steps_data = [
-            s.model_dump() for s in role_data.ability_steps
-        ]
+        steps_data = [s.model_dump() for s in role_data.ability_steps]
         self._create_ability_steps(role.id, steps_data)
 
-        wc_data = [
-            wc.model_dump() for wc in role_data.win_conditions
-        ]
+        wc_data = [wc.model_dump() for wc in role_data.win_conditions]
         self._create_win_conditions(role.id, wc_data)
 
         self.db.commit()
@@ -255,7 +259,7 @@ class RoleService:
             Updated role with full details or None if not found.
 
         Raises:
-            PermissionError: If role is locked and cannot be modified.
+            LockedError: If role is locked and cannot be modified.
         """
         role = self.db.query(Role).filter(Role.id == role_id).first()
         if not role:
@@ -263,9 +267,7 @@ class RoleService:
 
         # Check if role is locked
         if role.is_locked:
-            raise PermissionError(
-                f"Role '{role.name}' is locked and cannot be modified"
-            )
+            raise LockedError(f"Role '{role.name}' is locked and cannot be modified")
 
         # Update fields that are provided
         update_data = role_data.model_dump(exclude_unset=True)
@@ -298,9 +300,7 @@ class RoleService:
 
         return self.get_role(role.id)
 
-    def _create_ability_steps(
-        self, role_id: UUID, steps_data: list[dict]
-    ) -> None:
+    def _create_ability_steps(self, role_id: UUID, steps_data: list[dict]) -> None:
         """Batch-query abilities and create AbilityStep objects.
 
         Args:
@@ -308,7 +308,7 @@ class RoleService:
             steps_data: List of step dicts with ability_type, order, etc.
 
         Raises:
-            ValueError: If an ability type is unknown.
+            DomainValidationError: If an ability type is unknown.
         """
         step_types = [s["ability_type"] for s in steps_data]
         ability_map = (
@@ -325,7 +325,7 @@ class RoleService:
         for step_data in steps_data:
             ability = ability_map.get(step_data["ability_type"])
             if not ability:
-                raise ValueError(
+                raise DomainValidationError(
                     f"Unknown ability type: '{step_data['ability_type']}'"
                 )
             step = AbilityStep(
@@ -340,9 +340,7 @@ class RoleService:
             )
             self.db.add(step)
 
-    def _create_win_conditions(
-        self, role_id: UUID, wc_data: list[dict]
-    ) -> None:
+    def _create_win_conditions(self, role_id: UUID, wc_data: list[dict]) -> None:
         """Create WinCondition objects for a role.
 
         Args:
@@ -369,7 +367,7 @@ class RoleService:
             True if deleted, False if not found.
 
         Raises:
-            PermissionError: If role is locked and cannot be deleted.
+            LockedError: If role is locked or official and cannot be deleted.
         """
         role = self.db.query(Role).filter(Role.id == role_id).first()
         if not role:
@@ -377,11 +375,11 @@ class RoleService:
 
         # Check if role is locked
         if role.is_locked:
-            raise PermissionError(f"Role '{role.name}' is locked and cannot be deleted")
+            raise LockedError(f"Role '{role.name}' is locked and cannot be deleted")
 
         # Official roles cannot be deleted
         if role.visibility == Visibility.OFFICIAL:
-            raise PermissionError("Cannot delete official roles")
+            raise LockedError("Cannot delete official roles")
 
         self.db.delete(role)
         self.db.commit()
@@ -399,13 +397,7 @@ class RoleService:
         Returns:
             True if a duplicate exists, False otherwise.
         """
-        query = self.db.query(Role).filter(
-            func.lower(Role.name) == name.strip().lower(),
-            Role.visibility.in_([Visibility.PUBLIC, Visibility.OFFICIAL]),
-        )
-        if exclude_role_id is not None:
-            query = query.filter(Role.id != exclude_role_id)
-        return query.first() is not None
+        return role_validation.check_duplicate_name(self.db, name, exclude_role_id)
 
     def validate_role(
         self, data: RoleCreate, exclude_role_id: UUID | None = None
@@ -419,70 +411,7 @@ class RoleService:
         Returns:
             List of human-readable error strings. Empty list means valid.
         """
-        errors: list[str] = []
-
-        # AC3 — name length
-        name = data.name.strip()
-        if len(name) < 2:
-            errors.append("Role name must be at least 2 characters.")
-        elif len(name) > 50:
-            errors.append("Role name must be at most 50 characters.")
-        elif self.check_duplicate_name(name, exclude_role_id):
-            # AC4 — duplicate name
-            errors.append(
-                f"A role named '{name}' already exists as a public or official role."
-            )
-
-        # AC5–AC7 — ability step validation
-        if data.ability_steps:
-            # AC6 — first step modifier must be 'none' (step with the lowest order)
-            first_step = min(data.ability_steps, key=lambda s: s.order)
-            if first_step.modifier != "none":
-                errors.append("The first ability step must have modifier 'none'.")
-
-            # AC5 — each ability_type must exist and be active (batch query)
-            ability_types = {step.ability_type for step in data.ability_steps}
-            active_abilities = (
-                self.db.query(Ability)
-                .filter(
-                    Ability.type.in_(ability_types),
-                    Ability.is_active.is_(True),
-                )
-                .all()
-            )
-            active_ability_types = {ability.type for ability in active_abilities}
-            for step in data.ability_steps:
-                if step.ability_type not in active_ability_types:
-                    errors.append(
-                        f"Ability type '{step.ability_type}' is not a valid active ability."
-                    )
-
-            # AC7 — orders must be sequential starting at 1
-            orders = [step.order for step in data.ability_steps]
-            sorted_orders = sorted(orders)
-            expected = list(range(1, len(orders) + 1))
-            if sorted_orders != expected:
-                if len(orders) != len(set(orders)):
-                    errors.append("Ability step orders must not have duplicates.")
-                else:
-                    errors.append(
-                        "Ability step orders must be sequential starting at 1 with no gaps."
-                    )
-
-        # AC8–AC9 — win conditions
-        if not data.win_conditions:
-            errors.append("At least one win condition is required.")
-        else:
-            primary_count = sum(1 for wc in data.win_conditions if wc.is_primary)
-            if primary_count == 0:
-                errors.append("Exactly one win condition must be marked as primary.")
-            elif primary_count > 1:
-                errors.append(
-                    f"Exactly one win condition must be marked as primary "
-                    f"(found {primary_count})."
-                )
-
-        return errors
+        return role_validation.validate_role(self.db, data, exclude_role_id)
 
     def get_warnings(self, data: RoleCreate) -> list[str]:
         """Return non-blocking advisory warnings for role data.
@@ -493,26 +422,4 @@ class RoleService:
         Returns:
             List of human-readable warning strings.
         """
-        warnings: list[str] = []
-
-        # AC11 — more than 5 ability steps
-        if len(data.ability_steps) > 5:
-            warnings.append(
-                "This role has more than 5 ability steps, which may make it complex to balance."
-            )
-
-        # AC11 — steps present but no wake_order
-        if data.ability_steps and data.wake_order is None:
-            warnings.append(
-                "This role has ability steps but no wake_order set. "
-                "It may not execute its abilities without a wake order."
-            )
-
-        # AC11 — conflicting ability types
-        step_types = {step.ability_type for step in data.ability_steps}
-        if "copy_role" in step_types and "change_to_team" in step_types:
-            warnings.append(
-                "Using both 'copy_role' and 'change_to_team' abilities may cause conflicts."
-            )
-
-        return warnings
+        return role_validation.get_warnings(data)

@@ -1,4 +1,4 @@
-import {NarratorPreviewAction} from '../../types/role';
+import {NarratorPreviewAction} from '../../types/transport';
 import {theme} from '../../styles/theme';
 
 interface NarratorPreviewProps {

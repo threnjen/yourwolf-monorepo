@@ -3,6 +3,7 @@
 import uuid
 
 import pytest
+from app.exceptions import DomainValidationError, LockedError
 from app.models.ability import Ability
 from app.models.role import Role, Team, Visibility
 from app.schemas.role import (
@@ -75,6 +76,7 @@ class TestRoleServiceCreateRole:
             description="The main werewolf",
             team=Team.WEREWOLF,
             is_primary_team_role=True,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         created = service.create_role(role_data)
         assert created.is_primary_team_role is True
@@ -279,7 +281,7 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
         sample_unlocked_role: Role,
         sample_ability,
     ) -> None:
-        """Steps with an unknown ability_type raise ValueError."""
+        """Steps with an unknown ability_type raise DomainValidationError."""
         from app.models.ability_step import AbilityStep
 
         service = RoleService(db_session)
@@ -317,7 +319,7 @@ class TestRoleServiceUpdateRoleStepsAndConditions:
                 ),
             ]
         )
-        with pytest.raises(ValueError, match="Unknown ability type"):
+        with pytest.raises(DomainValidationError, match="Unknown ability type"):
             service.update_role(sample_unlocked_role.id, update_data)
 
     def test_update_role_omitting_win_conditions_leaves_them_unchanged(
@@ -361,6 +363,7 @@ class TestRoleServiceCreateRoleCreatorId:
             description="Role with owner",
             team=Team.VILLAGE,
             creator_id=creator_id,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         result = service.create_role(role_data)
         assert result.creator_id == creator_id
@@ -372,6 +375,7 @@ class TestRoleServiceCreateRoleCreatorId:
             name="Anonymous Role",
             description="Role without owner",
             team=Team.VILLAGE,
+            win_conditions=[WinConditionCreate(condition_type="team_wins")],
         )
         result = service.create_role(role_data)
         assert result.creator_id is None
@@ -385,8 +389,8 @@ class TestRoleServiceDeleteRole:
         db_session: Session,
         sample_role: Role,
     ) -> None:
-        """Deleting a locked role raises PermissionError."""
+        """Deleting a locked role raises LockedError."""
         service = RoleService(db_session)
 
-        with pytest.raises(PermissionError, match="locked"):
+        with pytest.raises(LockedError, match="locked"):
             service.delete_role(sample_role.id)

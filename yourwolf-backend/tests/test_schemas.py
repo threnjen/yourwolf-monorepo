@@ -4,15 +4,52 @@ import uuid
 from datetime import datetime
 
 import pytest
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from app.models.ability import Ability
+from app.models.ability_step import StepModifier
 from app.models.game_session import GamePhase
 from app.models.role import Team, Visibility
 from app.schemas.game import GameSessionCreate, GameSessionResponse
 from app.schemas.role import (
+    AbilityStepCreateInRole,
+    AbilityStepInRole,
     RoleCreate,
     RoleListItem,
     RoleUpdate,
 )
-from pydantic import ValidationError
+
+
+class TestSchemaBarrel:
+    """Tests that app.schemas barrel matches the live schema surface."""
+
+    def test_exports_narrator_preview_schemas(self) -> None:
+        """AC1: narrator-preview schemas are importable from the barrel."""
+        import app.schemas as barrel
+
+        for name in (
+            "NarratorPreviewAction",
+            "NarratorPreviewResponse",
+            "PreviewScriptRequest",
+        ):
+            assert name in barrel.__all__
+            assert getattr(barrel, name) is not None
+
+    def test_does_not_export_dead_ability_step_schemas(self) -> None:
+        """AC2: deleted dead classes are gone from the barrel."""
+        import app.schemas as barrel
+
+        for name in ("AbilityStepBase", "AbilityStepCreate", "AbilityStepRead"):
+            assert name not in barrel.__all__
+            assert not hasattr(barrel, name)
+
+    def test_dead_classes_removed_from_ability_module(self) -> None:
+        """AC2: dead classes no longer exist in app.schemas.ability."""
+        import app.schemas.ability as ability_schemas
+
+        for name in ("AbilityStepBase", "AbilityStepCreate", "AbilityStepRead"):
+            assert not hasattr(ability_schemas, name)
 
 
 class TestRoleCreateSchema:
@@ -54,22 +91,40 @@ class TestRoleCreateSchema:
             )
 
     def test_name_min_length(self) -> None:
-        """Test name minimum length."""
+        """AC2: names shorter than 2 characters are rejected by the schema."""
         with pytest.raises(ValidationError):
             RoleCreate(
-                name="",
-                description="Empty name",
+                name="x",
+                description="Name too short",
                 team=Team.VILLAGE,
             )
 
     def test_name_max_length(self) -> None:
-        """Test name maximum length."""
+        """AC2: names longer than 50 characters are rejected by the schema."""
         with pytest.raises(ValidationError):
             RoleCreate(
-                name="x" * 101,
+                name="x" * 51,
                 description="Name too long",
                 team=Team.VILLAGE,
             )
+
+    def test_name_accepts_lower_bound(self) -> None:
+        """AC2: a 2-character name sits exactly on the accepted lower bound."""
+        role = RoleCreate(
+            name="Ox",
+            description="Shortest allowed name",
+            team=Team.VILLAGE,
+        )
+        assert role.name == "Ox"
+
+    def test_name_accepts_upper_bound(self) -> None:
+        """AC2: a 50-character name sits exactly on the accepted upper bound."""
+        role = RoleCreate(
+            name="x" * 50,
+            description="Longest allowed name",
+            team=Team.VILLAGE,
+        )
+        assert len(role.name) == 50
 
     def test_description_required(self) -> None:
         """Test that description is required."""
@@ -108,6 +163,155 @@ class TestRoleCreateSchema:
             )
 
 
+class TestAbilityStepModifierTyping:
+    """AC3: `modifier` is typed as StepModifier at the schema boundary."""
+
+    @staticmethod
+    def _step(modifier: object) -> dict:
+        return {"ability_type": "kill", "order": 1, "modifier": modifier}
+
+    def test_invalid_modifier_rejected_on_role_create(self) -> None:
+        """AC3: an invalid modifier fails validation instead of reaching the service."""
+        with pytest.raises(ValidationError):
+            RoleCreate(
+                name="Bad Modifier",
+                description="Invalid step modifier",
+                team=Team.VILLAGE,
+                ability_steps=[self._step("bogus")],
+            )
+
+    def test_invalid_modifier_rejected_on_role_update(self) -> None:
+        """AC3: the same validation applies to updates."""
+        with pytest.raises(ValidationError):
+            RoleUpdate(ability_steps=[self._step("bogus")])
+
+    @pytest.mark.parametrize("value", ["none", "and", "or", "if"])
+    def test_valid_modifier_values_accepted(self, value: str) -> None:
+        """AC3: every StepModifier value is still accepted as a bare string."""
+        role = RoleCreate(
+            name="Good Modifier",
+            description="Valid step modifier",
+            team=Team.VILLAGE,
+            ability_steps=[self._step(value)],
+        )
+        assert role.ability_steps[0].modifier == StepModifier(value)
+
+    def test_modifier_defaults_to_none_enum(self) -> None:
+        """AC3: the default stays equivalent to 'none'."""
+        role = RoleCreate(
+            name="Default Modifier",
+            description="Omitted step modifier",
+            team=Team.VILLAGE,
+            ability_steps=[{"ability_type": "kill", "order": 1}],
+        )
+        assert role.ability_steps[0].modifier is StepModifier.NONE
+
+    def test_modifier_serializes_to_bare_string(self) -> None:
+        """AC4: JSON serialization is unchanged (str-enum -> bare string)."""
+        role = RoleCreate(
+            name="Serialize",
+            description="Check serialization",
+            team=Team.VILLAGE,
+            ability_steps=[self._step("and")],
+        )
+        dumped = role.model_dump(mode="json")
+        assert dumped["ability_steps"][0]["modifier"] == "and"
+
+    def test_ability_step_in_role_serializes_to_bare_string(self) -> None:
+        """AC4: read-side schema also serializes modifier as a bare string."""
+        step = AbilityStepInRole(
+            id=uuid.uuid4(),
+            ability_id=uuid.uuid4(),
+            order=1,
+            modifier="or",
+            is_required=True,
+            parameters={},
+        )
+        assert step.model_dump(mode="json")["modifier"] == "or"
+
+    def test_ability_step_in_role_rejects_invalid_modifier(self) -> None:
+        """AC3: read-side schema rejects values outside the enum."""
+        with pytest.raises(ValidationError):
+            AbilityStepInRole(
+                id=uuid.uuid4(),
+                ability_id=uuid.uuid4(),
+                order=1,
+                modifier="bogus",
+                is_required=True,
+                parameters={},
+            )
+
+    def test_modifier_serializes_to_bare_string_in_api_response(
+        self, client: TestClient, sample_abilities: list[Ability]
+    ) -> None:
+        """AC4: the enum retype does not change the value on the wire.
+
+        The schema-level `model_dump(mode="json")` tests are a proxy; this
+        asserts the real response body a client receives still carries
+        `modifier` as a bare string rather than a serialized enum object.
+        """
+        response = client.post(
+            "/api/v1/roles/",
+            json={
+                "name": "Wire Format Role",
+                "description": "Checks on-the-wire modifier value",
+                "team": Team.VILLAGE.value,
+                "wake_order": 1,
+                "ability_steps": [
+                    {
+                        "ability_type": sample_abilities[0].type,
+                        "order": 1,
+                        "modifier": "none",
+                    }
+                ],
+                "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()["ability_steps"][0]["modifier"] == "none"
+
+    def test_openapi_exposes_modifier_enum_values(self) -> None:
+        """AC3: the valid value set appears in the OpenAPI/JSON schema contract."""
+        schema = AbilityStepCreateInRole.model_json_schema()
+        defs = schema.get("$defs", {})
+        assert "StepModifier" in defs
+        assert set(defs["StepModifier"]["enum"]) == {"none", "and", "or", "if"}
+
+    def test_invalid_modifier_returns_422_at_api_boundary(
+        self, client: TestClient, sample_abilities: list[Ability]
+    ) -> None:
+        """AC3: invalid modifier is rejected with 422 at the schema boundary.
+
+        Previously this payload reached `role_service._create_ability_steps`,
+        where `StepModifier("bogus")` raised a ValueError that the router
+        caught and re-raised as a 400 (see `app/routers/roles.py`). Typing the
+        field as `StepModifier` moves rejection to the schema, yielding a 422.
+
+        The error must be attributable to `modifier` specifically — asserting
+        only on the status code would also pass if some unrelated field in the
+        payload were invalid.
+        """
+        response = client.post(
+            "/api/v1/roles/",
+            json={
+                "name": "Boundary Role",
+                "description": "Invalid step modifier",
+                "team": Team.VILLAGE.value,
+                "ability_steps": [
+                    {
+                        "ability_type": sample_abilities[0].type,
+                        "order": 1,
+                        "modifier": "bogus",
+                    }
+                ],
+            },
+        )
+        assert response.status_code == 422
+        errors = response.json()["detail"]
+        assert [e["loc"][-3:] for e in errors] == [["ability_steps", 0, "modifier"]]
+        assert errors[0]["type"] == "enum"
+
+
 class TestRoleUpdateSchema:
     """Tests for RoleUpdate schema validation."""
 
@@ -127,6 +331,16 @@ class TestRoleUpdateSchema:
         """Test name validation applies to updates."""
         with pytest.raises(ValidationError):
             RoleUpdate(name="")
+
+    def test_update_name_bounds_match_create(self) -> None:
+        """AC2: RoleUpdate.name carries the same 2-50 bounds as RoleBase.name."""
+        with pytest.raises(ValidationError):
+            RoleUpdate(name="x")
+        with pytest.raises(ValidationError):
+            RoleUpdate(name="x" * 51)
+
+        assert RoleUpdate(name="Ox").name == "Ox"
+        assert len(RoleUpdate(name="x" * 50).name or "") == 50
 
 
 class TestRoleListItemSchema:

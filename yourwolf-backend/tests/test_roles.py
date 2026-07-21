@@ -238,6 +238,7 @@ class TestCreateRole:
             "name": "Test Role",
             "description": "A test role",
             "team": "village",
+            "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
         }
         response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
@@ -260,6 +261,7 @@ class TestCreateRole:
             "wake_target": "werewolves",
             "votes": 2,
             "visibility": "public",
+            "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
         }
         response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
@@ -287,6 +289,7 @@ class TestCreateRole:
                     "parameters": {"target": "player"},
                 }
             ],
+            "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
         }
         response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
@@ -489,6 +492,7 @@ class TestCreateRoleOwnership:
             "description": "Role with a creator",
             "team": "village",
             "creator_id": creator_id,
+            "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
         }
         response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201
@@ -501,6 +505,7 @@ class TestCreateRoleOwnership:
             "name": "Anonymous Role",
             "description": "Role without a creator",
             "team": "village",
+            "win_conditions": [{"condition_type": "team_wins", "is_primary": True}],
         }
         response = client.post("/api/v1/roles", json=role_data)
         assert response.status_code == 201

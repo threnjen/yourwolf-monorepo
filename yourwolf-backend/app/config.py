@@ -1,5 +1,6 @@
 """Application configuration using Pydantic Settings."""
 
+from functools import cache
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,4 +24,14 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
 
-settings = Settings()
+@cache
+def get_settings() -> Settings:
+    """Return the application settings, constructed once on first use.
+
+    Settings are built lazily so that importing application modules does not
+    require ``DATABASE_URL`` to be present in the environment.
+
+    Returns:
+        Settings: The cached settings instance.
+    """
+    return Settings()

@@ -1,5 +1,7 @@
-import {RoleListItem, Team} from '../types/role';
-import {theme, TEAM_COLORS, capitalize} from '../styles/theme';
+import {RoleListItem} from '../types/transport';
+import {Team} from '../domain/teams';
+import {theme, TEAM_COLORS} from '../styles/theme';
+import {capitalize} from '../utils/format';
 
 interface RoleCardProps {
   role: RoleListItem;

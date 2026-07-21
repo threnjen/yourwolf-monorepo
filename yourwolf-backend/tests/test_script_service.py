@@ -1,13 +1,23 @@
-"""Tests for ScriptService."""
+"""Tests for ScriptService: DB access, adaptation, and the preview endpoint.
+
+Pure narration behavior is covered by tests/test_narration_templates.py
+(exact instruction copy) and tests/test_narration_script_builder.py
+(ordering and assembly).
+"""
 
 from app.models.ability import Ability
+from app.models.ability_step import StepModifier
 from app.models.game_role import GameRole
 from app.models.game_session import GamePhase, GameSession
 from app.models.role import Role
 from app.schemas.game import GameSessionCreate
-from app.schemas.role import RoleCreate, AbilityStepCreateInRole
+from app.schemas.role import RoleCreate, AbilityStepCreateInRole, PreviewScriptRequest
 from app.services.game_service import GameService
-from app.services.script_service import ScriptService
+from app.services.script_service import (
+    ScriptService,
+    _preview_request_to_input,
+    _role_to_input,
+)
 from tests.conftest import _ensure_abilities
 from sqlalchemy.orm import Session
 
@@ -148,6 +158,78 @@ class TestScriptWakeOrder:
 
         role_names = {a.role_name for a in script.actions}
         assert "Villager" not in role_names
+
+
+class TestDuplicateRoleDeduplication:
+    """A role dealt to several players is narrated exactly once.
+
+    Section B edge case: a game can hold more than one card of the same role
+    (e.g. two Werewolves), producing multiple ``GameRole`` rows that share a
+    ``role_id``. The narrator must still address that role a single time.
+
+    Note on mechanism: the role-ID set in ``ScriptService._get_waking_roles``
+    is *not* what enforces this today — ``Role.id.in_([x, x])`` already returns
+    each Role row once, so removing the set does not change the output
+    (verified by mutation). The set only avoids sending duplicate bind params.
+    These tests therefore pin the observable *behavior* rather than the
+    mechanism, which is what the Phase 04 TypeScript port must reproduce: a
+    port using a different data-access path gets no help from SQL ``IN``
+    semantics and must de-duplicate explicitly.
+    """
+
+    def test_role_dealt_twice_is_narrated_once(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        werewolf = seeded_roles[0]
+        assert werewolf.name == "Werewolf"
+
+        # Deal a second copy of the same role to another player seat.
+        db_session.add(
+            GameRole(
+                game_session_id=game.id,
+                role_id=werewolf.id,
+                position=99,
+                is_center=False,
+                current_team=werewolf.team,
+            )
+        )
+        db_session.commit()
+
+        script = ScriptService(db_session).generate_night_script(game)
+
+        wake_lines = [
+            a
+            for a in script.actions
+            if a.instruction == "Werewolves, wake up and look for other werewolves."
+        ]
+        assert len(wake_lines) == 1
+
+        close_lines = [
+            a for a in script.actions if a.instruction == "Werewolf, close your eyes."
+        ]
+        assert len(close_lines) == 1
+
+    def test_duplicate_role_does_not_disturb_sequential_ordering(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        """De-duplication must not leave gaps in the action order sequence."""
+        game = _create_and_start_game_deterministic(db_session, seeded_roles)
+        db_session.add(
+            GameRole(
+                game_session_id=game.id,
+                role_id=seeded_roles[0].id,
+                position=99,
+                is_center=False,
+                current_team=seeded_roles[0].team,
+            )
+        )
+        db_session.commit()
+
+        script = ScriptService(db_session).generate_night_script(game)
+
+        orders = [a.order for a in script.actions]
+        assert orders == list(range(1, len(orders) + 1))
 
 
 class TestScriptInstructions:
@@ -780,246 +862,13 @@ class TestWakeOrderZero:
         assert result.actions == []
 
 
-class TestMissingInstructionTemplates:
-    """Tests for the 5 missing ability instruction templates."""
+class TestAbilityTypePreviews:
+    """Preview coverage for roles built from the less common ability types.
 
-    def test_change_to_team_with_param(self, db_session: Session) -> None:
-        """AC1: change_to_team with team param produces team-specific text."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="change_to_team"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={"team": "werewolf"},
-        )
-        role = _StandInRole(name="PI", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "werewolf" in result.lower()
-
-    def test_change_to_team_no_param(self, db_session: Session) -> None:
-        """AC1: change_to_team without team param produces generic fallback."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="change_to_team"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={},
-        )
-        role = _StandInRole(name="PI", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_perform_as_instruction(self, db_session: Session) -> None:
-        """AC2: perform_as produces instruction about copied role wake time."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="perform_as"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={},
-        )
-        role = _StandInRole(name="Copycat", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "copied role" in result.lower() or "wake" in result.lower()
-
-    def test_perform_immediately_instruction(self, db_session: Session) -> None:
-        """AC3: perform_immediately produces instruction about immediate action."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="perform_immediately"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={},
-        )
-        role = _StandInRole(name="Doppelganger", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "perform" in result.lower()
-
-    def test_stop_instruction(self, db_session: Session) -> None:
-        """AC4: stop produces instruction containing 'stop'."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="stop"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={},
-        )
-        role = _StandInRole(name="PI", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "stop" in result.lower()
-
-    def test_random_num_players_with_options(self, db_session: Session) -> None:
-        """AC5: random_num_players with options mentions the numbers."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="random_num_players"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={"options": [2, 3, 4]},
-        )
-        role = _StandInRole(name="Blob", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "2" in result
-        assert "3" in result
-        assert "4" in result
-
-    def test_random_num_players_no_options(self, db_session: Session) -> None:
-        """AC5: random_num_players without options produces generic fallback."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="random_num_players"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={},
-        )
-        role = _StandInRole(name="Blob", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_random_num_players_single_option(self, db_session: Session) -> None:
-        """AC5: random_num_players with single option handles it correctly."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        service = ScriptService(db_session)
-        step = _StandInStep(
-            ability=_StandInAbility(type="random_num_players"),
-            order=1,
-            modifier=StepModifier.NONE,
-            is_required=True,
-            parameters={"options": [3]},
-        )
-        role = _StandInRole(name="Blob", wake_target="player.self")
-        result = service._generate_step_instruction(role, step)
-
-        assert result is not None
-        assert "3" in result
-
-    def test_all_15_types_produce_instructions(self, db_session: Session) -> None:
-        """AC6/AC7: All 15 ability types return non-None from _generate_step_instruction."""
-        from app.services.script_service import (
-            ScriptService,
-            _StandInAbility,
-            _StandInRole,
-            _StandInStep,
-        )
-        from app.models.ability_step import StepModifier
-
-        all_types = [
-            "view_card",
-            "swap_card",
-            "take_card",
-            "view_awake",
-            "thumbs_up",
-            "explicit_no_view",
-            "rotate_all",
-            "touch",
-            "flip_card",
-            "copy_role",
-            "change_to_team",
-            "perform_as",
-            "perform_immediately",
-            "stop",
-            "random_num_players",
-        ]
-
-        service = ScriptService(db_session)
-        role = _StandInRole(name="TestRole", wake_target="player.self")
-
-        for ability_type in all_types:
-            step = _StandInStep(
-                ability=_StandInAbility(type=ability_type),
-                order=1,
-                modifier=StepModifier.NONE,
-                is_required=True,
-                parameters={},
-            )
-            result = service._generate_step_instruction(role, step)
-            assert result is not None, f"{ability_type} returned None"
+    Exact instruction copy for every ability type is pinned in
+    tests/test_narration_templates.py; these tests cover the DB-facing
+    preview path for representative roles.
+    """
 
     def test_pi_preview_has_change_to_team_and_stop(self, db_session: Session) -> None:
         """AC9: Paranormal Investigator preview includes change_to_team + stop text."""
@@ -1271,3 +1120,109 @@ class TestScriptWakeOrderSequence:
 
         expected_order = ["Werewolf", "Seer", "Robber", "Troublemaker", "Insomniac"]
         assert role_order == expected_order
+
+
+class TestRoleToInputAdapter:
+    """Tests for the ORM Role -> RoleScriptInput adapter."""
+
+    def test_adapts_name_and_wake_target(
+        self, db_session: Session, seeded_roles: list[Role]
+    ) -> None:
+        werewolf = next(r for r in seeded_roles if r.name == "Werewolf")
+
+        result = _role_to_input(werewolf)
+
+        assert result.name == "Werewolf"
+        assert result.wake_target == "team.werewolf"
+
+    def test_adapts_ability_steps_from_orm(
+        self, db_session: Session, sample_role_with_steps: Role
+    ) -> None:
+        result = _role_to_input(sample_role_with_steps)
+
+        assert len(result.ability_steps) == 1
+        step = result.ability_steps[0]
+        assert step.ability_type == sample_role_with_steps.ability_steps[0].ability.type
+        assert step.order == 1
+        assert step.modifier == StepModifier.NONE
+        assert step.is_required is True
+        assert step.parameters == {"target": "player"}
+
+    def test_role_with_no_steps_adapts_to_empty_list(
+        self, db_session: Session, sample_role: Role
+    ) -> None:
+        result = _role_to_input(sample_role)
+
+        assert result.ability_steps == []
+
+    def test_adapter_output_carries_no_orm_reference(
+        self, db_session: Session, sample_role_with_steps: Role
+    ) -> None:
+        """The narration input must be a plain dataclass, not an ORM object."""
+        result = _role_to_input(sample_role_with_steps)
+
+        assert not hasattr(result, "_sa_instance_state")
+        assert not hasattr(result.ability_steps[0], "_sa_instance_state")
+
+
+class TestPreviewRequestToInputAdapter:
+    """Tests for the PreviewScriptRequest -> RoleScriptInput adapter."""
+
+    def test_adapts_name_and_wake_target(self) -> None:
+        data = PreviewScriptRequest(
+            name="Seer", wake_order=4, wake_target="player.self"
+        )
+
+        result = _preview_request_to_input(data)
+
+        assert result.name == "Seer"
+        assert result.wake_target == "player.self"
+        assert result.ability_steps == []
+
+    def test_adapts_ability_steps_and_coerces_modifier(self) -> None:
+        data = PreviewScriptRequest(
+            name="Seer",
+            wake_order=4,
+            wake_target="player.self",
+            ability_steps=[
+                AbilityStepCreateInRole(
+                    ability_type="view_card",
+                    order=2,
+                    modifier="or",
+                    is_required=False,
+                    parameters={"target": "center.main", "count": 2},
+                ),
+            ],
+        )
+
+        result = _preview_request_to_input(data)
+
+        assert len(result.ability_steps) == 1
+        step = result.ability_steps[0]
+        assert step.ability_type == "view_card"
+        assert step.order == 2
+        assert step.modifier == StepModifier.OR
+        assert step.is_required is False
+        assert step.parameters == {"target": "center.main", "count": 2}
+
+    def test_null_wake_target_is_preserved(self) -> None:
+        data = PreviewScriptRequest(name="Villager", wake_order=1)
+
+        result = _preview_request_to_input(data)
+
+        assert result.wake_target is None
+
+    def test_step_order_is_preserved_not_resequenced(self) -> None:
+        """The adapter preserves order values; the builder does the sorting."""
+        data = PreviewScriptRequest(
+            name="Seer",
+            wake_order=4,
+            ability_steps=[
+                AbilityStepCreateInRole(ability_type="stop", order=3),
+                AbilityStepCreateInRole(ability_type="touch", order=1),
+            ],
+        )
+
+        result = _preview_request_to_input(data)
+
+        assert [s.order for s in result.ability_steps] == [3, 1]

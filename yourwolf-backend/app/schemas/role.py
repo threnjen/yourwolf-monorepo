@@ -4,10 +4,12 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.models.ability_step import StepModifier
 from app.models.role import Team, Visibility
 from app.models.role_dependency import DependencyType
 from app.schemas.base import PaginatedResponse
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class WinConditionBase(BaseModel):
@@ -46,7 +48,7 @@ class AbilityStepInRole(BaseModel):
     ability_id: UUID
     ability_type: str | None = None
     order: int
-    modifier: str
+    modifier: StepModifier
     is_required: bool
     parameters: dict[str, Any]
     condition_type: str | None = None
@@ -58,7 +60,7 @@ class AbilityStepInRole(BaseModel):
 class RoleBase(BaseModel):
     """Base schema for roles."""
 
-    name: str = Field(..., min_length=1, max_length=100)
+    name: str = Field(..., min_length=2, max_length=50)
     description: str = Field(..., min_length=1)
     team: Team
     wake_order: int | None = Field(default=None, ge=0, le=40)
@@ -106,7 +108,7 @@ class AbilityStepCreateInRole(BaseModel):
 
     ability_type: str = Field(..., description="The ability type string")
     order: int = Field(..., ge=1)
-    modifier: str = Field(default="none")
+    modifier: StepModifier = Field(default=StepModifier.NONE)
     is_required: bool = Field(default=True)
     parameters: dict[str, Any] = Field(default_factory=dict)
     condition_type: str | None = None
@@ -116,7 +118,7 @@ class AbilityStepCreateInRole(BaseModel):
 class RoleUpdate(BaseModel):
     """Schema for updating a role."""
 
-    name: str | None = Field(default=None, min_length=1, max_length=100)
+    name: str | None = Field(default=None, min_length=2, max_length=50)
     description: str | None = Field(default=None, min_length=1)
     team: Team | None = None
     wake_order: int | None = Field(default=None, ge=0, le=40)

@@ -96,6 +96,36 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 
 ---
 
+### Lint fails: "src/domain and src/engine must stay pure TypeScript"
+
+**Symptom**: `no-restricted-imports` errors on an import inside `src/domain/` (or `src/engine/`), including on an `import type`.
+
+**Cause**: `eslint.config.js` enforces layer direction. `src/domain` may not import React, any UI layer (`api`, `hooks`, `components`, `pages`, `styles`), or transport DTOs from `src/types`. Type-only imports are restricted too (`allowTypeImports` is false) — a transport DTO leaking in as a type still couples the domain to the wire format.
+
+**Fix**: Declare the shape the rule needs in `src/domain` and have the transport type depend on it, not the reverse. Dependencies point inward. If a domain function needs React state, that's a signal the rule belongs in the domain and the wiring belongs in the component.
+
+---
+
+### Lint fails: "src/components must not import src/api directly"
+
+**Symptom**: `no-restricted-imports` error on an `src/api` import inside a component.
+
+**Cause**: Components consume data through hooks.
+
+**Fix**: Use an existing hook from `src/hooks`, or add one that wraps the API call.
+
+---
+
+### `react-hooks/exhaustive-deps` errors appear on untouched code
+
+**Symptom**: Hook dependency errors in files you didn't change.
+
+**Cause**: The `react-hooks` plugin was previously absent — an `eslint-disable` comment referenced its rules, but nothing enforced them. The plugin is now wired and `exhaustive-deps` is promoted from warning to error.
+
+**Fix**: Fix the dependency array. Do not re-add a blanket disable; if a dependency genuinely must be omitted, disable that one line with a comment explaining why.
+
+---
+
 ### `useFetch` causes infinite re-render loop
 
 **Symptom**: Browser freezes or logs show hundreds of rapid re-renders.
@@ -107,6 +137,76 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 const fetcher = useCallback(() => gamesApi.getById(gameId), [gameId]);
 const {data, loading, error, refetch} = useFetch(fetcher);
 ```
+
+---
+
+## Backend
+
+### `ImportError: cannot import name 'SessionLocal' from 'app.database'`
+
+**Symptom**: `ImportError` for `SessionLocal`, `engine` (from `app.database`), or `settings` (from `app.config`).
+
+**Cause**: These module-level globals were removed in favor of lazily-constructed cached accessors, so that importing a module never requires `DATABASE_URL` or opens a connection.
+
+**Fix**: Use the accessors:
+```python
+from app.config import get_settings
+from app.database import get_engine, get_session_factory
+
+settings = get_settings()
+db = get_session_factory()()
+```
+`from app.database import Base` still works — `Base` now lives in `app/models/base.py` and is re-exported.
+
+---
+
+### Settings don't pick up an environment variable change
+
+**Symptom**: Setting `DATABASE_URL` (or another env var) has no effect; the old value is still used.
+
+**Cause**: `get_settings()` is wrapped in `functools.cache`. Once resolved, later env changes are ignored.
+
+**Fix**: Clear the cache after changing the environment:
+```python
+monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+get_settings.cache_clear()
+```
+`get_engine()` and `get_session_factory()` are cached the same way — clear them too if the engine must be rebuilt.
+
+---
+
+### A service error returns 500 instead of 400 / 403 / 404
+
+**Symptom**: A validation or permission failure surfaces as an unhandled 500.
+
+**Cause**: The service raised an exception that isn't in the registered domain vocabulary. Only `NotFoundError`, `DomainValidationError`, and `LockedError` are mapped in `app/main.py`; everything else falls through to the framework's 500 path. A bare `ValueError` no longer produces a 400 — status codes are no longer inferred from message prose.
+
+**Fix**: Raise the right type from `app/exceptions.py`:
+```python
+from app.exceptions import DomainValidationError
+
+raise DomainValidationError("Role must have at least one win condition.")
+```
+
+---
+
+### Role creation returns 422 where 400 was expected
+
+**Symptom**: A test or client expecting 400 gets 422, typically for role name length or an ability-step `modifier`.
+
+**Cause**: These are Pydantic schema bounds, validated by FastAPI before the service runs, so they return 422. Role name bounds are `min_length=2, max_length=50`. Only domain rule violations return 400.
+
+**Fix**: Expect 422 for schema-shape violations and 400 for domain rules. Note `POST /roles` now enforces the full `validate_role` rule set — including requiring at least one win condition — so payloads that previously persisted may now be rejected.
+
+---
+
+### Editing `app/seed/roles.py` doesn't change the seeded roles
+
+**Symptom**: Role definition changes have no effect after re-seeding.
+
+**Cause**: `app/seed/roles.py` is only a loader. The definitions live in `app/seed/data/roles.json`.
+
+**Fix**: Edit the JSON. If the file is malformed or references an unknown ability type, the loader raises `SeedDataError` before any DB write, so seeding fails cleanly rather than partially.
 
 ---
 
@@ -142,9 +242,9 @@ const {data, loading, error, refetch} = useFetch(fetcher);
 
 **Cause**: The global Axios mock in `src/test/setup.ts` mocks `axios.create()` but tests may import the already-created `apiClient` instance.
 
-**Fix**: Mock the specific API module, not axios directly:
+**Fix**: Mock the specific API module, not axios directly. Note that `src/test/` mirrors the source tree, so the relative depth depends on where the test file sits — from `src/test/pages/GameSetup.test.tsx` the path is `../../api/games`, not `../api/games`:
 ```tsx
-vi.mock('../api/games');
+vi.mock('../../api/games');
 const mockCreate = gamesApi.create as ReturnType<typeof vi.fn>;
 ```
 

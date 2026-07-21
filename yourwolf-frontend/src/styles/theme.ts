@@ -1,3 +1,5 @@
+import type {Team} from '../domain/teams';
+
 export const theme = {
   colors: {
     background: '#0f0f0f',
@@ -39,7 +41,7 @@ export const theme = {
   },
 } as const;
 
-export type TeamColor = 'village' | 'werewolf' | 'vampire' | 'alien' | 'neutral';
+export type TeamColor = Team;
 
 export const TEAM_COLORS: Record<TeamColor, string> = {
   village: theme.colors.village,
@@ -48,9 +50,5 @@ export const TEAM_COLORS: Record<TeamColor, string> = {
   alien: theme.colors.alien,
   neutral: theme.colors.neutral,
 };
-
-export function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 export type Theme = typeof theme;

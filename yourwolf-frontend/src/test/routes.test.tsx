@@ -13,8 +13,6 @@ vi.mock('../hooks/useRoles', () => ({
 vi.mock('../api/roles', () => ({
   rolesApi: {
     list: vi.fn(),
-    listOfficial: vi.fn(),
-    getById: vi.fn(),
     validate: vi.fn().mockResolvedValue({is_valid: true, errors: [], warnings: []}),
     checkName: vi.fn(),
     create: vi.fn(),
@@ -25,7 +23,6 @@ vi.mock('../api/roles', () => ({
 vi.mock('../api/games', () => ({
   gamesApi: {
     create: vi.fn(),
-    list: vi.fn(),
     getById: vi.fn(),
     start: vi.fn(),
     advancePhase: vi.fn(),

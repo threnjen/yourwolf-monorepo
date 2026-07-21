@@ -2,7 +2,7 @@
 
 import uuid
 
-from app.database import Base
+from app.models.base import Base
 from app.models.role import Team
 from app.models.types import UUID
 from sqlalchemy import Boolean, Enum, ForeignKey, Integer
