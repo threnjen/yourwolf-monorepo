@@ -227,6 +227,34 @@ describe('narration engine', () => {
     expect({input, roles, customSequence}).toEqual(before);
   });
 
+  it('keeps fixture roles in the verified engine input shape', () => {
+    const roleKeys = [
+      'ability_steps',
+      'id',
+      'is_primary_team_role',
+      'max_count',
+      'min_count',
+      'name',
+      'team',
+      'wake_order',
+      'wake_target',
+    ];
+    const stepKeys = [
+      'ability_type',
+      'is_required',
+      'modifier',
+      'order',
+      'parameters',
+    ];
+
+    for (const fixtureRole of nightFixture.roles) {
+      expect(Object.keys(fixtureRole).sort()).toEqual(roleKeys);
+      for (const fixtureStep of fixtureRole.ability_steps) {
+        expect(Object.keys(fixtureStep).sort()).toEqual(stepKeys);
+      }
+    }
+  });
+
   it('matches the Python-generated night-script fixtures for all seed roles', () => {
     expect(buildNightScript(nightFixture.roles)).toEqual(nightFixture.default);
     expect(

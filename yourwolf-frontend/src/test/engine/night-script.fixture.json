@@ -31,7 +31,6 @@
           "parameters": {
             "target": "center.main"
           },
-          "condition_type": "no_other_awake",
           "is_required": true
         }
       ],
@@ -463,10 +462,6 @@
           "parameters": {
             "target": "player.other"
           },
-          "condition_type": "only_if_opponent",
-          "condition_params": {
-            "team": "village"
-          },
           "is_required": true
         }
       ],
@@ -539,10 +534,6 @@
           "modifier": "if",
           "ability_type": "change_to_team",
           "parameters": {
-            "team": "werewolf"
-          },
-          "condition_type": "only_if_team",
-          "condition_params": {
             "team": "werewolf"
           },
           "is_required": true

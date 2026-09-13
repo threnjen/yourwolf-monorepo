@@ -4,6 +4,9 @@
 
 Implemented the Phase 04a pure TypeScript narration engine. The module provides deterministic wake ordering, role/night script assembly, preview section headers, and duration summing. Static fixtures generated from the Python narration builders cover all 30 seed roles, including empty previews for Villager and Tanner.
 
+Selected public names: `sortWakingRoles`, `buildRoleScript`,
+`buildNightScript`, `buildPreview`, and `totalDurationSeconds`.
+
 ## Sibling Features
 
 Feature 01 (`01-engine-types-templates`) supplies the engine types and templates consumed here. Feature 03 (`03-game-session-state-machine`) is independent at runtime and remains the next shared-engine feature. No sibling-owned files were changed.
@@ -12,15 +15,15 @@ Feature 01 (`01-engine-types-templates`) supplies the engine types and templates
 
 | AC | Criterion ID | Planned Test ID | Planned Test Pattern | Status | Implementing Files | Evidence Paths | Implement Commit SHA | Review Commit SHA |
 |----|--------------|-----------------|----------------------|--------|--------------------|----------------|----------------------|-------------------|
-| AC1 | AC1 | narration assembly | Opening, unique role blocks, closing, duration sum | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC2 | AC2 | default ordering | Positive wake orders, null/zero filtering, name tie-break | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC3 | AC3 | custom ordering | Unknown ids, repeated ids, named-first and unnamed fallback | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC4 | AC4 | role assembly | Dense orders, unknown inherited names, OR and required flags | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC5 | AC5 | preview assembly | Wake guard, copied-role header, sequential output | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC6 | AC6 | night fixture parity | Default and complete custom parity for all 30 seed roles | Complete | `src/test/engine/night-script.fixture.json` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC7 | AC7 | preview fixture parity | All 30 seed-role previews and empty non-waking previews | Complete | `src/test/engine/preview.fixture.json` | `src/test/engine/narration.test.ts` | PENDING | PENDING |
-| AC8 | AC8 | fixture provenance | One-time Python builder generation with deterministic ids/order | Complete | `src/test/engine/night-script.fixture.json`, `src/test/engine/preview.fixture.json` | Backend narration builders and committed fixtures | PENDING | PENDING |
-| AC9 | AC9 | verification suite | Full tests, lint, build, coverage, import boundary | Complete | All four feature files | `/tmp/yourwolf-frontend-phase04a-final.xml`, `yourwolf-frontend/coverage/yourwolf-frontend/src/engine/narration.ts.html` | PENDING | PENDING |
+| AC1 | AC1 | narration assembly | Opening, unique role blocks, closing, duration sum | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC2 | AC2 | default ordering | Positive wake orders, null/zero filtering, name tie-break | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC3 | AC3 | custom ordering | Unknown ids, repeated ids, named-first and unnamed fallback | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC4 | AC4 | role assembly | Dense orders, unknown inherited names, OR and required flags | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC5 | AC5 | preview assembly | Wake guard, copied-role header, sequential output | Complete | `src/engine/narration.ts` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC6 | AC6 | night fixture parity | Default and complete custom parity for all 30 seed roles | Complete | `src/test/engine/night-script.fixture.json` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC7 | AC7 | preview fixture parity | All 30 seed-role previews and empty non-waking previews | Complete | `src/test/engine/preview.fixture.json` | `src/test/engine/narration.test.ts` | 38b49f8 | PENDING |
+| AC8 | AC8 | fixture provenance | One-time Python builder generation with deterministic ids/order | Complete | `src/test/engine/night-script.fixture.json`, `src/test/engine/preview.fixture.json` | Backend narration builders and committed fixtures | 38b49f8 | PENDING |
+| AC9 | AC9 | verification suite | Full tests, lint, build, coverage, import boundary | Complete | All four feature files | `/tmp/yourwolf-phase04a-feature02-integrated.xml`, `/tmp/yourwolf-phase04a-feature02-coverage.xml` | 38b49f8 | PENDING |
 
 ## Acceptance Criteria Status
 
@@ -48,35 +51,39 @@ Feature 01 (`01-engine-types-templates`) supplies the engine types and templates
 
 | File | Change Type | What Changed | Covers |
 |------|-------------|--------------|--------|
-| `yourwolf-frontend/src/test/engine/narration.test.ts` | Added | 12 focused unit and fixture-parity tests | AC1–AC9 |
+| `yourwolf-frontend/src/test/engine/narration.test.ts` | Added | 13 focused unit, fixture-shape, and fixture-parity tests | AC1–AC9 |
 | `yourwolf-frontend/src/test/engine/night-script.fixture.json` | Added | Python-generated 30-role inputs and default/custom expected actions | AC6, AC8 |
 | `yourwolf-frontend/src/test/engine/preview.fixture.json` | Added | Python-generated expected previews for all 30 roles | AC7, AC8 |
 
 ## Test Results
 
 - **Execution**: executed-green
-- **Command**: `cd yourwolf-frontend && npm test -- --run --reporter=junit --outputFile=/tmp/yourwolf-frontend-phase04a-final.xml`
-- **Results artifact**: `/tmp/yourwolf-frontend-phase04a-final.xml`
+- **Command**: `cd yourwolf-frontend && npm test -- --run --reporter=junit --outputFile=/tmp/yourwolf-phase04a-feature02-integrated.xml`
+- **Results artifact**: `/tmp/yourwolf-phase04a-feature02-integrated.xml`
 - **Baseline**: 616 passed, 0 failed, from `/tmp/yourwolf-frontend-phase04a-baseline.xml`
-- **Final**: 628 passed, 0 failed
-- **New tests added**: 12
-- **Affected suites run**: `src/test/engine/templates.test.ts`, `src/test/engine/narration.test.ts`, frontend integrated suite, backend narration/setup oracle suites (185 passed, 0 failed in `/tmp/yourwolf-backend-phase04a-final.xml`), lint, build, coverage
+- **Final**: 629 passed, 0 failed
+- **New tests added**: 13
+- **Affected suites run**: `src/test/engine/templates.test.ts`, `src/test/engine/narration.test.ts`, frontend integrated suite, backend narration/setup oracle suites (185 passed, 0 failed in `/tmp/yourwolf-phase04a-feature02-backend-all.xml`), lint, build, coverage
 - **Regressions**: None
 
 Additional gates:
 
 - `cd yourwolf-frontend && npm run lint` — executed-green, zero warnings.
 - `cd yourwolf-frontend && npm run build` — executed-green.
-- `cd yourwolf-frontend && npm run test:coverage -- --reporter=junit --outputFile=/tmp/yourwolf-frontend-phase04a-coverage.xml` — executed-green, 628 passed, 0 failed. `src/engine/` coverage: 98.8% statements, 96.94% branches, 100% functions, 98.8% lines.
-- `cd yourwolf-backend && uv run pytest --no-cov tests/test_narration_templates.py tests/test_narration_script_builder.py tests/test_script_service.py tests/test_game_setup_validation.py --junitxml=/tmp/yourwolf-backend-phase04a-final.xml` — executed-green, 185 passed, 0 failed.
+- `cd yourwolf-frontend && npm run test:coverage -- --reporter=junit --outputFile=/tmp/yourwolf-phase04a-feature02-coverage.xml` — executed-green, 629 passed, 0 failed. `src/engine/` coverage: 98.8% statements, 96.92% branches, 100% functions, 98.8% lines.
+- `cd yourwolf-backend && uv run pytest --no-cov tests/test_narration_templates.py tests/test_narration_script_builder.py tests/test_script_service.py tests/test_game_setup_validation.py --junitxml=/tmp/yourwolf-phase04a-feature02-backend-all.xml` — executed-green, 185 passed, 0 failed.
 
 ## Review and Fix Loop
 
-- **Resolved review agents**: None yet.
-- **Review findings**: None yet.
-- **Fix rounds**: 0
+- **Resolved review agents**: `03c-reviewer-plan-conformance`
+- **Review findings**: One low finding, fixed by removing backend-only condition metadata from the static engine fixture and adding a fixture-shape regression assertion.
+- **Fix rounds**: 1
 - **Carry-forward findings**: None
 - **Fallback**: None
+
+## Unfixed findings
+
+None.
 
 ## Deviations from Plan
 
