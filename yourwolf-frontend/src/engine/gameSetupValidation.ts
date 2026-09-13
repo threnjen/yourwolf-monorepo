@@ -13,7 +13,7 @@ export interface SetupValidationInput {
   readonly center_card_count: number;
   readonly discussion_timer_seconds: number;
   readonly role_ids: readonly string[];
-  readonly wake_order_sequence?: readonly string[];
+  readonly wake_order_sequence?: readonly string[] | null;
   readonly roles: readonly EngineRoleInput[];
   readonly dependencies: readonly RoleDependencyInput[];
 }
@@ -89,7 +89,7 @@ export function validateGameSetup(
     throw new Error(dependencyResult.errors.join('; '));
   }
 
-  if (input.wake_order_sequence !== undefined) {
+  if (input.wake_order_sequence != null) {
     const sequenceErrors = validateWakeSequence(input, roleMap);
     if (sequenceErrors.length > 0) {
       throw new Error(sequenceErrors.join('; '));
@@ -100,7 +100,7 @@ export function validateGameSetup(
     warnings: readonly string[];
     wake_order_sequence?: readonly string[];
   } = {warnings: dependencyResult.warnings};
-  if (input.wake_order_sequence !== undefined) {
+  if (input.wake_order_sequence != null) {
     result.wake_order_sequence = [...input.wake_order_sequence];
   }
   return result;

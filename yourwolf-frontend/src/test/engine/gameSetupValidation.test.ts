@@ -6,6 +6,7 @@ import {
   type SetupValidationInput,
   validateGameSetup,
 } from '../../engine/gameSetupValidation';
+import {createGameSession} from '../../engine/gameSession';
 
 const role = (
   id: string,
@@ -95,7 +96,12 @@ const validInput = (
 });
 
 const expectError = (input: SetupValidationInput, message: string): void => {
-  expect(() => validateGameSetup(input)).toThrow(new Error(message));
+  expect(() =>
+    createGameSession({
+      ...input,
+      id_generator: () => 'test-session',
+    }),
+  ).toThrow(new Error(message));
 };
 
 describe('engine setup validation', () => {
@@ -329,8 +335,11 @@ describe('engine create-boundary setup cases', () => {
     );
   });
 
-  test('accepts an omitted sequence', () => {
-    expect(validateGameSetup(validInput())).toEqual({warnings: []});
+  test('accepts a null sequence as omitted', () => {
+    const input = validInput({
+      wake_order_sequence: null,
+    });
+    expect(validateGameSetup(input)).toEqual({warnings: []});
   });
 
   test('accepts an empty sequence with no waking roles', () => {
