@@ -14,7 +14,7 @@ A customizable One Night Ultimate Werewolf clone that works as a standalone, off
 | 03 | Role Builder MVP | Complete | Phase 02 | Large | Custom role creation wizard with ability composition and validation |
 | 3.5 | Narrator Preview Fixes | Complete | Phase 03 | Small | Fix preview endpoint, wake_order == 0 handling, missing instruction templates |
 | 3.6 | Wake Order Resolution | Complete | Phase 3.5 | Medium | Wake order review step in game creation, drag-to-reorder within groups |
-| 04a | Client-Side Game Engine | Planned | Phase 3.6 | Medium | Pure TypeScript engine under `src/engine/`: night script generation, narrator preview, wake order sorting, in-memory phase state machine. Proven by parity tests, no callers yet |
+| 04a | Client-Side Game Engine | Planned | Phase 3.6 | Medium | Pure TypeScript engine under `src/engine/`: night script generation, narrator preview, wake order sorting, setup validation, in-memory phase state machine. Proven by parity tests, no callers yet |
 | 04b | Engine Frontend Integration | Planned | Phase 04a | Medium | Replace the six game-flow and preview API call sites with the local engine; decide refresh behavior for in-memory games; end-to-end manual QA |
 | 05 | Local Data Layer | Planned | Phase 04b | Medium | SQLite for local storage, data access abstraction, offline role and game persistence |
 | 06 | Desktop App (Tauri v2) | Planned | Phase 05 | Medium | Tauri v2 native shell, macOS and Windows builds (Linux best-effort), bundled seed data |
