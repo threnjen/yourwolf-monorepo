@@ -241,6 +241,13 @@ describe('engine narration templates', () => {
     expect(buildStepInstruction(step('unknown_type', {}, 'or'))).toBeUndefined();
   });
 
+  test.each(['constructor', 'toString', '__proto__'])(
+    'treats inherited property %s as an unknown instruction',
+    (ability_type) => {
+      expect(buildStepInstruction(step(ability_type))).toBeUndefined();
+    },
+  );
+
   test.each(['none', 'and', 'if'] as const)(
     'non-OR modifier %s does not prefix',
     (modifier) => {
@@ -257,6 +264,13 @@ describe('engine narration templates', () => {
   test('unknown durations default to five seconds', () => {
     expect(getStepDuration(step('unknown_type'))).toBe(5);
   });
+
+  test.each(['constructor', 'toString', '__proto__'])(
+    'uses the default duration for inherited property %s',
+    (ability_type) => {
+      expect(getStepDuration(step(ability_type))).toBe(5);
+    },
+  );
 
   test('the public shape includes all required engine and narrator fields', () => {
     const engineRole: EngineRoleInput = role(null);

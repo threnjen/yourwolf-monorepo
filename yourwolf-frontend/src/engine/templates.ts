@@ -198,10 +198,10 @@ export function buildWakeInstruction(role: EngineRoleInput): string {
 export function buildStepInstruction(
   step: EngineAbilityStepInput,
 ): string | undefined {
-  const template = TEMPLATES[step.ability_type];
-  if (template === undefined) {
+  if (!Object.prototype.hasOwnProperty.call(TEMPLATES, step.ability_type)) {
     return undefined;
   }
+  const template = TEMPLATES[step.ability_type];
 
   const instruction = template(step.parameters);
   return step.modifier === 'or' ? `OR ${instruction}` : instruction;
@@ -209,5 +209,8 @@ export function buildStepInstruction(
 
 /** Get the narration duration for an ability step. */
 export function getStepDuration(step: EngineAbilityStepInput): number {
-  return STEP_DURATIONS[step.ability_type] ?? DEFAULT_STEP_DURATION;
+  if (!Object.prototype.hasOwnProperty.call(STEP_DURATIONS, step.ability_type)) {
+    return DEFAULT_STEP_DURATION;
+  }
+  return STEP_DURATIONS[step.ability_type];
 }
