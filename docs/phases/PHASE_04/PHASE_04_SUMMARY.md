@@ -1,144 +1,116 @@
-# Phase 4: Client-Side Game Engine
+# Phase 4a: Client-Side Game Engine
 
 **Status**: Planned
 **Depends on**: Phase 3.6 (Wake Order Resolution)
-**Estimated complexity**: Large
-**Cross-references**: Python source in `yourwolf-backend/app/services/narration/`, `yourwolf-backend/app/services/script_service.py`, `yourwolf-backend/app/services/game_service.py`
+**Estimated complexity**: Medium
+**Cross-references**: Python reference implementation in `yourwolf-backend/app/services/narration/`; phase-management reference in `yourwolf-backend/app/services/game_service.py`; follow-on frontend integration in Phase 04b
 
-> **Note**: A refactor-remediation phase landed after this document was first written. The script-generation logic it describes has been extracted from `ScriptService` into the pure `app/services/narration/` package, and the frontend now has a pure `src/domain/` layer. The port is correspondingly cheaper than originally scoped: the Python side to transcribe is already free of ORM and framework dependencies. Symbol names below have been updated to match the current source; the phase's scope and success criteria are unchanged.
+## What's New
+
+Nothing changes for the user in this phase. The game logic that today runs on the server gains a second, identical implementation inside the app, sitting unused until Phase 04b wires the screens to it. The payoff arrives in 04b, when running a game and previewing a role stop needing a server.
+
+## Problem
+
+The app cannot run a game without a network connection. Night script generation, narrator preview, and game phase progression all live in the Python backend, so the offline-first product the roadmap describes is impossible until that logic exists on the client. Every downstream MVP phase, local storage, desktop, narration, and mobile, is blocked on it.
 
 ## Objective
 
-Port the night script generation engine, wake order logic, ability resolution, and narrator preview from the Python backend to TypeScript so the game can run entirely client-side with no server dependency.
+Port the narration package and game phase management from Python to a pure TypeScript engine under `src/engine/`, proven identical to the Python output by the existing pinned test tables, with no callers yet.
 
 ## Scope
 
 ### In Scope
-- TypeScript game engine module: `src/engine/` directory with pure functions (no React, no API calls). ESLint boundary rules for this path are already active.
-- Port `narration/script_builder.build_night_script_actions()` (called by `ScriptService.generate_night_script()`)
-- Port `narration/script_builder.build_role_script()` and `narration/templates.build_step_instruction()`
-- Port `narration/templates.build_wake_instruction()` — branches on `wake_target` pattern (`player.self`, `team.*`, `role.*`)
-- Port `narration/script_builder.build_preview_actions()` — draft role narrator preview
-- Port step duration map (`STEP_DURATIONS`) and instruction template generation for all 15 ability types
-- Port wake order sorting with custom sequence support (from Phase 3.6)
-- Port `StepModifier` conditional logic (AND/OR/IF) resolution
-- TypeScript types for engine inputs/outputs: `NightScript`, `NarratorAction`, `RoleInput`, `AbilityStepInput`
-- Game state machine: phase transitions (setup → night → discussion → voting → resolution → complete)
-- In-memory game session management (create, progress, complete — no persistence yet)
-- Comprehensive unit tests for the engine matching existing Python test coverage (~1,230 lines in `test_script_service.py` plus ~310 lines in `test_narration_templates.py`)
-- Engine works in both browser and Tauri contexts (pure TypeScript, no DOM or Node dependencies)
-- Frontend integration: replace all game-flow and preview API calls with local engine calls (see Frontend Integration Map below)
+- A `src/engine/` module of pure functions. No React, DOM, Node, network, or persistence dependencies. ESLint boundary rules for this path are already active.
+- Engine input and output types transcribed from the narration input dataclasses and the narration schemas the Python builders return.
+- Instruction templates for all 15 ability types, wake instructions for every `wake_target` pattern the Python reference recognizes (`player.self`, `team.werewolf`, `team.alien`, `team.vampire`, the `role.` prefix with underscores rewritten to spaces, and the fallthrough that treats null or any other string as `player.self`), and the step duration map with its default.
+- Night script generation: ordered narrator actions from a set of roles and an optional custom wake sequence, including the opening and closing narrator actions and total duration.
+- Narrator preview generation from a draft role, including the section header for `perform_immediately` and `perform_as` steps, and the empty result for roles that do not wake.
+- Wake order sorting with custom sequence override, matching the Python behavior for missing and duplicate role ids.
+- Step modifier handling (AND, OR, IF) as the Python builders apply it to instruction text and player-action flags.
+- An in-memory game session and phase state machine with three operations: create (setup), start (setup to night), and advance (one step along night → discussion → voting → resolution → complete), plus a wake-index tracker. Complete is the terminal phase reached by advance, not an operation. Start is the only way out of setup, so the engine is stricter than the Python reference, which lets advance skip start. Start is a phase transition only.
+- Engine boundary hardening called for in `docs/learnings/cross-phase-decisions.md`: id generation is injected rather than read from the ambient `crypto` global, and any domain step-editing helper the engine calls directly gets index-bounds and first-step guards at the engine boundary, tested.
+- A parity test suite that transcribes the Python narration template tables and the script service tests, plus two fixtures generated once from the Python backend and committed as data: a night-script fixture for the 30 seed roles, and a preview fixture produced by converting each seed role to the draft shape the preview endpoint accepts.
 
 ### Out of Scope
-- Data persistence (Phase 05 — Local Data Layer)
-- Tauri integration or native packaging (Phase 06)
-- Audio narration (Phase 07)
-- Removing or modifying the Python backend (it remains for future cloud use)
-- Conditional ability builder UI (Phase 11 — Advanced Features)
-- Role CRUD operations — `rolesApi.create()`, `rolesApi.validate()`, and the roles list endpoint still call the backend; only `rolesApi.previewScript()` moves to local engine
-- Any persistence or network calls from the engine itself — it operates on in-memory data structures
+- Replacing any API call site. Hooks, pages, and API clients are untouched. That is Phase 04b.
+- Refresh, session identity, or routing behavior for in-memory games. Phase 04b decides this.
+- Porting the start-game role shuffle, player and center position assignment, and role usage counter. The facilitator UI renders none of these, players hold physical cards, and the usage counter is a server statistic.
+- Data persistence (Phase 05), Tauri (Phase 06), audio narration (Phase 07).
+- Any change to the Python backend, including the deferred `schemas/narration.py` move.
+- Any change to narrator copy. The frozen "Werewolfs" inconsistency is reproduced, not fixed.
+- Changing `src/domain/` semantics. Guards are added at the engine boundary, not inside domain helpers the UI depends on.
 
 ## Key Deliverables
 
 | # | Deliverable | Description | Likely Features |
 |---|-------------|-------------|-----------------|
-| 1 | Engine Types | TypeScript interfaces for engine inputs/outputs, transcribed from `narration/inputs.py` (`RoleScriptInput`, `AbilityStepInput`) plus scripts, actions, game state. Build on `src/domain/` types; do not import `src/types`. | Type definitions |
-| 2 | Instruction Templates | Port of `templates.py` — all 15 ability type templates via `build_step_instruction()`, plus `build_wake_instruction()`, `STEP_DURATIONS`, `get_step_duration()` | Template functions |
-| 3 | Script Generator | Port of `build_night_script_actions()` / `build_role_script()` — takes roles + sequence, produces ordered `NarratorAction[]` | Core engine function |
-| 4 | Narrator Preview | Port of `build_preview_actions()` — generates preview from draft role data without persisting | Preview function |
-| 5 | Wake Order Resolver | Sort roles by wake order with custom sequence override | Sort utility |
-| 6 | Game State Machine | Phase transitions, timer state, current wake index tracking, in-memory session create/start/advance/complete | State management |
-| 7 | Frontend Integration | Replace 6 API call sites with local engine calls (see Frontend Integration Map) | Hook/service/page updates |
-
-## Frontend Integration Map
-
-These are the specific API calls that must be replaced with local engine equivalents:
-
-| Current Call Site | Current API Call | Replacement |
-|---|---|---|
-| `WakeOrderResolution.tsx` | `gamesApi.create()` | Local engine creates in-memory game session from role selections |
-| `GameFacilitator.tsx` | `gamesApi.start()` | Local engine shuffles role assignments and transitions to night phase |
-| `GameFacilitator.tsx` / `useGame()` | `gamesApi.getById()` | Local session manager returns in-memory game state |
-| `GameFacilitator.tsx` / `useNightScript()` | `gamesApi.getNightScript()` | Local script generator produces `NightScript` from in-memory game |
-| `GameFacilitator.tsx` | `gamesApi.advancePhase()` | Local state machine advances phase (night → discussion → voting → resolution → complete) |
-| `RoleBuilder.tsx` | `rolesApi.previewScript()` | Local preview generator produces `NarratorPreviewResponse` from draft role data |
-
-**Hooks and API clients affected**: `useGame.ts` (both `useGame` and `useNightScript`), `useGameSetup.ts` (navigate-to-game flow), `api/games.ts` (game CRUD — may be gutted or wrapped), `api/roles.ts` (`previewScript` method only).
-
-**Components affected**: `WakeOrderResolution.tsx`, `GameFacilitator.tsx`, `RoleBuilder.tsx`.
+| 1 | Engine types and templates | Input and output types built on `src/domain/` shapes, plus the 15 instruction templates, wake instructions, and step durations, with the transcribed 67-case oracle | Types, templates, parity tests |
+| 2 | Script generator and preview | Night script assembly, wake order sorting with custom sequence, modifier handling, narrator preview with section headers, and the night-script and preview parity fixtures | Script builder, preview, fixture tests |
+| 3 | Game session state machine | In-memory session with create, start, advance, wake-index tracking, and injected id generation | State machine, tests |
 
 ## Technical Context
 
-- **Primary source to port**: `yourwolf-backend/app/services/narration/` — a pure package with no DB, ORM, or session access. `templates.py` (`STEP_DURATIONS`, `build_step_instruction()`, `build_wake_instruction()`, `get_step_duration()`) and `script_builder.py` (`build_role_script()`, `build_night_script_actions()`, `build_preview_actions()`, `total_duration_seconds()`).
-- **Port input contract**: `app/services/narration/inputs.py` — `RoleScriptInput` and `AbilityStepInput` frozen dataclasses. Field names were chosen to be transcribed one-for-one into the TS engine's types; start here.
-- `yourwolf-backend/app/services/script_service.py` (~195 lines) — DB access and ORM→input adaptation only. Its `_role_to_input()` / `_preview_request_to_input()` adapters show what the engine must be fed, but the adapters themselves are backend-only and are not ported.
-- Python game service: `yourwolf-backend/app/services/game_service.py` — phase management, `PHASE_ORDER`, role shuffling. Setup validation lives in `app/services/game_setup_validation.py`.
-- Python models to mirror: `app/models/ability_step.py` (`StepModifier` enum), `app/models/game_session.py` (`GamePhase` enum)
-- Existing Python test suites to replicate: `tests/test_script_service.py` and `tests/test_narration_templates.py` (the latter pins narrator copy verbatim — it is the parity oracle for this port)
-- Existing frontend domain layer: `src/domain/` — `teams.ts` (`Team`, `TEAMS`), `roleDraft.ts` (`StepModifier`, `RoleDraft`, `AbilityStepDraft`), `wakeOrder.ts` (wake grouping/flattening, injectable RNG), `abilitySteps.ts`, `roleSelection.ts`, `constants.ts`. These are pure and are what the engine should build on.
-- Existing frontend types: `src/types/transport.ts` (wire DTOs: `Role`, `AbilityStep`, `Visibility`, `NarratorPreviewAction`, `NarratorPreviewResponse`), `src/types/game.ts` (`GameSession`, `GamePhase`, `NarratorAction`, `NightScript`, `GameSessionCreate`). Note `src/types/role.ts` no longer exists, and `src/engine/` may not import from `src/types` at all — ESLint blocks it.
-- Existing frontend hooks: `src/hooks/useGame.ts` (`useGame`, `useNightScript`), `src/hooks/useGameSetup.ts` — currently call API; will be updated to use local engine
-- Existing API clients: `src/api/games.ts` (game create/start/advance/script/delete), `src/api/roles.ts` (`previewScript` method)
-- Step durations map: 15 ability types with specific second values (8s for `view_card`, 6s for `swap_card`, etc.)
-- Instruction templates: string generation per ability type with parameter interpolation (`wake_target`, card counts, direction, team names, etc.)
-- Wake instruction generation: `build_wake_instruction()` branches on `wake_target` pattern — `player.self`, `team.*`, `role.*` (extracts role name from pattern); `None` is treated as `player.self`
-- Preview script: `build_preview_actions()` takes the same `RoleScriptInput` as the night script path and adds a section header for `perform_immediately`/`perform_as` steps. The old `_StandInRole` / `_StandInStep` / `_StandInAbility` shim classes are gone — preview and night script now share one input type, so there is only one shape to port.
-- **Narrator copy is frozen and must be transcribed verbatim, bugs included.** `_thumbs_up_instruction` renders `team.werewolf` as "Werewolfs" while `build_wake_instruction` says "Werewolves". This inconsistency is deliberate, pinned at source and in `tests/test_narration_templates.py`. The port is correct only when it reproduces it. Do not silently fix copy during the port — that is a separate change that must update source, pinned test, and port together.
-- The engine module must have zero dependencies on React, DOM APIs, or Node.js — pure TypeScript functions that can run anywhere. This is now machine-enforced: `eslint.config.js` restricts `src/engine/**` from importing React, `api`, `hooks`, `components`, `pages`, `styles`, and `types`.
+- **Primary source to port**: `yourwolf-backend/app/services/narration/`. `templates.py` holds `STEP_DURATIONS`, `build_step_instruction()`, `build_wake_instruction()`, and `get_step_duration()`. `script_builder.py` holds `build_role_script()`, `build_night_script_actions()`, `build_preview_actions()`, and `total_duration_seconds()`. The package is free of DB, ORM, and session access but imports two Pydantic output schemas, `NarratorAction` from `schemas/game.py` and `NarratorPreviewAction` from `schemas/role.py`. The engine needs equivalent TypeScript output types.
+- **Input contract**: `app/services/narration/inputs.py` defines `RoleScriptInput` and `AbilityStepInput` with field names chosen for one-for-one transcription. Start here.
+- **Filters that live outside the package**: `script_service.py` excludes roles with `wake_order` null or zero before calling the builders, and returns an empty preview for such roles. The engine must apply these filters itself.
+- **Phase management reference**: `game_service.py` defines `PHASE_ORDER` and the advance and start rules. `game_setup_validation.py` holds setup validation. `app/models/game_session.py` defines `GamePhase`.
+- **Parity oracle**: `tests/test_narration_templates.py` holds `WAKE_CASES`, `INSTRUCTION_CASES`, and `DURATION_CASES`, 67 literal cases validated against the pre-refactor implementation. `tests/test_script_service.py` covers assembly behavior. Both are transcribed, never regenerated.
+- **Frontend domain layer to build on**: `src/domain/teams.ts`, `roleDraft.ts` (`StepModifier`, `RoleDraft`, `AbilityStepDraft`), `wakeOrder.ts` (grouping and flattening with injectable RNG), `abilitySteps.ts`, `roleSelection.ts`, `constants.ts`.
+- **Types the engine may not import**: `src/types/transport.ts` and `src/types/game.ts`. `eslint.config.js` blocks `src/engine/**` from importing React, `api`, `hooks`, `components`, `pages`, `styles`, and `types`. Phase 04b owns any adapter between transport DTOs and engine types.
+- **Known domain-layer sharp edges** (from `docs/learnings/cross-phase-decisions.md`): `createEmptyDraft()` reads the ambient `crypto.randomUUID()`; `setStepModifier` can violate the first-step invariant that `renumberSteps` owns; `moveStepUp` and `moveStepDown` corrupt the list on out-of-range indices and are safe only behind UI guards. The engine treats the invariant as owned by `renumberSteps` and guards at its own boundary.
+- **Frozen copy**: `_thumbs_up_instruction` renders `team.werewolf` as "Werewolfs" while the wake instruction says "Werewolves". Reproduce it.
 
 ## Edge Cases & Failure Modes
 
-- **Roles with no ability steps**: A role that wakes but has no steps — engine should still produce wake + close-eyes actions (the Python code handles this naturally via the loop)
-- **Roles with `wake_order == null` or `wake_order == 0`**: Must be excluded from night script generation — the Python code explicitly filters these out
-- **Unknown ability types**: `build_step_instruction()` returns `None` for unrecognized types — the TS engine should silently skip (no action added), matching Python behavior. `get_step_duration()` falls back to a default for types absent from `STEP_DURATIONS`.
-- **Empty night script**: A game where no roles wake (all have `wake_order == null` or 0) — engine should still produce the opening "close your eyes" and closing "open your eyes" narrator actions
-- **`StepModifier.OR` interaction**: Steps with `OR` modifier get "OR " prefixed to their instruction text *and* set `requires_player_action = true` — both behaviors must be preserved
-- **Preview with `wake_order == null` or 0**: `ScriptService.preview_role_script()` returns an empty actions array (no script generated) — must match this behavior. Note this filter lives in `ScriptService`, not in the narration package, so the engine must apply it explicitly.
-- **`perform_immediately` / `perform_as` in preview**: Preview adds a special section header action when these ability types are present — this logic is unique to preview and must be ported
-- **Custom wake order sequence with missing roles**: If a role ID in the sequence is not in the game's waking roles, it should be ignored during sort (Python uses `.get()` with a fallback index)
-- **Duplicate role instances in the same game**: Multiple copies of the same role in a game — the script should only generate one script block per unique role (Python de-duplicates via `set()` on role IDs)
+- **Role with no ability steps**: still produces wake and close-eyes actions.
+- **`wake_order` null or zero**: excluded from the night script and yields an empty preview.
+- **Unknown ability type**: instruction is skipped with no action added. Duration falls back to the default.
+- **No waking roles**: the script still has the opening and closing narrator actions.
+- **`OR` modifier**: prefixes "OR " to the instruction and sets `requires_player_action` true. Both preserved.
+- **Custom sequence naming a role not in the game**: ignored with a fallback index.
+- **Waking roles the custom sequence does not name**: the Python reference sorts these after the named roles in incidental database row order, which the port must not reproduce. The engine orders unnamed roles by their default wake order, then by role id. The custom-order fixture is generated only from sequences that name every waking role, so it never depends on the incidental ordering.
+- **`wake_target` value outside the recognized set**: for example `team.village`, treated as `player.self`, matching the Python fallthrough.
+- **`role.` wake target**: the role name is extracted from the pattern with underscores rewritten to spaces.
+- **Duplicate role instances**: one script block per unique role.
+- **Wake target null**: treated as `player.self`.
+- **State machine misuse**: starting a game not in setup, advancing a game still in setup, or advancing past complete, is rejected without mutating state. The first and last mirror the Python errors. The middle is a deliberate tightening; note it in the implementation record.
+- **Deterministic ids**: with an injected id generator the same inputs yield the same session, so snapshot tests are stable.
 
 ## Dependencies & Risks
 
-- **Dependency**: Phase 3.6 wake order sequence logic must be stable — the engine must support both default and custom ordering
-- **Risk**: Python-to-TypeScript translation errors — mitigate by writing matching test cases from existing Python tests (~1,540 lines across `test_script_service.py` and `test_narration_templates.py`) and verifying output parity. `test_narration_templates.py` pins narrator copy exactly and is the parity oracle.
-- **Risk**: Edge cases in conditional step resolution (AND/OR/IF chains) — the Python implementation handles these; tests must cover the same scenarios
-- **Risk**: Frontend integration complexity — 6 API call sites across 3 pages and 2 hooks need replacement; mitigate by creating an adapter layer so hooks keep their existing public interface (`useGame` still returns `{ game, loading, error, refetch }`)
-- **Risk**: Game state management — in-memory game sessions are lost on page refresh (acceptable for Phase 04; persistence comes in Phase 05)
-- **Mitigation**: Keep the Python backend running during development as a reference; run both engines with the same inputs and compare outputs
+- **Dependency**: Phase 3.6 wake order sequence semantics in `src/domain/wakeOrder.ts` must stay stable.
+- **Risk**: translation drift between Python and TypeScript. Mitigation: transcribe the oracle tables literally, and generate the night-script and preview fixtures from the Python backend once, committed as data, so seed-role parity is checked without a running server.
+- **Risk**: engine types drift from the transport DTOs Phase 04b must adapt. Mitigation: engine types are transcribed from the Python input dataclasses, which the transport DTOs already mirror. Record any field-name divergence in the phase discovery context for 04b.
+- **Risk**: the engine ships with no callers, so nothing exercises it at runtime. Mitigation: coverage and parity criteria below are the acceptance gate, and 04b follows immediately.
 
 ## Success Criteria
 
-- [ ] TypeScript engine generates identical night scripts to the Python backend for all 30 seed roles
-- [ ] All 15 ability type instruction templates produce narrator text identical to `templates.py`, including the frozen "Werewolfs" output pinned in `test_narration_templates.py`
-- [ ] All `build_wake_instruction()` branches produce correct wake-up text
-- [ ] Wake order sorting matches Python behavior (default order and custom sequence)
-- [ ] Step modifier conditionals (AND/OR/IF) resolve correctly
-- [ ] `build_preview_actions()` produces identical preview output to the Python backend, including section headers for `perform_immediately`/`perform_as`
-- [ ] Game state machine progresses through all phases (setup → night → discussion → voting → resolution → complete)
-- [ ] All 6 API call sites replaced with local engine calls (see Frontend Integration Map)
-- [ ] Role Builder narrator preview works without backend
-- [ ] Frontend game flow works without any backend API calls for script generation or game management
-- [ ] Engine has no dependencies on DOM, Node, or React APIs
-- [ ] Unit test coverage ≥90% for engine module
-- [ ] Edge cases documented above are covered by tests
+- [ ] All 67 transcribed template cases pass, including the frozen "Werewolfs" output.
+- [ ] Night scripts for all 30 seed roles match the committed Python-generated fixture exactly, in default wake order and in custom sequences that name every waking role.
+- [ ] Unnamed roles under a partial custom sequence sort by default wake order, then role id, and a test pins it.
+- [ ] Preview output for each seed role, converted to draft shape, matches the committed Python-generated preview fixture exactly, including section headers.
+- [ ] Every enumerated `wake_target` pattern, the `role.` underscore rewrite, and the unknown-string fallthrough have a test.
+- [ ] Roles with `wake_order` null or zero are excluded from scripts and produce an empty preview.
+- [ ] The state machine walks setup → night → discussion → voting → resolution → complete and rejects invalid transitions without state change.
+- [ ] Id generation is injectable and the engine has no reference to the ambient `crypto` global.
+- [ ] ESLint boundary rules pass with zero warnings for `src/engine/**`.
+- [ ] Unit test coverage for `src/engine/` is at least 90 percent.
+- [ ] Every edge case above has a test.
+- [ ] No file outside `src/engine/` and its tests changes, except the parity fixture data.
 
 ## QA Considerations
 
-- End-to-end game flow must be manually tested: create game → review wake order → run night phase → verify script matches expected output → complete game
-- Compare engine output against Python backend for regression (same roles, same wake order → same script)
-- Role Builder narrator preview must be manually tested: create a role with abilities → verify preview matches what the backend produced
-- The facilitator UI (`GameFacilitator.tsx`, `ScriptReader.tsx`) should behave identically after switching to local engine
-- Verify page refresh behavior: game state is lost (expected for Phase 04) — the UI should handle this gracefully rather than crashing
+- No UI changes. No manual QA document is required for this phase.
+- Automated QA is the parity suite and the ESLint boundary check.
+- Phase 04b carries the end-to-end manual QA for game flow and preview.
 
-## Notes for Feature - Decomposer
+## Notes for Phase - Execute
 
-Natural decomposition: **(1)** engine types → **(2)** instruction templates + wake instructions → **(3)** script generator + wake order resolver → **(4)** narrator preview → **(5)** game state machine → **(6)** frontend integration.
+Suggested decomposition, one feature per deliverable: **(1)** types and templates → **(2)** script generator and preview → **(3)** game session state machine.
 
-Key guidance:
-- Features 2–4 are tightly coupled — instruction templates are used by both the script generator and preview. The instruction templates feature should be completed first since it's a shared dependency.
-- Feature 4 (narrator preview) reuses `_generate_role_script()` from the script generator, so it comes after Feature 3.
-- Feature 6 (frontend integration) should be last since it changes existing code across multiple pages and hooks.
-- The frontend integration replaces 6 specific API calls (see Frontend Integration Map). Consider splitting it: game flow integration (5 calls in `WakeOrderResolution`, `GameFacilitator`, `useGame`) vs. preview integration (1 call in `RoleBuilder`).
-- Hooks should keep their existing public interfaces where possible (`useGame` returns `{ game, loading, error, refetch }`) — the change is internal (local engine vs. API call).
-- State management approach for in-memory game sessions is an implementation decision for Feature 5/6, not prescribed by this phase doc.
+- Feature 1 must land first. Both the script generator and preview depend on the templates, and the oracle tables are the definition of done for it.
+- Feature 2 owns both parity fixtures. Generate them from the Python backend with a throwaway script, commit the resulting data, and do not commit the generator. The preview fixture input is each seed role converted to the preview request shape.
+- Feature 3 is independent of features 1 and 2 and can run in parallel. It takes an injected id generator and nothing else that is random.
+- Do not touch `src/domain/` helper semantics. Where the engine needs a guard the domain helper lacks, add it in the engine and test it there.
+- Do not add an adapter from `src/types` DTOs. That is Phase 04b work and the ESLint rule will reject it here.
+- This phase should land as one pull request with no changes outside `src/engine/`, its tests, and fixture data.
