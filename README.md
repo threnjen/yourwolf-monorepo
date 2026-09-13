@@ -101,7 +101,8 @@ yourwolf-monorepo/
 | [03](docs/phases/PHASE_3/) | Role Builder MVP | Complete |
 | [3.5](docs/phases/PHASE_3.5/) | Narrator Preview Fixes | Complete |
 | [3.6](docs/phases/PHASE_3.6/) | Wake Order Resolution | Complete |
-| [04](docs/phases/PHASE_04/) | Client-Side Game Engine | **Next** |
+| [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | **Next** |
+| 04b | Engine Frontend Integration | Planned |
 | [05](docs/phases/PHASE_05/) | Local Data Layer (SQLite) | Planned |
 | [06](docs/phases/PHASE_06/) | Desktop App (Tauri v2) | Planned |
 | [07](docs/phases/PHASE_07/) | Narration Engine (TTS) | Planned |
