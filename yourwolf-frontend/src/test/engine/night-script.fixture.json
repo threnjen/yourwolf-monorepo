@@ -1,0 +1,2336 @@
+{
+  "roles": [
+    {
+      "name": "Villager",
+      "wake_target": null,
+      "ability_steps": [],
+      "id": "role-villager",
+      "wake_order": null,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 3
+    },
+    {
+      "name": "Werewolf",
+      "wake_target": "team.werewolf",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_awake",
+          "parameters": {
+            "target": "team.werewolf"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "if",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "center.main"
+          },
+          "condition_type": "no_other_awake",
+          "is_required": true
+        }
+      ],
+      "id": "role-werewolf",
+      "wake_order": 1,
+      "team": "werewolf",
+      "is_primary_team_role": true,
+      "min_count": 1,
+      "max_count": 2
+    },
+    {
+      "name": "Insomniac",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.self"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-insomniac",
+      "wake_order": 9,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Tanner",
+      "wake_target": null,
+      "ability_steps": [],
+      "id": "role-tanner",
+      "wake_order": null,
+      "team": "neutral",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Robber",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "take_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.self"
+          },
+          "is_required": true
+        },
+        {
+          "order": 3,
+          "modifier": "and",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "player.self",
+            "target_b": "previous"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-robber",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Troublemaker",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "player.other",
+            "target_b": "player.other"
+          },
+          "is_required": false
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "explicit_no_view",
+          "parameters": {},
+          "is_required": true
+        }
+      ],
+      "id": "role-troublemaker",
+      "wake_order": 5,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Drunk",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "player.self",
+            "target_b": "center.main"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "explicit_no_view",
+          "parameters": {},
+          "is_required": true
+        }
+      ],
+      "id": "role-drunk",
+      "wake_order": 6,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Minion",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "team.werewolf"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-minion",
+      "wake_order": 2,
+      "team": "werewolf",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Mason",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_awake",
+          "parameters": {
+            "target": "role.mason"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-mason",
+      "wake_order": 3,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 2,
+      "max_count": 2
+    },
+    {
+      "name": "Apprentice Seer",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "center.main",
+            "count": 1
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-apprentice-seer",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Seer",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other",
+            "count": 1
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "or",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "center.main",
+            "count": 2
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-seer",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Witch",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "center.main"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "viewed",
+            "target_b": "player.other"
+          },
+          "is_required": false
+        },
+        {
+          "order": 3,
+          "modifier": "or",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "viewed",
+            "target_b": "player.self"
+          },
+          "is_required": false
+        }
+      ],
+      "id": "role-witch",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Marksman",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-marksman",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Mystic Wolf",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-mystic-wolf",
+      "wake_order": 2,
+      "team": "werewolf",
+      "is_primary_team_role": true,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Doppelganger",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "copy_role",
+          "parameters": {},
+          "is_required": true
+        },
+        {
+          "order": 3,
+          "modifier": "and",
+          "ability_type": "perform_immediately",
+          "parameters": {},
+          "is_required": true
+        }
+      ],
+      "id": "role-doppelganger",
+      "wake_order": 1,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Bodyguard",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other",
+            "protect": true
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-bodyguard",
+      "wake_order": 8,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Copycat",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "center.main"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "copy_role",
+          "parameters": {},
+          "is_required": true
+        },
+        {
+          "order": 3,
+          "modifier": "and",
+          "ability_type": "perform_as",
+          "parameters": {},
+          "is_required": true
+        }
+      ],
+      "id": "role-copycat",
+      "wake_order": 1,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Revealer",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "flip_card",
+          "parameters": {
+            "target": "player.other"
+          },
+          "condition_type": "only_if_opponent",
+          "condition_params": {
+            "team": "village"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-revealer",
+      "wake_order": 7,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Dream Wolf",
+      "wake_target": "team.werewolf",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "player.self"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-dream-wolf",
+      "wake_order": 1,
+      "team": "werewolf",
+      "is_primary_team_role": true,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Alpha Wolf",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "swap_card",
+          "parameters": {
+            "target_a": "center.bonus",
+            "target_b": "player.other"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-alpha-wolf",
+      "wake_order": 2,
+      "team": "werewolf",
+      "is_primary_team_role": true,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Paranormal Investigator",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other",
+            "count": 2
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "if",
+          "ability_type": "change_to_team",
+          "parameters": {
+            "team": "werewolf"
+          },
+          "condition_type": "only_if_team",
+          "condition_params": {
+            "team": "werewolf"
+          },
+          "is_required": true
+        },
+        {
+          "order": 3,
+          "modifier": "and",
+          "ability_type": "stop",
+          "parameters": {},
+          "is_required": true
+        }
+      ],
+      "id": "role-paranormal-investigator",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Village Idiot",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "rotate_all",
+          "parameters": {
+            "direction": "left",
+            "count": 1
+          },
+          "is_required": false
+        },
+        {
+          "order": 2,
+          "modifier": "or",
+          "ability_type": "rotate_all",
+          "parameters": {
+            "direction": "right",
+            "count": 1
+          },
+          "is_required": false
+        }
+      ],
+      "id": "role-village-idiot",
+      "wake_order": 5,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Aura Seer",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "players.actions"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-aura-seer",
+      "wake_order": 7,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Apprentice Tanner",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "role.tanner"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-apprentice-tanner",
+      "wake_order": 2,
+      "team": "neutral",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Beholder",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "role.seer"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "role.apprentice_seer"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-beholder",
+      "wake_order": 4,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Squire",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "team.werewolf"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "role.werewolf"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-squire",
+      "wake_order": 2,
+      "team": "werewolf",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Thing",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "touch",
+          "parameters": {
+            "who": "player.self",
+            "target": "player.adjacent",
+            "location": "adjacent"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-thing",
+      "wake_order": 8,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Cow",
+      "wake_target": "team.alien",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "thumbs_up",
+          "parameters": {
+            "target": "role.cow"
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "if",
+          "ability_type": "touch",
+          "parameters": {
+            "who": "team.alien",
+            "target": "role.cow",
+            "location": "adjacent"
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-cow",
+      "wake_order": 1,
+      "team": "village",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Mortician",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other",
+            "random": [
+              0,
+              1
+            ]
+          },
+          "is_required": true
+        },
+        {
+          "order": 2,
+          "modifier": "and",
+          "ability_type": "view_card",
+          "parameters": {
+            "target": "player.other",
+            "random": [
+              0,
+              1
+            ]
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-mortician",
+      "wake_order": 4,
+      "team": "neutral",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    },
+    {
+      "name": "Blob",
+      "wake_target": "player.self",
+      "ability_steps": [
+        {
+          "order": 1,
+          "modifier": "none",
+          "ability_type": "random_num_players",
+          "parameters": {
+            "options": [
+              2,
+              3,
+              4
+            ]
+          },
+          "is_required": true
+        }
+      ],
+      "id": "role-blob",
+      "wake_order": 10,
+      "team": "neutral",
+      "is_primary_team_role": false,
+      "min_count": 1,
+      "max_count": 1
+    }
+  ],
+  "custom_sequence": [
+    "role-blob",
+    "role-insomniac",
+    "role-thing",
+    "role-bodyguard",
+    "role-revealer",
+    "role-aura-seer",
+    "role-drunk",
+    "role-village-idiot",
+    "role-troublemaker",
+    "role-witch",
+    "role-seer",
+    "role-robber",
+    "role-paranormal-investigator",
+    "role-mortician",
+    "role-marksman",
+    "role-beholder",
+    "role-apprentice-seer",
+    "role-mason",
+    "role-squire",
+    "role-mystic-wolf",
+    "role-minion",
+    "role-apprentice-tanner",
+    "role-alpha-wolf",
+    "role-werewolf",
+    "role-dream-wolf",
+    "role-doppelganger",
+    "role-cow",
+    "role-copycat"
+  ],
+  "default": [
+    {
+      "order": 1,
+      "role_name": "Narrator",
+      "instruction": "Everyone, close your eyes.",
+      "duration_seconds": 5,
+      "requires_player_action": false
+    },
+    {
+      "order": 2,
+      "role_name": "Copycat",
+      "instruction": "Copycat, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 3,
+      "role_name": "Copycat",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 4,
+      "role_name": "Copycat",
+      "instruction": "You are now that role for the rest of the game.",
+      "duration_seconds": 3,
+      "requires_player_action": true
+    },
+    {
+      "order": 5,
+      "role_name": "Copycat",
+      "instruction": "At the copied role's normal wake time, perform their night actions.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 6,
+      "role_name": "Copycat",
+      "instruction": "Copycat, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 7,
+      "role_name": "Cow",
+      "instruction": "Aliens, wake up and look for other aliens.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 8,
+      "role_name": "Cow",
+      "instruction": "Cow, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 9,
+      "role_name": "Cow",
+      "instruction": "Reach out and tap the player next to you.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 10,
+      "role_name": "Cow",
+      "instruction": "Cow, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 11,
+      "role_name": "Doppelganger",
+      "instruction": "Doppelganger, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 12,
+      "role_name": "Doppelganger",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 13,
+      "role_name": "Doppelganger",
+      "instruction": "You are now that role for the rest of the game.",
+      "duration_seconds": 3,
+      "requires_player_action": true
+    },
+    {
+      "order": 14,
+      "role_name": "Doppelganger",
+      "instruction": "Now perform the copied role's night actions.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 15,
+      "role_name": "Doppelganger",
+      "instruction": "Doppelganger, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 16,
+      "role_name": "Dream Wolf",
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 17,
+      "role_name": "Dream Wolf",
+      "instruction": "Put your thumb out so others can see it.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 18,
+      "role_name": "Dream Wolf",
+      "instruction": "Dream Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 19,
+      "role_name": "Werewolf",
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 20,
+      "role_name": "Werewolf",
+      "instruction": "Look around and see who else is awake.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 21,
+      "role_name": "Werewolf",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 22,
+      "role_name": "Werewolf",
+      "instruction": "Werewolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 23,
+      "role_name": "Alpha Wolf",
+      "instruction": "Alpha Wolf, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 24,
+      "role_name": "Alpha Wolf",
+      "instruction": "You may swap that center card with any player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 25,
+      "role_name": "Alpha Wolf",
+      "instruction": "Alpha Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 26,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Apprentice Tanner, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 27,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Tanner, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 28,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Apprentice Tanner, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 29,
+      "role_name": "Minion",
+      "instruction": "Minion, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 30,
+      "role_name": "Minion",
+      "instruction": "Werewolfs, put your thumbs out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 31,
+      "role_name": "Minion",
+      "instruction": "Minion, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 32,
+      "role_name": "Mystic Wolf",
+      "instruction": "Mystic Wolf, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 33,
+      "role_name": "Mystic Wolf",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 34,
+      "role_name": "Mystic Wolf",
+      "instruction": "Mystic Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 35,
+      "role_name": "Squire",
+      "instruction": "Squire, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 36,
+      "role_name": "Squire",
+      "instruction": "Werewolfs, put your thumbs out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 37,
+      "role_name": "Squire",
+      "instruction": "You may look at a card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 38,
+      "role_name": "Squire",
+      "instruction": "Squire, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 39,
+      "role_name": "Mason",
+      "instruction": "Mason, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 40,
+      "role_name": "Mason",
+      "instruction": "Look around and see who else is awake.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 41,
+      "role_name": "Mason",
+      "instruction": "Mason, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 42,
+      "role_name": "Apprentice Seer",
+      "instruction": "Apprentice Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 43,
+      "role_name": "Apprentice Seer",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 44,
+      "role_name": "Apprentice Seer",
+      "instruction": "Apprentice Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 45,
+      "role_name": "Beholder",
+      "instruction": "Beholder, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 46,
+      "role_name": "Beholder",
+      "instruction": "Seer, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 47,
+      "role_name": "Beholder",
+      "instruction": "Apprentice Seer, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 48,
+      "role_name": "Beholder",
+      "instruction": "Beholder, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 49,
+      "role_name": "Marksman",
+      "instruction": "Marksman, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 50,
+      "role_name": "Marksman",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 51,
+      "role_name": "Marksman",
+      "instruction": "Marksman, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 52,
+      "role_name": "Mortician",
+      "instruction": "Mortician, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 53,
+      "role_name": "Mortician",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 54,
+      "role_name": "Mortician",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 55,
+      "role_name": "Mortician",
+      "instruction": "Mortician, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 56,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Paranormal Investigator, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 57,
+      "role_name": "Paranormal Investigator",
+      "instruction": "You may look at up to 2 other players' cards.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 58,
+      "role_name": "Paranormal Investigator",
+      "instruction": "If you see a werewolf, you are now on the werewolf team.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 59,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Stop. Do not perform any further actions.",
+      "duration_seconds": 0,
+      "requires_player_action": true
+    },
+    {
+      "order": 60,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Paranormal Investigator, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 61,
+      "role_name": "Robber",
+      "instruction": "Robber, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 62,
+      "role_name": "Robber",
+      "instruction": "Take another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 63,
+      "role_name": "Robber",
+      "instruction": "You may look at your own card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 64,
+      "role_name": "Robber",
+      "instruction": "Exchange your card with another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 65,
+      "role_name": "Robber",
+      "instruction": "Robber, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 66,
+      "role_name": "Seer",
+      "instruction": "Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 67,
+      "role_name": "Seer",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 68,
+      "role_name": "Seer",
+      "instruction": "OR You may look at 2 cards from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 69,
+      "role_name": "Seer",
+      "instruction": "Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 70,
+      "role_name": "Witch",
+      "instruction": "Witch, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 71,
+      "role_name": "Witch",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 72,
+      "role_name": "Witch",
+      "instruction": "You may swap two other players' cards.",
+      "duration_seconds": 6,
+      "requires_player_action": false
+    },
+    {
+      "order": 73,
+      "role_name": "Witch",
+      "instruction": "OR Exchange your card with another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 74,
+      "role_name": "Witch",
+      "instruction": "Witch, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 75,
+      "role_name": "Troublemaker",
+      "instruction": "Troublemaker, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 76,
+      "role_name": "Troublemaker",
+      "instruction": "You may swap two other players' cards.",
+      "duration_seconds": 6,
+      "requires_player_action": false
+    },
+    {
+      "order": 77,
+      "role_name": "Troublemaker",
+      "instruction": "Do not look at your new card.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 78,
+      "role_name": "Troublemaker",
+      "instruction": "Troublemaker, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 79,
+      "role_name": "Village Idiot",
+      "instruction": "Village Idiot, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 80,
+      "role_name": "Village Idiot",
+      "instruction": "You may move all player cards one position to the left.",
+      "duration_seconds": 8,
+      "requires_player_action": false
+    },
+    {
+      "order": 81,
+      "role_name": "Village Idiot",
+      "instruction": "OR You may move all player cards one position to the right.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 82,
+      "role_name": "Village Idiot",
+      "instruction": "Village Idiot, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 83,
+      "role_name": "Drunk",
+      "instruction": "Drunk, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 84,
+      "role_name": "Drunk",
+      "instruction": "Exchange your card with one from the center.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 85,
+      "role_name": "Drunk",
+      "instruction": "Do not look at your new card.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 86,
+      "role_name": "Drunk",
+      "instruction": "Drunk, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 87,
+      "role_name": "Aura Seer",
+      "instruction": "Aura Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 88,
+      "role_name": "Aura Seer",
+      "instruction": "Everyone who viewed or moved a card tonight, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 89,
+      "role_name": "Aura Seer",
+      "instruction": "Aura Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 90,
+      "role_name": "Revealer",
+      "instruction": "Revealer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 91,
+      "role_name": "Revealer",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 92,
+      "role_name": "Revealer",
+      "instruction": "You may flip that player's card face up.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 93,
+      "role_name": "Revealer",
+      "instruction": "Revealer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 94,
+      "role_name": "Bodyguard",
+      "instruction": "Bodyguard, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 95,
+      "role_name": "Bodyguard",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 96,
+      "role_name": "Bodyguard",
+      "instruction": "Bodyguard, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 97,
+      "role_name": "Thing",
+      "instruction": "Thing, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 98,
+      "role_name": "Thing",
+      "instruction": "Reach out and tap the player next to you.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 99,
+      "role_name": "Thing",
+      "instruction": "Thing, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 100,
+      "role_name": "Insomniac",
+      "instruction": "Insomniac, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 101,
+      "role_name": "Insomniac",
+      "instruction": "You may look at your own card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 102,
+      "role_name": "Insomniac",
+      "instruction": "Insomniac, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 103,
+      "role_name": "Blob",
+      "instruction": "Blob, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 104,
+      "role_name": "Blob",
+      "instruction": "A random number of adjacent players (2, 3, or 4) are now part of your group.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 105,
+      "role_name": "Blob",
+      "instruction": "Blob, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 106,
+      "role_name": "Narrator",
+      "instruction": "Everyone, open your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    }
+  ],
+  "custom": [
+    {
+      "order": 1,
+      "role_name": "Narrator",
+      "instruction": "Everyone, close your eyes.",
+      "duration_seconds": 5,
+      "requires_player_action": false
+    },
+    {
+      "order": 2,
+      "role_name": "Blob",
+      "instruction": "Blob, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 3,
+      "role_name": "Blob",
+      "instruction": "A random number of adjacent players (2, 3, or 4) are now part of your group.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 4,
+      "role_name": "Blob",
+      "instruction": "Blob, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 5,
+      "role_name": "Insomniac",
+      "instruction": "Insomniac, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 6,
+      "role_name": "Insomniac",
+      "instruction": "You may look at your own card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 7,
+      "role_name": "Insomniac",
+      "instruction": "Insomniac, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 8,
+      "role_name": "Thing",
+      "instruction": "Thing, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 9,
+      "role_name": "Thing",
+      "instruction": "Reach out and tap the player next to you.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 10,
+      "role_name": "Thing",
+      "instruction": "Thing, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 11,
+      "role_name": "Bodyguard",
+      "instruction": "Bodyguard, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 12,
+      "role_name": "Bodyguard",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 13,
+      "role_name": "Bodyguard",
+      "instruction": "Bodyguard, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 14,
+      "role_name": "Revealer",
+      "instruction": "Revealer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 15,
+      "role_name": "Revealer",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 16,
+      "role_name": "Revealer",
+      "instruction": "You may flip that player's card face up.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 17,
+      "role_name": "Revealer",
+      "instruction": "Revealer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 18,
+      "role_name": "Aura Seer",
+      "instruction": "Aura Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 19,
+      "role_name": "Aura Seer",
+      "instruction": "Everyone who viewed or moved a card tonight, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 20,
+      "role_name": "Aura Seer",
+      "instruction": "Aura Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 21,
+      "role_name": "Drunk",
+      "instruction": "Drunk, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 22,
+      "role_name": "Drunk",
+      "instruction": "Exchange your card with one from the center.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 23,
+      "role_name": "Drunk",
+      "instruction": "Do not look at your new card.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 24,
+      "role_name": "Drunk",
+      "instruction": "Drunk, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 25,
+      "role_name": "Village Idiot",
+      "instruction": "Village Idiot, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 26,
+      "role_name": "Village Idiot",
+      "instruction": "You may move all player cards one position to the left.",
+      "duration_seconds": 8,
+      "requires_player_action": false
+    },
+    {
+      "order": 27,
+      "role_name": "Village Idiot",
+      "instruction": "OR You may move all player cards one position to the right.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 28,
+      "role_name": "Village Idiot",
+      "instruction": "Village Idiot, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 29,
+      "role_name": "Troublemaker",
+      "instruction": "Troublemaker, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 30,
+      "role_name": "Troublemaker",
+      "instruction": "You may swap two other players' cards.",
+      "duration_seconds": 6,
+      "requires_player_action": false
+    },
+    {
+      "order": 31,
+      "role_name": "Troublemaker",
+      "instruction": "Do not look at your new card.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 32,
+      "role_name": "Troublemaker",
+      "instruction": "Troublemaker, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 33,
+      "role_name": "Witch",
+      "instruction": "Witch, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 34,
+      "role_name": "Witch",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 35,
+      "role_name": "Witch",
+      "instruction": "You may swap two other players' cards.",
+      "duration_seconds": 6,
+      "requires_player_action": false
+    },
+    {
+      "order": 36,
+      "role_name": "Witch",
+      "instruction": "OR Exchange your card with another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 37,
+      "role_name": "Witch",
+      "instruction": "Witch, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 38,
+      "role_name": "Seer",
+      "instruction": "Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 39,
+      "role_name": "Seer",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 40,
+      "role_name": "Seer",
+      "instruction": "OR You may look at 2 cards from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 41,
+      "role_name": "Seer",
+      "instruction": "Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 42,
+      "role_name": "Robber",
+      "instruction": "Robber, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 43,
+      "role_name": "Robber",
+      "instruction": "Take another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 44,
+      "role_name": "Robber",
+      "instruction": "You may look at your own card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 45,
+      "role_name": "Robber",
+      "instruction": "Exchange your card with another player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 46,
+      "role_name": "Robber",
+      "instruction": "Robber, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 47,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Paranormal Investigator, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 48,
+      "role_name": "Paranormal Investigator",
+      "instruction": "You may look at up to 2 other players' cards.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 49,
+      "role_name": "Paranormal Investigator",
+      "instruction": "If you see a werewolf, you are now on the werewolf team.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 50,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Stop. Do not perform any further actions.",
+      "duration_seconds": 0,
+      "requires_player_action": true
+    },
+    {
+      "order": 51,
+      "role_name": "Paranormal Investigator",
+      "instruction": "Paranormal Investigator, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 52,
+      "role_name": "Mortician",
+      "instruction": "Mortician, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 53,
+      "role_name": "Mortician",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 54,
+      "role_name": "Mortician",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 55,
+      "role_name": "Mortician",
+      "instruction": "Mortician, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 56,
+      "role_name": "Marksman",
+      "instruction": "Marksman, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 57,
+      "role_name": "Marksman",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 58,
+      "role_name": "Marksman",
+      "instruction": "Marksman, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 59,
+      "role_name": "Beholder",
+      "instruction": "Beholder, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 60,
+      "role_name": "Beholder",
+      "instruction": "Seer, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 61,
+      "role_name": "Beholder",
+      "instruction": "Apprentice Seer, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 62,
+      "role_name": "Beholder",
+      "instruction": "Beholder, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 63,
+      "role_name": "Apprentice Seer",
+      "instruction": "Apprentice Seer, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 64,
+      "role_name": "Apprentice Seer",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 65,
+      "role_name": "Apprentice Seer",
+      "instruction": "Apprentice Seer, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 66,
+      "role_name": "Mason",
+      "instruction": "Mason, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 67,
+      "role_name": "Mason",
+      "instruction": "Look around and see who else is awake.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 68,
+      "role_name": "Mason",
+      "instruction": "Mason, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 69,
+      "role_name": "Squire",
+      "instruction": "Squire, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 70,
+      "role_name": "Squire",
+      "instruction": "Werewolfs, put your thumbs out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 71,
+      "role_name": "Squire",
+      "instruction": "You may look at a card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 72,
+      "role_name": "Squire",
+      "instruction": "Squire, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 73,
+      "role_name": "Mystic Wolf",
+      "instruction": "Mystic Wolf, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 74,
+      "role_name": "Mystic Wolf",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 75,
+      "role_name": "Mystic Wolf",
+      "instruction": "Mystic Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 76,
+      "role_name": "Minion",
+      "instruction": "Minion, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 77,
+      "role_name": "Minion",
+      "instruction": "Werewolfs, put your thumbs out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 78,
+      "role_name": "Minion",
+      "instruction": "Minion, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 79,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Apprentice Tanner, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 80,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Tanner, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 81,
+      "role_name": "Apprentice Tanner",
+      "instruction": "Apprentice Tanner, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 82,
+      "role_name": "Alpha Wolf",
+      "instruction": "Alpha Wolf, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 83,
+      "role_name": "Alpha Wolf",
+      "instruction": "You may swap that center card with any player's card.",
+      "duration_seconds": 6,
+      "requires_player_action": true
+    },
+    {
+      "order": 84,
+      "role_name": "Alpha Wolf",
+      "instruction": "Alpha Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 85,
+      "role_name": "Werewolf",
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 86,
+      "role_name": "Werewolf",
+      "instruction": "Look around and see who else is awake.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 87,
+      "role_name": "Werewolf",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 88,
+      "role_name": "Werewolf",
+      "instruction": "Werewolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 89,
+      "role_name": "Dream Wolf",
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 90,
+      "role_name": "Dream Wolf",
+      "instruction": "Put your thumb out so others can see it.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 91,
+      "role_name": "Dream Wolf",
+      "instruction": "Dream Wolf, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 92,
+      "role_name": "Doppelganger",
+      "instruction": "Doppelganger, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 93,
+      "role_name": "Doppelganger",
+      "instruction": "You may look at one other player's card.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 94,
+      "role_name": "Doppelganger",
+      "instruction": "You are now that role for the rest of the game.",
+      "duration_seconds": 3,
+      "requires_player_action": true
+    },
+    {
+      "order": 95,
+      "role_name": "Doppelganger",
+      "instruction": "Now perform the copied role's night actions.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 96,
+      "role_name": "Doppelganger",
+      "instruction": "Doppelganger, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 97,
+      "role_name": "Cow",
+      "instruction": "Aliens, wake up and look for other aliens.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 98,
+      "role_name": "Cow",
+      "instruction": "Cow, put your thumb out.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 99,
+      "role_name": "Cow",
+      "instruction": "Reach out and tap the player next to you.",
+      "duration_seconds": 5,
+      "requires_player_action": true
+    },
+    {
+      "order": 100,
+      "role_name": "Cow",
+      "instruction": "Cow, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 101,
+      "role_name": "Copycat",
+      "instruction": "Copycat, wake up.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 102,
+      "role_name": "Copycat",
+      "instruction": "You may look at one card from the center.",
+      "duration_seconds": 8,
+      "requires_player_action": true
+    },
+    {
+      "order": 103,
+      "role_name": "Copycat",
+      "instruction": "You are now that role for the rest of the game.",
+      "duration_seconds": 3,
+      "requires_player_action": true
+    },
+    {
+      "order": 104,
+      "role_name": "Copycat",
+      "instruction": "At the copied role's normal wake time, perform their night actions.",
+      "duration_seconds": 2,
+      "requires_player_action": true
+    },
+    {
+      "order": 105,
+      "role_name": "Copycat",
+      "instruction": "Copycat, close your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    },
+    {
+      "order": 106,
+      "role_name": "Narrator",
+      "instruction": "Everyone, open your eyes.",
+      "duration_seconds": 3,
+      "requires_player_action": false
+    }
+  ]
+}

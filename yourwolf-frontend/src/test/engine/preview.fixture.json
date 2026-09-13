@@ -1,0 +1,590 @@
+{
+  "Villager": [],
+  "Werewolf": [
+    {
+      "order": 1,
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Look around and see who else is awake.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may look at one card from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Werewolf, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Insomniac": [
+    {
+      "order": 1,
+      "instruction": "Insomniac, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at your own card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Insomniac, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Tanner": [],
+  "Robber": [
+    {
+      "order": 1,
+      "instruction": "Robber, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Take another player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may look at your own card.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Exchange your card with another player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 5,
+      "instruction": "Robber, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Troublemaker": [
+    {
+      "order": 1,
+      "instruction": "Troublemaker, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may swap two other players' cards.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Do not look at your new card.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Troublemaker, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Drunk": [
+    {
+      "order": 1,
+      "instruction": "Drunk, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Exchange your card with one from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Do not look at your new card.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Drunk, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Minion": [
+    {
+      "order": 1,
+      "instruction": "Minion, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Werewolfs, put your thumbs out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Minion, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Mason": [
+    {
+      "order": 1,
+      "instruction": "Mason, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Look around and see who else is awake.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Mason, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Apprentice Seer": [
+    {
+      "order": 1,
+      "instruction": "Apprentice Seer, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one card from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Apprentice Seer, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Seer": [
+    {
+      "order": 1,
+      "instruction": "Seer, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "OR You may look at 2 cards from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Seer, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Witch": [
+    {
+      "order": 1,
+      "instruction": "Witch, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one card from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may swap two other players' cards.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "OR Exchange your card with another player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 5,
+      "instruction": "Witch, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Marksman": [
+    {
+      "order": 1,
+      "instruction": "Marksman, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Marksman, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Mystic Wolf": [
+    {
+      "order": 1,
+      "instruction": "Mystic Wolf, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Mystic Wolf, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Doppelganger": [
+    {
+      "order": 1,
+      "instruction": "Doppelganger, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You are now that role for the rest of the game.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Now perform the copied role's night actions.",
+      "is_section_header": false
+    },
+    {
+      "order": 5,
+      "instruction": "Doppelganger, close your eyes.",
+      "is_section_header": false
+    },
+    {
+      "order": 6,
+      "instruction": "Then, at the copied role's wake time, Doppelganger performs the copied role's night actions.",
+      "is_section_header": true
+    }
+  ],
+  "Bodyguard": [
+    {
+      "order": 1,
+      "instruction": "Bodyguard, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Bodyguard, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Copycat": [
+    {
+      "order": 1,
+      "instruction": "Copycat, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one card from the center.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You are now that role for the rest of the game.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "At the copied role's normal wake time, perform their night actions.",
+      "is_section_header": false
+    },
+    {
+      "order": 5,
+      "instruction": "Copycat, close your eyes.",
+      "is_section_header": false
+    },
+    {
+      "order": 6,
+      "instruction": "Then, at the copied role's wake time, Copycat performs the copied role's night actions.",
+      "is_section_header": true
+    }
+  ],
+  "Revealer": [
+    {
+      "order": 1,
+      "instruction": "Revealer, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may flip that player's card face up.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Revealer, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Dream Wolf": [
+    {
+      "order": 1,
+      "instruction": "Werewolves, wake up and look for other werewolves.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Put your thumb out so others can see it.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Dream Wolf, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Alpha Wolf": [
+    {
+      "order": 1,
+      "instruction": "Alpha Wolf, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may swap that center card with any player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Alpha Wolf, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Paranormal Investigator": [
+    {
+      "order": 1,
+      "instruction": "Paranormal Investigator, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at up to 2 other players' cards.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "If you see a werewolf, you are now on the werewolf team.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Stop. Do not perform any further actions.",
+      "is_section_header": false
+    },
+    {
+      "order": 5,
+      "instruction": "Paranormal Investigator, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Village Idiot": [
+    {
+      "order": 1,
+      "instruction": "Village Idiot, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may move all player cards one position to the left.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "OR You may move all player cards one position to the right.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Village Idiot, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Aura Seer": [
+    {
+      "order": 1,
+      "instruction": "Aura Seer, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Everyone who viewed or moved a card tonight, put your thumb out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Aura Seer, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Apprentice Tanner": [
+    {
+      "order": 1,
+      "instruction": "Apprentice Tanner, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Tanner, put your thumb out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Apprentice Tanner, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Beholder": [
+    {
+      "order": 1,
+      "instruction": "Beholder, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Seer, put your thumb out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Apprentice Seer, put your thumb out.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Beholder, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Squire": [
+    {
+      "order": 1,
+      "instruction": "Squire, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Werewolfs, put your thumbs out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may look at a card.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Squire, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Thing": [
+    {
+      "order": 1,
+      "instruction": "Thing, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Reach out and tap the player next to you.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Thing, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Cow": [
+    {
+      "order": 1,
+      "instruction": "Aliens, wake up and look for other aliens.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "Cow, put your thumb out.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Reach out and tap the player next to you.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Cow, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Mortician": [
+    {
+      "order": 1,
+      "instruction": "Mortician, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "You may look at one other player's card.",
+      "is_section_header": false
+    },
+    {
+      "order": 4,
+      "instruction": "Mortician, close your eyes.",
+      "is_section_header": false
+    }
+  ],
+  "Blob": [
+    {
+      "order": 1,
+      "instruction": "Blob, wake up.",
+      "is_section_header": false
+    },
+    {
+      "order": 2,
+      "instruction": "A random number of adjacent players (2, 3, or 4) are now part of your group.",
+      "is_section_header": false
+    },
+    {
+      "order": 3,
+      "instruction": "Blob, close your eyes.",
+      "is_section_header": false
+    }
+  ]
+}
