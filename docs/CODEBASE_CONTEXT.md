@@ -1,6 +1,6 @@
 # Codebase Context
 
-> Dense reference for AI agents. Updated: July 2026. Current phase: 04 (planned), preceded by a refactor-remediation phase.
+> Dense reference for AI agents. Current phase: 04a complete; 04b planned.
 
 ## Project
 
@@ -167,6 +167,12 @@ yourwolf-frontend/
 │   │   ├── abilitySteps.ts  # append/remove/move/renumber steps, parameter coercion
 │   │   └── wakeOrder.ts     # collectWakingRoles, buildGroupOrders, flattenWakeOrder,
 │   │                        # expandRoleIds, shuffleArray(rng injectable)
+│   ├── engine/              # Pure TypeScript engine; no application callers until Phase 04b
+│   │   ├── types.ts         # Immutable engine input/output contracts
+│   │   ├── templates.ts     # 15 ability templates, wake instructions, durations
+│   │   ├── narration.ts     # Script/preview builders and deterministic wake sorting
+│   │   ├── gameSetupValidation.ts # Setup rules and dependency warnings
+│   │   └── gameSession.ts   # Immutable create/start/advance phase state machine
 │   ├── types/
 │   │   ├── game.ts          # GameSession, GamePhase, NarratorAction, NightScript, GameSessionCreate
 │   │   ├── transport.ts     # Wire DTOs: Role, AbilityStep, Visibility, ValidationResult, NameCheckResult, NarratorPreviewAction/Response
@@ -195,6 +201,19 @@ yourwolf-frontend/
 - Dependencies point inward. Transport types may depend on domain types, never the reverse — if the domain needs a shape, declare it in `src/domain`.
 - The domain rule uses the `@typescript-eslint` variant with `allowTypeImports: false`, so `import type` is restricted too.
 - `react-hooks` plugin (`recommended-latest`) is wired; `exhaustive-deps` is promoted to `error`.
+
+## Client Engine
+
+- `src/engine/` is implemented but has no application callers. Phase 04b owns adapters and replacement of backend API calls.
+- `types.ts` defines `EngineRoleInput`, `EngineAbilityStepInput`, `NarratorAction`, and `NarratorPreviewAction`.
+- `templates.ts` implements all 15 instruction types, wake-target handling, and duration lookup.
+- `narration.ts` exports `sortWakingRoles()`, `buildRoleScript()`, `buildNightScript()`, `buildPreview()`, and `totalDurationSeconds()`.
+- Default wake order sorts by `wake_order`, then role name. This deliberately replaces Python's incidental database row ordering for ties.
+- Custom wake sequences place named roles first. Unnamed roles retain the deterministic default order.
+- `gameSetupValidation.ts` ports setup validation and warning behavior from the backend.
+- `gameSession.ts` creates immutable in-memory sessions with an injected ID generator.
+- `startGame()` is the only setup-to-night transition. `advancePhase()` rejects setup, unlike the Python backend.
+- Narration templates and fixture-covered outputs match Python. Do not claim complete behavioral identity because wake-order ties and setup advancement differ.
 
 ## Frontend Key Patterns
 
@@ -237,12 +256,11 @@ yourwolf-frontend/
 
 ## Current Status
 
-- Phases 01–3.6 complete (foundation, game facilitation, role builder, narrator preview fixes, wake order resolution)
-- A refactor-remediation phase then landed 12 features preparing the codebase for the Phase 04 port: lazy config/DB accessors, domain exceptions, extracted validators, the pure `app/services/narration/` package, JSON seed data, the `src/domain/` layer, ESLint import boundaries, and a test tree mirroring source.
-- Phase 04 (Client-Side Game Engine) is next — port the narration package + GameService to TypeScript `src/engine/`, replace 6 API calls with local engine
-- Port contracts to read first: `app/services/narration/inputs.py` (Python side) and `src/domain/` (TS side)
-- `src/engine/` does not exist yet, but ESLint rules for it are already active
-- After Phase 04: local SQLite (05), Tauri desktop (06), TTS narration (07), mobile (08), then cloud features (09–13)
+- Phases 01–3.6 are complete.
+- Phase 04a is complete. Test health and mutation-tested guards verify coverage, output shape, injected identity, and deep input immutability.
+- Phase 04b is planned. It owns transport adapters, six game/preview call-site replacements, refresh behavior, and end-to-end manual QA.
+- The live frontend still calls the backend for game creation, phase transitions, night scripts, and narrator previews.
+- After Phase 04b: local SQLite (05), Tauri desktop (06), TTS narration (07), mobile (08), then cloud features (09–13).
 
 ## Do Not
 
@@ -252,6 +270,8 @@ yourwolf-frontend/
 - Do NOT add React context or global state stores without explicit approval — hooks manage local state
 - Do NOT modify the Python backend for Phase 04 work — it stays as-is for future cloud use
 - Do NOT add DOM/Node/React dependencies to `src/engine/` (Phase 04) — must be pure TypeScript
+- Do NOT import transport DTOs from `src/engine/` — Phase 04b adapters belong outside the engine.
+- Do NOT describe the TypeScript engine as fully identical to Python — deterministic wake-order ties and setup-advance rejection are deliberate differences.
 - Do NOT skip `_ensure_abilities()` in backend tests that need ability data — tests use fresh SQLite per function
 - Do NOT hardcode `localhost` URLs — use `VITE_API_URL` env var via `import.meta.env`
 - Do NOT forget `useCallback` around fetcher functions passed to `useFetch` — causes infinite re-render loops

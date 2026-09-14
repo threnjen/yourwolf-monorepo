@@ -14,8 +14,9 @@ A customizable One Night Ultimate Werewolf clone that works as a standalone, off
 | 03 | Role Builder MVP | Complete | Phase 02 | Large | Custom role creation wizard with ability composition and validation |
 | 3.5 | Narrator Preview Fixes | Complete | Phase 03 | Small | Fix preview endpoint, wake_order == 0 handling, missing instruction templates |
 | 3.6 | Wake Order Resolution | Complete | Phase 3.5 | Medium | Wake order review step in game creation, drag-to-reorder within groups |
-| 04 | Client-Side Game Engine | Planned | Phase 3.6 | Large | Port night script generation, wake order engine, and ability resolution from Python to TypeScript |
-| 05 | Local Data Layer | Planned | Phase 04 | Medium | SQLite for local storage, data access abstraction, offline role and game persistence |
+| 04a | Client-Side Game Engine | Complete | Phase 3.6 | Medium | Verified pure TypeScript engine under `src/engine/`: night script generation, narrator preview, deterministic wake order, setup validation, and an immutable phase state machine. No callers yet |
+| 04b | Engine Frontend Integration | Planned | Phase 04a | Medium | Replace the six game-flow and preview API call sites with the local engine; decide refresh behavior for in-memory games; run end-to-end manual QA |
+| 05 | Local Data Layer | Planned | Phase 04b | Medium | SQLite for local storage, data access abstraction, offline role and game persistence |
 | 06 | Desktop App (Tauri v2) | Planned | Phase 05 | Medium | Tauri v2 native shell, macOS and Windows builds (Linux best-effort), bundled seed data |
 | 07 | Narration Engine | Planned | Phase 06 | Medium–Large | Text-to-speech for night phase narration, voice/pacing controls, fully offline-capable (research phase) |
 | 08 | Mobile App (Tauri v2) | Planned | Phase 07 | Large | Tauri v2 mobile builds (iOS and Android), touch-optimized UI, responsive layout |
@@ -25,10 +26,10 @@ A customizable One Night Ultimate Werewolf clone that works as a standalone, off
 | 12 | Analytics & Balance Metrics | Planned | Phase 11 | Large | Win rate tracking, balance scoring, set recommendations, analytics dashboard |
 | 13 | Production Deployment | Planned | Phase 12 | Large | AWS infrastructure, CI/CD, app store submissions |
 
-### MVP Arc (Phases 04–08): Standalone Offline App
+### MVP Arc (Phases 04a–08): Standalone Offline App
 
 ```
-Phase 04          Phase 05          Phase 06           Phase 07          Phase 08
+Phase 04a/04b     Phase 05          Phase 06           Phase 07          Phase 08
 Game Engine   →   Local Data    →   Desktop App    →   Narration     →   Mobile App
 (TypeScript)      (SQLite)          (Tauri macOS/Win)  (TTS, offline)    (Tauri iOS/Android)
 ```
@@ -55,7 +56,7 @@ Phases 09–13 add authentication, community, advanced features, analytics, and 
 
 - **Monorepo**: `yourwolf-backend` (Python 3.14, FastAPI, SQLAlchemy — cloud API), `yourwolf-frontend` (React 18, TypeScript, Vite — shared UI), Tauri v2 for native shell
 - **Dual data path**: SQLite (local/offline) ↔ PostgreSQL via FastAPI (cloud/online)
-- **Game engine**: TypeScript client-side — night script generation, wake order engine, ability resolution (ported from Python `app/services/script_service.py`)
+- **Game engine**: Pure TypeScript engine under `src/engine/` — narration, deterministic wake ordering, setup validation, and immutable phase transitions. Application integration belongs to Phase 04b
 - **Ability system**: Atomic primitives (View, Swap, Copy, etc.) with sequencing and conditionals (AND/OR/IF)
 - **Wake order engine**: Deterministic night phase — roles wake in order, execute steps sequentially
 - **Narration**: TTS engine (specifics TBD in Phase 07 research) — must work fully offline

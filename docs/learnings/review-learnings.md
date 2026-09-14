@@ -289,3 +289,11 @@ Durable, reusable review rules distilled from past feature reviews. No dates, no
 **Impact:** Coverage disappears at precisely the moment everyone's attention is on the mechanical diff. It surfaces months later as an untested regression in a module everyone believes is covered.
 
 **Watch for:** Count parity is the weakest available evidence; a name-level `fullName` set diff is much better and worth crediting. But the *direct* check is cheaper than either and is the one to run yourself: compare files **on disk** against files **the runner actually collects** (`find src/test -name '*.test.*' | wc -l` vs `vitest list --filesOnly | wc -l`), then confirm no `include`/`exclude` override exists in the runner config — beware that a coverage-scoped `exclude` is not a collection `exclude` and does not affect this. Equal numbers plus default globs disproves silent uncollection outright, independent of any count arithmetic. Then separately reconcile the *file set* (not the test count) across the commit with `git ls-tree -r --name-only <parent>` vs `<head>`, matching on basename: every removal must be an outright deletion with a stated rationale or a rename with a matching addition. This turns "were tests dropped?" into a set-difference, which cannot be argued with.
+
+## Static fixture inputs must match the runtime contract, not only the output
+
+**Pattern:** A fixture is cast through `unknown` into a production input type, so extra source-system fields survive in test data without a compiler error. Output parity still passes because the implementation ignores those fields.
+
+**Impact:** The fixture stops proving that its input represents the contract consumed by the runtime. A later implementation may accidentally depend on leaked transport or domain metadata, and the mismatch remains invisible because output assertions never inspect input shape.
+
+**Watch for:** For committed fixtures that stand in for production inputs, assert the exact runtime keys and strip fields owned by the source system. Keep provenance checks independent by regenerating expected output from the reference implementation, then compare the cleaned fixture to the same reference.

@@ -1,0 +1,11 @@
+{
+  "revision": "aa8c4814fa92395e75efd21d6764da0c4493e257",
+  "testFiles": {"passed": 42, "total": 42},
+  "tests": {"passed": 535, "total": 535},
+  "coverage": {
+    "statements": {"covered": 3165, "total": 3380, "pct": 93.63},
+    "lines": {"covered": 3165, "total": 3380, "pct": 93.63},
+    "branches": {"covered": 638, "total": 674, "pct": 94.65},
+    "functions": {"covered": 167, "total": 181, "pct": 92.26}
+  }
+}
