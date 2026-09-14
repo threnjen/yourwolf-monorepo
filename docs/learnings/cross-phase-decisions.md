@@ -130,3 +130,10 @@ Decisions made during one feature that constrain or inform later phases. Append-
 
 - **Runtime validation of the wake-order router state belongs to Phase 04b, not 04a.** The 04a engine has no callers and never reads `location.state`. `Must-do before Phase 04b`: validate or replace the router-state handoff when the call sites move to the engine, per the `WakeOrderRouterState` entry above.
 - **Engine wake-order ties break by role name, not by id or shuffle.** Seed roles have no ids and tie heavily on `wake_order`, so name is the only stable identity across environments. The fixture generator and the engine sort the same way. Phase 04b must keep the Phase 3.6 in-group shuffle at the page level and pass its result to the engine as a custom sequence, never expect the engine default to shuffle.
+
+## Phase 04b Planning
+
+- **In-progress games live in `sessionStorage` keyed by game id from Phase 04b until Phase 05 replaces the store with SQLite.** The store holds the engine session plus the adapted role inputs so the night script can be rebuilt after refresh. `Must-do in Phase 05`: replace the store module, not extend it. Session storage is per tab, an accepted limitation.
+- **The roles list endpoint deliberately omits `ability_steps` and `wake_target`, so any local consumer of role logic must fetch `GET /roles/{id}` per role.** Phase 04b fetches per distinct selected role at Start Game. `Must-do before Phase 05`: the local catalog must store full roles, including steps and wake target, or the engine cannot script from it.
+- **The transport `Role` type under-declares `RoleRead`.** The backend returns `min_count`, `max_count`, `is_primary_team_role`, and `dependencies` on the single-role endpoint; the frontend type omits them. Phase 04b adds them. Any later consumer of `GET /roles/{id}` should trust the backend schema over the older frontend type.
+- **The frontend games API client is deleted in Phase 04b.** Backend `/games` routes remain for cloud use. A later cloud phase that wants server-side games reintroduces a client deliberately rather than reviving the old one.
