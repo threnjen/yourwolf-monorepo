@@ -126,15 +126,14 @@ gantt
 ---
 
 ### Phase 4: Client-Side Game Engine
-**Goal**: Port game logic from Python backend to TypeScript for offline play.
+**Goal**: Run core game logic in TypeScript for offline play.
 
 | Component | Deliverables |
 |-----------|--------------|
-| Engine | Night script generator, wake order resolver, instruction templates |
-| State | Game state machine (setup → night → discussion → voting → resolution → complete) |
-| Integration | Replace backend API calls with local engine in frontend hooks |
+| 04a Engine | Implemented under `src/engine/`: night scripts, narrator previews, deterministic wake order, setup validation, immutable phase state machine. QA remains NO-GO pending verification blockers |
+| 04b Integration | Blocked on 04a verification; replace backend API calls with local engine adapters and settle refresh behavior |
 
-**Milestone**: Full game runs in the browser with no backend server.
+**Milestone**: After 04b, a full game runs in the browser with no backend server.
 
 ---
 
@@ -349,7 +348,7 @@ Public roles must have unique names. Users cannot publish a role with the same n
 | [phases/PHASE_2.5/PHASE_2.5_SUMMARY.md](phases/PHASE_2.5/PHASE_2.5_SUMMARY.md) | Named Exports Migration (Complete) |
 | [phases/PHASE_3.5/PHASE_3.5_SUMMARY.md](phases/PHASE_3.5/PHASE_3.5_SUMMARY.md) | Narrator Preview Fixes (Complete) |
 | [phases/PHASE_3.6/PHASE_3.6_SUMMARY.md](phases/PHASE_3.6/PHASE_3.6_SUMMARY.md) | Wake Order Resolution (Complete) |
-| [phases/PHASE_04A/PHASE_04A_SUMMARY.md](phases/PHASE_04A/PHASE_04A_SUMMARY.md) | Client-Side Game Engine (04a) |
+| [phases/PHASE_04A/PHASE_04A_SUMMARY.md](phases/PHASE_04A/PHASE_04A_SUMMARY.md) | Client-Side Game Engine (04a; implemented, QA NO-GO) |
 | [phases/PHASE_05/PHASE_05_SUMMARY.md](phases/PHASE_05/PHASE_05_SUMMARY.md) | Local Data Layer |
 | [phases/PHASE_06/PHASE_06_SUMMARY.md](phases/PHASE_06/PHASE_06_SUMMARY.md) | Desktop App (Tauri v2) |
 | [phases/PHASE_07/PHASE_07_SUMMARY.md](phases/PHASE_07/PHASE_07_SUMMARY.md) | Narration Engine |

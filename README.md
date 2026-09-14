@@ -4,7 +4,7 @@
 
 ## What is YourWolf?
 
-YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. It runs natively on macOS, Windows, iOS, and Android with **no internet connection required**. Users create custom roles, run games with voice narration, and play anywhere. Cloud features (accounts, community role sharing, analytics) layer on top for connected users.
+YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. The current web app supports custom roles and guided game sessions through a FastAPI backend. A pure TypeScript game engine exists for offline play, but the frontend does not use it until Phase 04b. Native apps, voice narration, and cloud features remain planned.
 
 ### The Problem
 
@@ -17,7 +17,7 @@ YourWolf handles the complexity so you can focus on playing:
 - **Game Facilitation**: Automated night scripts, role wake-order management, and discussion timers
 - **Role Builder**: Create custom roles by composing abilities from a library of 15 primitives
 - **Wake Order Review**: Drag-to-reorder roles within wake groups before starting a game
-- **Offline-First**: The core game runs entirely client-side — no server, no login, no internet
+- **Client Engine**: Pure TypeScript narration, setup validation, and phase-state logic, pending Phase 04a verification and Phase 04b integration
 
 ### Planned (Future Phases)
 
@@ -68,6 +68,7 @@ yourwolf-monorepo/
 │   ├── src/api/          Axios API clients
 │   ├── src/components/   Reusable UI components
 │   ├── src/domain/       Pure game rules — no React, no API (Phase 04 engine contract)
+│   ├── src/engine/       Pure narration, setup validation, and session state machine
 │   ├── src/hooks/        Custom React hooks
 │   ├── src/pages/        Route-level page components
 │   ├── src/types/        Transport DTOs and router state types
@@ -101,8 +102,8 @@ yourwolf-monorepo/
 | [03](docs/phases/PHASE_3/) | Role Builder MVP | Complete |
 | [3.5](docs/phases/PHASE_3.5/) | Narrator Preview Fixes | Complete |
 | [3.6](docs/phases/PHASE_3.6/) | Wake Order Resolution | Complete |
-| [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | **Next** |
-| 04b | Engine Frontend Integration | Planned |
+| [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | Implemented; QA NO-GO |
+| 04b | Engine Frontend Integration | Blocked on 04a verification |
 | [05](docs/phases/PHASE_05/) | Local Data Layer (SQLite) | Planned |
 | [06](docs/phases/PHASE_06/) | Desktop App (Tauri v2) | Planned |
 | [07](docs/phases/PHASE_07/) | Narration Engine (TTS) | Planned |
@@ -114,4 +115,3 @@ yourwolf-monorepo/
 | [13](docs/phases/PHASE_13/) | Production Deployment | Planned |
 
 See [PROJECT_ROADMAP.md](docs/phases/PROJECT_ROADMAP.md) for the full roadmap with dependencies and architecture notes.
-

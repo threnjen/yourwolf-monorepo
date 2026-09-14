@@ -1,21 +1,21 @@
 # Phase 4a: Client-Side Game Engine
 
-**Status**: Planned
+**Status**: Implementation complete; QA NO-GO
 **Depends on**: Phase 3.6 (Wake Order Resolution)
 **Estimated complexity**: Medium
 **Cross-references**: Python reference implementation in `yourwolf-backend/app/services/narration/`; phase-management reference in `yourwolf-backend/app/services/game_service.py`; follow-on frontend integration in Phase 04b
 
 ## What's New
 
-Nothing changes for the user in this phase. The game logic that today runs on the server gains a second, identical implementation inside the app, sitting unused until Phase 04b wires the screens to it. The payoff arrives in 04b, when running a game and previewing a role stop needing a server.
+Nothing changes for the user in this phase. The app contains a second implementation of narration, setup validation, and phase progression under `src/engine/`, but no screen calls it until Phase 04b. Narration templates and fixture-covered outputs match Python. Default wake-order ties and setup advancement deliberately differ: the engine breaks ties by role name and requires `startGame()` before `advancePhase()`.
 
 ## Problem
 
-The app cannot run a game without a network connection. Night script generation, narrator preview, and game phase progression all live in the Python backend, so the offline-first product the roadmap describes is impossible until that logic exists on the client. Every downstream MVP phase, local storage, desktop, narration, and mobile, is blocked on it.
+The app cannot run a game without a network connection because the frontend still routes night scripts, narrator previews, setup, and phase progression through the Python backend. The client engine supplies the local logic, but Phase 04b must integrate it before the offline path exists. Phase 04b remains blocked until this phase's verification work closes.
 
 ## Objective
 
-Port the narration package and game phase management from Python to a pure TypeScript engine under `src/engine/`, proven identical to the Python output by the existing pinned test tables, with no callers yet.
+Provide a pure TypeScript engine under `src/engine/` for narration, setup validation, and game phase management, with no callers yet. Pinned tables and fixtures verify narration parity. Deterministic wake-order ties and stricter setup advancement are explicit engine contracts rather than Python parity claims.
 
 ## Scope
 
@@ -90,6 +90,8 @@ Port the narration package and game phase management from Python to a pure TypeS
 - **Risk**: the engine ships with no callers, so nothing exercises it at runtime. Mitigation: coverage and parity criteria below are the acceptance gate, and 04b follows immediately.
 
 ## Success Criteria
+
+Implementation covers the criteria below. Phase close remains NO-GO until the test-health lane completes and tests independently prove public output shape, injected-ID use, and deep input immutability.
 
 - [ ] All 67 transcribed template cases pass, including the frozen "Werewolfs" output.
 - [ ] Night scripts for all 30 seed roles match the committed Python-generated fixture exactly, in default wake order with ties broken by role name, and in custom sequences that name every waking role.

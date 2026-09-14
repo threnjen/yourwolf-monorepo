@@ -120,7 +120,7 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 
 **Symptom**: Hook dependency errors in files you didn't change.
 
-**Cause**: The `react-hooks` plugin was previously absent — an `eslint-disable` comment referenced its rules, but nothing enforced them. The plugin is now wired and `exhaustive-deps` is promoted from warning to error.
+**Cause**: The ESLint configuration enforces the `react-hooks` rules and treats `exhaustive-deps` as an error across the frontend.
 
 **Fix**: Fix the dependency array. Do not re-add a blanket disable; if a dependency genuinely must be omitted, disable that one line with a comment explaining why.
 
@@ -196,7 +196,7 @@ raise DomainValidationError("Role must have at least one win condition.")
 
 **Cause**: These are Pydantic schema bounds, validated by FastAPI before the service runs, so they return 422. Role name bounds are `min_length=2, max_length=50`. Only domain rule violations return 400.
 
-**Fix**: Expect 422 for schema-shape violations and 400 for domain rules. Note `POST /roles` now enforces the full `validate_role` rule set — including requiring at least one win condition — so payloads that previously persisted may now be rejected.
+**Fix**: Expect 422 for schema-shape violations and 400 for domain rules. `POST /roles` enforces the full `validate_role` rule set, including at least one win condition.
 
 ---
 
