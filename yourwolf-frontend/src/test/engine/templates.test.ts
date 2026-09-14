@@ -3,9 +3,12 @@ import {describe, expect, test} from 'vitest';
 import type {
   EngineAbilityStepInput,
   EngineRoleInput,
-  NarratorAction,
-  NarratorPreviewAction,
 } from '../../engine/types';
+import {
+  buildNightScript,
+  buildPreview,
+  buildRoleScript,
+} from '../../engine/narration';
 import {
   buildStepInstruction,
   buildWakeInstruction,
@@ -272,21 +275,13 @@ describe('engine narration templates', () => {
     },
   );
 
-  test('the public shape includes all required engine and narrator fields', () => {
+  test('the public shape includes all required engine and production output fields', () => {
     const engineRole: EngineRoleInput = role(null);
     const engineStep: EngineAbilityStepInput = step('stop');
-    const action: NarratorAction = {
-      order: 1,
-      role_name: 'Alice',
-      instruction: 'Stop.',
-      duration_seconds: 0,
-      requires_player_action: false,
-    };
-    const previewAction: NarratorPreviewAction = {
-      order: 1,
-      instruction: 'Stop.',
-      is_section_header: false,
-    };
+    const wakingRole = {...role('player.self'), ability_steps: [engineStep]};
+    const roleAction = buildRoleScript(wakingRole)[1];
+    const nightAction = buildNightScript([wakingRole])[0];
+    const previewAction = buildPreview(wakingRole)[0];
 
     expect(Object.keys(engineRole)).toEqual([
       'id',
@@ -306,14 +301,21 @@ describe('engine narration templates', () => {
       'is_required',
       'parameters',
     ]);
-    expect(Object.keys(action)).toEqual([
+    expect(Object.keys(roleAction ?? {})).toEqual([
       'order',
       'role_name',
       'instruction',
       'duration_seconds',
       'requires_player_action',
     ]);
-    expect(Object.keys(previewAction)).toEqual([
+    expect(Object.keys(nightAction ?? {})).toEqual([
+      'order',
+      'role_name',
+      'instruction',
+      'duration_seconds',
+      'requires_player_action',
+    ]);
+    expect(Object.keys(previewAction ?? {})).toEqual([
       'order',
       'instruction',
       'is_section_header',

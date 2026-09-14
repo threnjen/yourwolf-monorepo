@@ -130,8 +130,8 @@ gantt
 
 | Component | Deliverables |
 |-----------|--------------|
-| 04a Engine | Implemented under `src/engine/`: night scripts, narrator previews, deterministic wake order, setup validation, immutable phase state machine. QA remains NO-GO pending verification blockers |
-| 04b Integration | Blocked on 04a verification; replace backend API calls with local engine adapters and settle refresh behavior |
+| 04a Engine | Complete: verified night scripts, narrator previews, deterministic wake order, setup validation, and immutable phase state under `src/engine/` |
+| 04b Integration | Planned: replace backend API calls with local engine adapters and settle refresh behavior |
 
 **Milestone**: After 04b, a full game runs in the browser with no backend server.
 
@@ -348,7 +348,7 @@ Public roles must have unique names. Users cannot publish a role with the same n
 | [phases/PHASE_2.5/PHASE_2.5_SUMMARY.md](phases/PHASE_2.5/PHASE_2.5_SUMMARY.md) | Named Exports Migration (Complete) |
 | [phases/PHASE_3.5/PHASE_3.5_SUMMARY.md](phases/PHASE_3.5/PHASE_3.5_SUMMARY.md) | Narrator Preview Fixes (Complete) |
 | [phases/PHASE_3.6/PHASE_3.6_SUMMARY.md](phases/PHASE_3.6/PHASE_3.6_SUMMARY.md) | Wake Order Resolution (Complete) |
-| [phases/PHASE_04A/PHASE_04A_SUMMARY.md](phases/PHASE_04A/PHASE_04A_SUMMARY.md) | Client-Side Game Engine (04a; implemented, QA NO-GO) |
+| [phases/PHASE_04A/PHASE_04A_SUMMARY.md](phases/PHASE_04A/PHASE_04A_SUMMARY.md) | Client-Side Game Engine (04a; complete) |
 | [phases/PHASE_05/PHASE_05_SUMMARY.md](phases/PHASE_05/PHASE_05_SUMMARY.md) | Local Data Layer |
 | [phases/PHASE_06/PHASE_06_SUMMARY.md](phases/PHASE_06/PHASE_06_SUMMARY.md) | Desktop App (Tauri v2) |
 | [phases/PHASE_07/PHASE_07_SUMMARY.md](phases/PHASE_07/PHASE_07_SUMMARY.md) | Narration Engine |

@@ -1,6 +1,6 @@
 # Codebase Context
 
-> Dense reference for AI agents. Current phase: 04a implementation complete, QA NO-GO.
+> Dense reference for AI agents. Current phase: 04a complete; 04b planned.
 
 ## Project
 
@@ -257,8 +257,8 @@ yourwolf-frontend/
 ## Current Status
 
 - Phases 01–3.6 are complete.
-- Phase 04a engine implementation is complete, but phase readiness is NO-GO pending test-health evidence and three test-power blockers.
-- Phase 04b is blocked on 04a verification. It owns transport adapters, six game/preview call-site replacements, refresh behavior, and end-to-end manual QA.
+- Phase 04a is complete. Test health and mutation-tested guards verify coverage, output shape, injected identity, and deep input immutability.
+- Phase 04b is planned. It owns transport adapters, six game/preview call-site replacements, refresh behavior, and end-to-end manual QA.
 - The live frontend still calls the backend for game creation, phase transitions, night scripts, and narrator previews.
 - After Phase 04b: local SQLite (05), Tauri desktop (06), TTS narration (07), mobile (08), then cloud features (09–13).
 

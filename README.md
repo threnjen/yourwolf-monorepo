@@ -17,7 +17,7 @@ YourWolf handles the complexity so you can focus on playing:
 - **Game Facilitation**: Automated night scripts, role wake-order management, and discussion timers
 - **Role Builder**: Create custom roles by composing abilities from a library of 15 primitives
 - **Wake Order Review**: Drag-to-reorder roles within wake groups before starting a game
-- **Client Engine**: Pure TypeScript narration, setup validation, and phase-state logic, pending Phase 04a verification and Phase 04b integration
+- **Client Engine**: Verified pure TypeScript narration, setup validation, and phase-state logic, pending Phase 04b integration
 
 ### Planned (Future Phases)
 
@@ -102,8 +102,8 @@ yourwolf-monorepo/
 | [03](docs/phases/PHASE_3/) | Role Builder MVP | Complete |
 | [3.5](docs/phases/PHASE_3.5/) | Narrator Preview Fixes | Complete |
 | [3.6](docs/phases/PHASE_3.6/) | Wake Order Resolution | Complete |
-| [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | Implemented; QA NO-GO |
-| 04b | Engine Frontend Integration | Blocked on 04a verification |
+| [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | Complete |
+| 04b | Engine Frontend Integration | Planned |
 | [05](docs/phases/PHASE_05/) | Local Data Layer (SQLite) | Planned |
 | [06](docs/phases/PHASE_06/) | Desktop App (Tauri v2) | Planned |
 | [07](docs/phases/PHASE_07/) | Narration Engine (TTS) | Planned |

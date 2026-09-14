@@ -1,109 +1,77 @@
-# Phase 04A Test Health Report — `aa8c4814fa92395e75efd21d6764da0c4493e257`..`989a3591b57b4d341286b55d295415af5d1af6a4`
+# Phase 04A Test Health Report
 
 ## TL;DR
 
-**Incomplete.** The branch adds four frontend engine test modules and two
-fixtures, but the required `z-test-analyst` handoff and paired base/HEAD
-coverage evidence were not supplied. Coverage is therefore not-measurable, and
-redundancy and flake checks are **NOT RUN**. No clean result is inferred.
+**PASS.** Paired base and remediated-head coverage completed. Every frontend coverage percentage improved, the branch adds 144 focused engine tests across four files, no test is recommended for deletion, and no Phase 04A flake candidate was found. Ten consecutive engine-suite runs passed.
 
 ## Review Metadata
 
-- **Review date:** 2026-09-13
+- **Review date:** 2026-09-14
 - **Base commit:** `aa8c4814fa92395e75efd21d6764da0c4493e257`
-- **Head commit:** `989a3591b57b4d341286b55d295415af5d1af6a4`
-- **Revision pair:** `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4`
-- **Report path:** `dev/feature/PHASE_04A-phase-close/04f-test-health-report.md`
-- **Reviewer:** `z-test-health`
-- **Lane:** `test-health`
-- **Status:** **INCOMPLETE**
+- **Implementation head:** `989a3591b57b4d341286b55d295415af5d1af6a4`
+- **Remediation checkout:** working tree based on `8b8931fd2b9ff352892413ac1a0740cf2d10b563`
+- **Baseline worktree used:** `/tmp/baseline-yourwolf-monorepo-aa8c481`, removed after clean verification
+- **Status:** **PASS**
 
-## Scope and Evidence
+## Evidence
 
-| Evidence | Tool or producer | Revision pair | Status |
-|---|---|---|---|
-| `dev/feature/changed-files.txt` | `git diff --name-status` artifact | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Readable. Lines 29–34 list four added `.test.ts` modules and two added JSON fixtures. |
-| `dev/feature/PHASE_04A-phase-close/tests-only.diff` | `git diff` test-only artifact | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Readable. |
-| `z-test-analyst` plan | `z-test-analyst` native output | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Missing. |
-| `z-test-analyst` context | `z-test-analyst` native output | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Missing. |
-| `z-test-analyst` tasks | `z-test-analyst` native output | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Missing. |
-| Paired coverage reports | Orchestrator-supplied coverage tool evidence | `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | Not supplied. |
-
-The phase manifest records Vitest with v8 coverage and a historical coverage
-run at `dev/feature/PHASE_04A-execution-manifest.md:16-23`. That statement is
-not paired coverage evidence for this revision range and does not establish a
-delta.
+| Evidence | Status |
+|---|---|
+| `test-analysis/test-analysis-plan.md` | Complete |
+| `test-analysis/test-analysis-context.md` | Complete |
+| `test-analysis/test-analysis-tasks.md` | Complete |
+| `test-analysis/coverage-comparison.md` | Complete |
+| `test-analysis/coverage-base.json` | Complete Vitest/V8 totals |
+| `test-analysis/coverage-head.json` | Complete Vitest/V8 and engine totals |
+| Base V8 coverage run | 42 files and 535 tests passed |
+| Remediated-head V8 coverage run | 46 files and 679 tests passed |
+| Repeated focused runs | 10/10 passed, 144 tests per run |
+| Test-power mutation probes | All four injected regressions were detected |
 
 ## Coverage Delta
 
-**Outcome: NOT-MEASURABLE; health adaptation incomplete.**
+| Metric | Base | Remediated head | Change |
+|---|---:|---:|---:|
+| Statements | 93.63% | 94.34% | +0.71 points |
+| Lines | 93.63% | 94.34% | +0.71 points |
+| Branches | 94.65% | 95.01% | +0.36 points |
+| Functions | 92.26% | 93.57% | +1.31 points |
 
-- A measured delta requires coverage-tool output for both `aa8c4814fa92395e75efd21d6764da0c4493e257` and `989a3591b57b4d341286b55d295415af5d1af6a4`. The orchestrator supplied no such pair. Neither this evaluator nor `z-test-analyst` can execute a coverage tool.
-- The required structural suite delta is also **NOT RUN**. It must come from `z-test-analyst` reading the base and HEAD trees. Its plan, context, and tasks files are absent, so this report does not substitute an inline suite analysis.
-- The available `git diff` scope evidence shows test-file and fixture additions, but those additions do not measure coverage or establish its direction.
+Coverage improved in every measured category while the branch added the engine implementation. The configured global threshold remains 80%. Executable `src/engine/` coverage remains above the phase's 90% requirement.
 
-**Evidence source:** expected `z-test-analyst` native analysis plus
-orchestrator-supplied coverage-tool outputs for
-`aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4`.
-Neither source was available. The readable fallback scope is
-`dev/feature/PHASE_04A-phase-close/tests-only.diff`, produced by `git diff` for
-the same revision pair.
+## Structural Suite Delta
 
-## Test Redundancy Introduced or Left Behind
+Phase 04A adds four test files and two static fixtures. It removes or relocates no existing test file. The expanded Vitest count increases from 535 to 679 tests.
 
-**Outcome: NOT RUN; no redundancy conclusion is supported.**
+Each added suite has a distinct responsibility:
 
-- `z-test-analyst` must supply the categorized inventory and reduction analysis
-  needed to identify redundancy introduced or left behind by this branch. The
-  three required native files are missing.
-- `dev/feature/changed-files.txt:29-34` and
-  `dev/feature/PHASE_04A-phase-close/tests-only.diff` establish the branch's
-  test-only scope. They do not establish that any added test duplicates an
-  existing test or that any pre-existing test is redundant.
-- This report does not publish a reduction plan or infer redundancy from test
-  names, file counts, or the absence of analyst evidence.
+- Templates pin literal instruction, wake, duration, and shape contracts.
+- Narration pins assembly, ordering, fixtures, and narration immutability.
+- Setup validation pins rule parity, precedence, and delegation through creation.
+- Game sessions pin identity injection, creation, transitions, and session immutability.
 
-**Evidence source:** `z-test-analyst` native categorized inventory and plan,
-expected for `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4`,
-missing. Branch attribution is limited to the `git diff` artifacts
-`dev/feature/changed-files.txt` and
-`dev/feature/PHASE_04A-phase-close/tests-only.diff` for that same pair.
+## Redundancy
 
-## Flake Candidates
+**PASS. No behavioral test is recommended for deletion.**
 
-**Outcome: NOT RUN; no flake conclusion is supported.**
+Parameterized template rows with repeated display names use different inputs and expected outputs. Duplicate-looking precedence cases cover the rule function and the create boundary separately. Repeated local factories remain a Low maintenance concern, but consolidating them would not reduce behavioral duplication and could hide suite-specific defaults.
 
-- `z-test-analyst` must supply the static flake-candidate analysis. Its native
-  plan, context, and tasks files are missing.
-- No observed flake result is claimed. This evaluator has no execute capability,
-  and no orchestrator-supplied repeated-run or failure artifact was provided.
-- The readable `git diff` scope evidence cannot establish timing, ordering,
-  shared-state, network, or clock dependence without the analyst's required
-  analysis.
+## Flake Analysis
 
-**Evidence source:** `z-test-analyst` static flake analysis for
-`aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4`,
-missing. No repeated-run tool evidence was supplied for that pair.
+**PASS. No Phase 04A flake candidate was found.**
 
-## Findings
+The engine suites use no timers, clocks, random sources, network calls, storage, environment state, concurrent test mode, or mutation of module-level fixtures. Static fixtures and injected identity make results deterministic. Ten consecutive complete engine-suite runs passed without retry or variation.
 
-No branch-introduced test-health finding is emitted. The missing required
-analysis is recorded as an incomplete check below, not treated as a clean
-result.
+Unrelated frontend suites still emit pre-existing React Router notices and React `act(...)` warnings. They do not affect the Phase 04A conclusion.
 
-## Checks Not Run
+## Test-Power Findings
 
-| Check | Expected evidence | Reason not run | Follow-up |
-|---|---|---|---|
-| Coverage measurement and structural suite delta | Paired coverage-tool outputs plus `z-test-analyst` plan/context/tasks for `aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4` | No paired coverage evidence was supplied. All three required analyst files are absent at `dev/feature/PHASE_04A-phase-close/test-analysis/test-analysis-plan.md`, `dev/feature/PHASE_04A-phase-close/test-analysis/test-analysis-context.md`, and `dev/feature/PHASE_04A-phase-close/test-analysis/test-analysis-tasks.md`. | Rerun `z-test-analyst` with the confirmed base worktree and HEAD tree, then provide both revision coverage artifacts if a measured delta is required. |
-| Test redundancy | `z-test-analyst` categorized inventory and reduction analysis for the same revision pair | Required analyst output is missing. The readable test-only diff is not a substitute for the analyst procedure. | Supply the three analyst files and rerun this adaptation. |
-| Flake candidates | `z-test-analyst` static flake analysis for the same revision pair | Required analyst output is missing, and no repeated-run evidence was supplied. | Supply the three analyst files and rerun this adaptation. |
-| Confirmed baseline worktree | Absolute read-only worktree path at the confirmed base revision | No baseline worktree path was supplied to this evaluator. The only listed candidate is a prunable worktree at a different revision (`66d711740384227cd1b1b9d6a80e8a00b6d8f12f`), so it cannot substitute for the confirmed base. | Rerun with the orchestrator-confirmed baseline worktree path. |
+| Finding | Resolution | Falsification evidence |
+|---|---|---|
+| C-02: output shape used handwritten objects | Actual `buildRoleScript()`, `buildNightScript()`, and `buildPreview()` results now supply the asserted keys. | Removing output fields failed the shape test. |
+| C-07: injected ID use was not observed | A Vitest spy must run exactly once, and its value must become `session.id`. | Replacing the callback call with a literal failed two assertions. |
+| C-08: snapshots were shallow or incomplete | Create and transition tests deep-clone complete nested caller-owned data for success and rejection paths. | Nested parameter and wake-sequence mutations failed the relevant tests. |
 
 ## Conclusion
 
-This hand-off is **INCOMPLETE**. Coverage is **not-measurable**, redundancy is
-**NOT RUN**, and flake candidates are **NOT RUN**. The branch's readable scope
-evidence confirms four added frontend test modules and two fixtures, but no
-coverage, redundancy, or flake outcome is asserted until the missing
-`z-test-analyst` evidence and any paired coverage artifacts are supplied.
+The prior incomplete result is closed. Coverage comparison, structural suite analysis, redundancy analysis, flake analysis, repeated-run evidence, and mutation evidence are complete. Test health does not block Phase 04A readiness.

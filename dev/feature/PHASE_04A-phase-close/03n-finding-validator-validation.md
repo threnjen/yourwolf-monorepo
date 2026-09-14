@@ -2,19 +2,18 @@
 
 ## Decision
 
-- review_cycle: repair-01
+- review_cycle: repair-02
 - reviewed_range: aa8c4814fa92395e75efd21d6764da0c4493e257..989a3591b57b4d341286b55d295415af5d1af6a4
-- head_commit: 989a3591b57b4d341286b55d295415af5d1af6a4
+- remediation_revision: working tree based on 8b8931fd2b9ff352892413ac1a0740cf2d10b563
 - validation_lane: validation
 - convergence: Pass
 - confirmed_serious_production_findings: 0
 - fix_list_entries: 0
-- carry_forward_verification_blockers: C-02, C-07, C-08
+- carry_forward_verification_blockers: none
 
-The first full post-rebuild validation returns Pass. No Critical, Blocker, or High
-candidate proves a shipped production defect on an accepted PHASE_04A path. Three
-test-power claims remain Medium verification blockers for final review. They do not
-authorize repairs.
+The remediation validation returns Pass. No Critical, Blocker, High, or Medium
+finding remains. Tests now close C-02, C-07, and C-08 with mutation evidence, and
+the completed test-health report closes the missing phase-close lane.
 
 ## Scope and evidence basis
 
@@ -57,7 +56,7 @@ unknown ability steps, reject advance from setup, keep scalar bounds at the
 transport boundary, set current_wake_order to zero at start, and omit wake-index
 advancement in this phase. Those are supported-path constraints used below.
 
-## Candidate accounting
+## Initial candidate accounting
 
 | Source lane | Candidate rows | Deduplicated candidates in this validation |
 |---|---:|---:|
@@ -454,15 +453,15 @@ requires an Escalate result and an explicit matrix change.
 | P04A-03 | Night-script assembly | Positive waking roles are deduplicated and ordered deterministically; unknown steps add no action or duration. | pass | None | C-09 scope-invalid | narration.ts:33-150; narration plan AC1-AC4; unknown-step run; fixture comparisons. |
 | P04A-04 | Preview assembly | Null and zero wake orders return no preview; positive roles mirror role scripts and section headers; seed fixtures match. | pass | None | C-10 scope-invalid | narration.ts:159-180; narration tests; preview fixture parity. |
 | P04A-05 | Typed setup validation | Count, id, card, primary-team, dependency, and positive wake-sequence rules run in accepted order and preserve warnings. | pass | None | C-06 scope-invalid; C-10 scope-invalid | gameSetupValidation.ts:26-217; 34 setup tests; full engine suite. |
-| P04A-06 | Session creation from engine-shaped input | Create validates before injected ID generation, returns setup state, and copies owned arrays. | verification-blocked | Medium | C-07 not-proven; C-08 not-proven | gameSession.ts:48-73; focused ID and immutability runs; tests do not independently prove every dependency invocation or deep snapshot. |
+| P04A-06 | Session creation from engine-shaped input | Create validates before injected ID generation, returns setup state, and copies owned arrays. | pass | None | C-07 and C-08 resolved | The injected generator spy proves one success call and zero rejection calls. Deep snapshots and mutation probes cover nested inputs. |
 | P04A-07 | In-memory phase transitions | Start is the only exit from setup, valid phases advance one step, complete is terminal, and current_wake_order remains zero in this phase. | pass | None | C-04 scope-invalid; C-11 scope-invalid | gameSession.ts:76-103; game-session plan AC6-AC9; transition runs. |
 | P04A-08 | PHASE_04A package boundary | No API caller, transport adapter, routing, refresh, or runtime integration is added to the pure engine phase. | pass | None | C-01 scope-invalid; C-03 scope-invalid; C-05 scope-invalid | PHASE_04A summary:10,18,24,36-37,62,89-90; no non-test engine imports; graph zero flows. |
-| P04A-09 | Public runtime-output observation | Accepted output contracts have an independent production-observation test or sufficient code-review evidence. | verification-blocked | Medium | C-02 not-proven | templates.test.ts:275-320 observes local literals; production construction is in narration.ts:84-177; no malformed runtime output is proven. |
+| P04A-09 | Public runtime-output observation | Accepted output contracts have an independent production-observation test or sufficient code-review evidence. | pass | None | C-02 resolved | Actual role-script, night-script, and preview builder results supply exact-key assertions. Field-removal mutations fail the test. |
 
 ## Convergence result
 
 - return: Pass
 - reason: No confirmed Critical, Blocker, or High production cell remains.
-- remaining_cells: P04A-06 and P04A-09, both Medium verification blockers only.
-- strict_decrease: Not applicable on the first full post-rebuild cycle.
+- remaining_cells: none.
+- strict_decrease: Three verification blockers resolved since repair-01.
 - repair_authorization: None. The validator does not repair confirmed findings.

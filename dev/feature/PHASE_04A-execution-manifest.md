@@ -6,7 +6,7 @@
 - Run mode: `revalidation`
 - Project discovery context: not provided
 - Phase discovery context: not provided
-- Last validation commit: `989a3591b57b4d341286b55d295415af5d1af6a4`
+- Last validation revision: working tree based on `8b8931fd2b9ff352892413ac1a0740cf2d10b563`
 - Scheduling rule: Features execute one at a time. Read and write sets support revalidation and never authorize concurrent builds.
 
 ## Phase-Level Discovery
@@ -16,10 +16,10 @@
 | Tech stack | TypeScript 5.3, Vite 5.4, Vitest 2.1 with v8 coverage; Python 3.14 reference implementation |
 | Test runner | `cd yourwolf-frontend && npm test -- --run` |
 | Test baseline | Frontend `executed-green` at `ae43d4f`: 629 total, 629 passed, 0 failed. Backend oracle `executed-green`: 185 total, 185 passed, 0 failed. Final unfiltered validation at `989a359`: frontend 679 total, 679 passed, 0 failed; backend 492 total, 492 passed, 0 failed. |
-| Coverage baseline | `cd yourwolf-frontend && npm run test:coverage` passed after Feature 03. All `src/engine/` modules exceed the phase's 90% thresholds: at least 96.22% statements and lines, 92.85% branches, and 100% functions. |
-| Lint | `cd yourwolf-frontend && npm run lint` passed with zero warnings on 2026-09-13. |
+| Coverage baseline | Paired clean-export coverage improved from 93.63% to 94.34% statements/lines, 94.65% to 95.01% branches, and 92.26% to 93.57% functions. Executable engine coverage is 98.58% statements/lines, 96.14% branches, and 100% functions. |
+| Lint | `cd yourwolf-frontend && npm run lint` passed with zero warnings on 2026-09-14. |
 | Format | Not configured in `yourwolf-frontend/package.json`. |
-| Build | `cd yourwolf-frontend && npm run build` passed on 2026-09-13. |
+| Build | `cd yourwolf-frontend && npm run build` passed on 2026-09-14. |
 | Phase-scoped test pattern | `yourwolf-frontend/src/test/engine/**/*.test.ts`; `templates.test.ts`, `narration.test.ts`, `gameSetupValidation.test.ts`, and `gameSession.test.ts` exist. Separate module-focused files remain recommended instead of one consolidated file. |
 | Allowed implementation scope | `yourwolf-frontend/src/engine/` and `yourwolf-frontend/src/test/engine/` only. Pipeline records and documentation are exempt. |
 

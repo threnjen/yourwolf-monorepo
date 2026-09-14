@@ -1,4 +1,4 @@
-import {describe, expect, test} from 'vitest';
+import {describe, expect, test, vi} from 'vitest';
 
 import type {EngineRoleInput} from '../../engine/types';
 import type {RoleDependencyInput} from '../../engine/gameSetupValidation';
@@ -77,6 +77,47 @@ const createSession = (
   overrides: Partial<GameSessionCreateInput> = {},
 ): GameSession => createGameSession(createInput(overrides));
 
+function snapshotCreateInput(input: GameSessionCreateInput): GameSessionCreateInput {
+  const {id_generator: idGenerator, ...callerOwnedValues} = input;
+  return {
+    ...structuredClone(callerOwnedValues),
+    id_generator: idGenerator,
+  };
+}
+
+const rolesWithNestedStep = (): readonly EngineRoleInput[] =>
+  roles.map((candidate) =>
+    candidate.id === 'seer'
+      ? {
+          ...candidate,
+          ability_steps: [
+            {
+              ability_type: 'view_card',
+              order: 1,
+              modifier: 'none' as const,
+              is_required: true,
+              parameters: {target: 'center', card_indexes: [0, 1]},
+            },
+          ],
+        }
+      : candidate,
+  );
+
+const transitionSession = (): GameSession =>
+  createSession({
+    role_ids: [
+      'beholder',
+      'ww',
+      'ww',
+      'robber',
+      'villager',
+      'villager',
+      'villager',
+      'insomniac',
+    ],
+    wake_order_sequence: ['ww', 'robber', 'insomniac'],
+  });
+
 describe('engine game session creation', () => {
   test('creates a setup session with caller values and injected id', () => {
     const input = createInput({
@@ -142,56 +183,53 @@ describe('engine game session creation', () => {
   });
 
   test('does not mutate create input values', () => {
-    const input = createInput({wake_order_sequence: ['ww', 'robber', 'seer', 'insomniac']});
-    const roleIds = [...input.role_ids];
-    const sequence = [...(input.wake_order_sequence ?? [])];
+    const input = createInput({
+      roles: rolesWithNestedStep(),
+      wake_order_sequence: ['ww', 'robber', 'seer', 'insomniac'],
+    });
+    const before = snapshotCreateInput(input);
     createGameSession(input);
-    expect(input.role_ids).toEqual(roleIds);
-    expect(input.wake_order_sequence).toEqual(sequence);
+    expect(input).toEqual(before);
   });
 
   test('uses a deterministic id generator without ambient crypto', () => {
-    const first = createSession({id_generator: () => 'fixed-id'});
-    const second = createSession({id_generator: () => 'fixed-id'});
-    expect(first).toEqual(second);
+    const idGenerator = vi.fn(() => 'fixed-id');
+    const session = createSession({id_generator: idGenerator});
+
+    expect(idGenerator).toHaveBeenCalledTimes(1);
+    expect(session.id).toBe('fixed-id');
   });
 
   test('rejects before creating a session or mutating caller-owned values', () => {
-    let generated = false;
+    const idGenerator = vi.fn(() => 'should-not-be-used');
     const input = createInput({
       role_ids: ['ww'],
-      id_generator: () => {
-        generated = true;
-        return 'should-not-be-used';
-      },
+      roles: rolesWithNestedStep(),
+      id_generator: idGenerator,
     });
-    const roleIds = [...input.role_ids];
-    const roles = JSON.stringify(input.roles);
-    const dependencyData = JSON.stringify(input.dependencies);
+    const before = snapshotCreateInput(input);
 
     expect(() => createGameSession(input)).toThrow(
       new Error('Must select exactly 8 roles (5 players + 3 center)'),
     );
-    expect(generated).toBe(false);
-    expect(input.role_ids).toEqual(roleIds);
-    expect(JSON.stringify(input.roles)).toBe(roles);
-    expect(JSON.stringify(input.dependencies)).toBe(dependencyData);
+    expect(idGenerator).not.toHaveBeenCalled();
+    expect(input).toEqual(before);
   });
 });
 
 describe('engine game session transitions', () => {
   test('starts only from setup and initializes wake order to zero', () => {
-    const setup = createSession();
+    const setup = transitionSession();
+    const before = structuredClone(setup);
     const started = startGame(setup);
     expect(started.phase).toBe('night');
     expect(started.current_wake_order).toBe(0);
-    expect(setup.phase).toBe('setup');
-    expect(setup.current_wake_order).toBeNull();
+    expect(setup).toEqual(before);
   });
 
   test('rejects starting a non-setup session without mutation', () => {
-    const started = startGame(createSession());
-    const snapshot = {...started};
+    const started = startGame(transitionSession());
+    const snapshot = structuredClone(started);
     expect(() => startGame(started)).toThrow(
       new Error('Game cannot be started: not in setup phase'),
     );
@@ -199,8 +237,8 @@ describe('engine game session transitions', () => {
   });
 
   test('rejects advance from setup without mutation', () => {
-    const setup = createSession();
-    const snapshot = {...setup};
+    const setup = transitionSession();
+    const snapshot = structuredClone(setup);
     expect(() => advancePhase(setup)).toThrow(
       new Error('Game cannot be advanced: start the game first'),
     );
@@ -220,8 +258,11 @@ describe('engine game session transitions', () => {
   });
 
   test('rejects advance from complete without mutation', () => {
-    const complete = {phase: 'complete'} as GameSession;
-    const snapshot = {...complete};
+    let complete = startGame(transitionSession());
+    while (complete.phase !== 'complete') {
+      complete = advancePhase(complete);
+    }
+    const snapshot = structuredClone(complete);
     expect(() => advancePhase(complete)).toThrow(
       new Error('Game cannot be advanced: already in complete phase'),
     );
@@ -246,10 +287,14 @@ describe('engine game session transitions', () => {
   });
 
   test('returns new values for successful transitions', () => {
-    const setup = createSession();
+    const setup = transitionSession();
+    const setupSnapshot = structuredClone(setup);
     const started = startGame(setup);
+    const startedSnapshot = structuredClone(started);
     const advanced = advancePhase(started);
     expect(started).not.toBe(setup);
     expect(advanced).not.toBe(started);
+    expect(setup).toEqual(setupSnapshot);
+    expect(started).toEqual(startedSnapshot);
   });
 });

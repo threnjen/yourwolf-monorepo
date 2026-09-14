@@ -1,7 +1,7 @@
 # QA Plan: PHASE_04A
 
 **Date:** 2026-09-13  
-**Last Updated:** 2026-09-13  
+**Last Updated:** 2026-09-14
 **Mode:** Release QA Plan  
 **Scope:** Phase 04A pure client-side engine contracts, narration templates and assembly, seed-role parity fixtures, setup validation, and immutable game-session transitions.  
 **Environment:** No deployed environment is required. Phase 04A has no runtime callers or UI changes.  
@@ -28,7 +28,7 @@ Feature 01 added readonly engine input and narration output contracts, all froze
 
 ## Automated Test Coverage
 
-The focused frontend engine suites cover contract shapes, frozen template literals, wake and duration fallthrough, deterministic ordering, role/night/preview assembly, fixture parity, setup-validation precedence and sequences, dependency warnings, injected ids, and immutable transitions. The backend narration, script-service, and setup-validation suites remain read-only reference and service-boundary oracles. Full frontend and backend regression, lint, build, and coverage gates are specified in the companion automated document.
+The focused frontend engine suites cover production output shapes, frozen template literals, wake and duration fallthrough, deterministic ordering, role/night/preview assembly, fixture parity, setup-validation precedence and sequences, dependency warnings, observed injected ids, and deeply immutable transitions. Mutation probes prove the shape, identity, and immutability guards fail when their named regressions are introduced. The backend narration, script-service, and setup-validation suites remain read-only reference and service-boundary oracles. Full regression, lint, build, paired coverage, redundancy, and flake evidence is recorded in the companion documents.
 
 ## Manual QA Checklist
 

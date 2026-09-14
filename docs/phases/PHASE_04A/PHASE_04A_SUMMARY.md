@@ -1,6 +1,6 @@
 # Phase 4a: Client-Side Game Engine
 
-**Status**: Implementation complete; QA NO-GO
+**Status**: Complete
 **Depends on**: Phase 3.6 (Wake Order Resolution)
 **Estimated complexity**: Medium
 **Cross-references**: Python reference implementation in `yourwolf-backend/app/services/narration/`; phase-management reference in `yourwolf-backend/app/services/game_service.py`; follow-on frontend integration in Phase 04b
@@ -11,7 +11,7 @@ Nothing changes for the user in this phase. The app contains a second implementa
 
 ## Problem
 
-The app cannot run a game without a network connection because the frontend still routes night scripts, narrator previews, setup, and phase progression through the Python backend. The client engine supplies the local logic, but Phase 04b must integrate it before the offline path exists. Phase 04b remains blocked until this phase's verification work closes.
+The app cannot run a game without a network connection because the frontend still routes night scripts, narrator previews, setup, and phase progression through the Python backend. The client engine supplies the verified local logic, but Phase 04b must integrate it before the offline path exists.
 
 ## Objective
 
@@ -91,21 +91,21 @@ Provide a pure TypeScript engine under `src/engine/` for narration, setup valida
 
 ## Success Criteria
 
-Implementation covers the criteria below. Phase close remains NO-GO until the test-health lane completes and tests independently prove public output shape, injected-ID use, and deep input immutability.
+Implementation and verification cover the criteria below. Paired coverage, redundancy analysis, flake analysis, and mutation-tested regression guards complete the phase-close evidence.
 
-- [ ] All 67 transcribed template cases pass, including the frozen "Werewolfs" output.
-- [ ] Night scripts for all 30 seed roles match the committed Python-generated fixture exactly, in default wake order with ties broken by role name, and in custom sequences that name every waking role.
-- [ ] Unnamed roles under a partial custom sequence sort by `wake_order` then role name, a repeated id takes its last position, an entry naming no role is ignored, and a test pins each.
-- [ ] Preview output for each seed role, converted to the engine role input, matches the committed Python-generated preview fixture exactly, including section headers and the empty results.
-- [ ] Every enumerated `wake_target` pattern, the `role.` underscore rewrite, and the unknown-string fallthrough have a test.
-- [ ] Roles with `wake_order` null or zero are excluded from scripts and produce an empty preview.
-- [ ] The state machine walks setup → night → discussion → voting → resolution → complete and rejects invalid transitions without state change. Start sets the current wake index to zero.
-- [ ] All 32 transcribed setup validation cases pass against create, and create returns the Python warnings for satisfied-with-warning dependencies.
-- [ ] Id generation is injectable and the engine has no reference to the ambient `crypto` global.
-- [ ] ESLint boundary rules pass with zero warnings for `src/engine/**`.
-- [ ] Unit test coverage for `src/engine/` is at least 90 percent for lines, branches, functions, and statements, as read from the `src/engine/` rows of the `vitest run --coverage` report. The global 80 percent threshold is unchanged.
-- [ ] Every edge case above has a test.
-- [ ] No source, test, configuration, or fixture file outside `src/engine/` and `src/test/engine/` changes. Pipeline records under `dev/` and documentation under `docs/` are exempt. The parity fixture data lives in `src/test/engine/`.
+- [x] All 67 transcribed template cases pass, including the frozen "Werewolfs" output.
+- [x] Night scripts for all 30 seed roles match the committed Python-generated fixture exactly, in default wake order with ties broken by role name, and in custom sequences that name every waking role.
+- [x] Unnamed roles under a partial custom sequence sort by `wake_order` then role name, a repeated id takes its last position, an entry naming no role is ignored, and a test pins each.
+- [x] Preview output for each seed role, converted to the engine role input, matches the committed Python-generated preview fixture exactly, including section headers and the empty results.
+- [x] Every enumerated `wake_target` pattern, the `role.` underscore rewrite, and the unknown-string fallthrough have a test.
+- [x] Roles with `wake_order` null or zero are excluded from scripts and produce an empty preview.
+- [x] The state machine walks setup → night → discussion → voting → resolution → complete and rejects invalid transitions without state change. Start sets the current wake index to zero.
+- [x] All 32 transcribed setup validation cases pass against create, and create returns the Python warnings for satisfied-with-warning dependencies.
+- [x] Id generation is injectable and the engine has no reference to the ambient `crypto` global.
+- [x] ESLint boundary rules pass with zero warnings for `src/engine/**`.
+- [x] Unit test coverage for `src/engine/` is at least 90 percent for lines, branches, functions, and statements, as read from the `src/engine/` rows of the `vitest run --coverage` report. The global 80 percent threshold is unchanged.
+- [x] Every edge case above has a test.
+- [x] No source, test, configuration, or fixture file outside `src/engine/` and `src/test/engine/` changes. Pipeline records under `dev/` and documentation under `docs/` are exempt. The parity fixture data lives in `src/test/engine/`.
 
 ## QA Considerations
 
