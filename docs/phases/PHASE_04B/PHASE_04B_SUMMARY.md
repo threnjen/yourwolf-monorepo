@@ -21,15 +21,15 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 ### In Scope
 
-- **Transport-to-engine adapters** outside `src/engine/`, in a new `src/adapters/` directory: full role DTO to `EngineRoleInput`, role list items to `RoleDependencyInput`, and `RoleDraft` to `EngineRoleInput` for preview. The adapter treats a null `ability_type` on a persisted step as unknown so the engine skips it, and normalizes an absent or null `wake_target` before it reaches the engine.
-- **Role detail fetch**: a `getById` method on the roles client calling `GET /roles/{id}`, and an extension of the transport `Role` type with the card-count, primary-team, and dependency fields the backend already returns. At "Start Game" the wake-order page fetches each distinct selected role in parallel and surfaces one error banner if any fetch fails.
-- **Game session store**: a `sessionStorage`-backed module keyed by game id that stores the engine session and the adapted role inputs together. Reads return null for a missing or unparseable entry. The facilitator page reads by the id in the URL and shows "Game not found" with a link to game setup when the entry is missing.
+- **Transport-to-engine adapters** outside `src/engine/`, in a new `src/adapters/` directory: a role list item merged with its detail response to `EngineRoleInput`, role list items to `RoleDependencyInput`, and `RoleDraft` to `EngineRoleInput` for preview. The list item supplies name, team, wake order, counts, primary-team flag, and dependencies. The detail response supplies only ability steps and wake target. The adapter treats a null `ability_type` on a persisted step as unknown so the engine skips it. An absent or null `wake_target` in the detail response both become null in the engine input. An absent or null `wake_order` on the list item both become null.
+- **Role detail fetch**: a `getById` method on the roles client calling `GET /roles/{id}`. The transport `Role` type stays as declared, because the list item already carries the counts, primary-team flag, and dependencies. At "Start Game" the wake-order page fetches each distinct selected role in parallel and surfaces one error banner if any fetch fails.
+- **Game session store**: a `sessionStorage`-backed module keyed by game id that stores the engine session and the adapted role inputs together. Reads return null for a missing or unparseable entry. The facilitator page reads by the id in the URL and shows "Game not found" with a link to game setup when the entry is missing. One entry per game id. The app never removes an entry, so the tab's lifetime is the cleanup. A second game in the same tab gets a new id and a new entry. A completed game keeps its entry so a refresh still shows the completed view. The stored role inputs are a snapshot, so editing a role after the game starts does not change the running game.
 - **Call-site replacement**: game creation on the wake-order page, game load and night script in the game hooks, start and advance on the facilitator page, and the narrator preview in the role builder. The night script is built on demand from the stored role inputs and the session's wake order sequence. Start and advance write the new session back to the store before the page re-renders.
 - **Wake order**: the page-level in-group shuffle from Phase 3.6 stays and its flattened result is always passed to the engine as the custom sequence, including when only one role wakes.
 - **Router state guard**: a runtime type guard on the setup payload the wake-order page reads from router state, redirecting to game setup when the shape is wrong.
 - **Setup warnings**: the warnings the engine returns from setup validation render as an informational list on the facilitator's setup view.
 - **Deletion**: the games API client, its test file, and the game-session mock builders no longer used by any test.
-- **Test updates**: page tests for the wake-order, facilitator, and role builder pages, the game hook tests, the roles client test, and shared mocks.
+- **Test updates**: page tests for the wake-order, facilitator, and role builder pages, the routes test, the game hook tests, the roles client test, and shared mocks.
 - **Manual QA document** covering the full game flow, refresh, and preview.
 
 ### Out of Scope
@@ -45,7 +45,7 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 | # | Deliverable | Description | Likely Features |
 |---|-------------|-------------|-----------------|
-| 1 | Adapters, store, role detail fetch | Pure adapter functions, the session store module, `rolesApi.getById`, transport type extension | adapters, storage, api |
+| 1 | Adapters, store, role detail fetch | Pure adapter functions, the session store module, `rolesApi.getById` | adapters, storage, api |
 | 2 | Local game flow | Wake-order page creates locally, hooks read the store, facilitator starts and advances locally, games client deleted | pages, hooks, tests |
 | 3 | Local narrator preview | Role builder preview built by the engine from the draft | pages, adapters |
 
@@ -53,7 +53,7 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 - **Call sites**: `src/pages/WakeOrderResolution.tsx:122` (create), `src/hooks/useGame.ts:14` (load) and `:43` (script), `src/pages/GameFacilitator.tsx:211` (advance) and `:222` (start), `src/pages/RoleBuilder.tsx:39` (preview).
 - **Engine surface**: `createGameSession`, `startGame`, `advancePhase` in `src/engine/gameSession.ts`; `buildNightScript`, `buildPreview`, `totalDurationSeconds` in `src/engine/narration.ts`; input types in `src/engine/types.ts`. `createGameSession` takes an injected id generator, so the adapter layer supplies `crypto.randomUUID`.
-- **Data gap**: `RoleListItem` in `src/types/transport.ts` omits `ability_steps` and `wake_target` by backend design. `GET /roles/{id}` returns them plus counts and dependencies, but the transport `Role` type does not yet declare the counts, primary-team flag, or dependencies.
+- **Data gap**: `RoleListItem` in `src/types/transport.ts` omits `ability_steps` and `wake_target` by backend design but carries `min_count`, `max_count`, `is_primary_team_role`, and `dependencies`. `GET /roles/{id}` returns the steps and wake target. The adapter merges the two per role.
 - **Import boundary**: `eslint.config.js` forbids `src/engine` and `src/domain` from importing `types`, `api`, `hooks`, `components`, or `pages`. Adapters live outside both and may import from all of them.
 - **Existing handoff**: `useGameSetup` builds a `WakeOrderRouterState` and `GameSetup.tsx:108` navigates with it. The consumer casts `location.state` with no runtime check.
 - **Facilitator consumption**: the facilitator reads `phase`, `player_count`, `center_card_count`, `discussion_timer_seconds`, all present on the engine session. `ScriptReader` reads only `script.actions`.
@@ -63,11 +63,13 @@ Route those six call sites through the engine, persist the in-progress game in s
 ## Edge Cases & Failure Modes
 
 - **Role detail fetch fails for one role**: no session is created, the error banner shows, and the button re-enables.
-- **Engine rejects setup**: the validation message renders in the error banner, matching the message the server used to return.
+- **Engine rejects setup**: the engine's validation message renders in the error banner. Phase 04a already pins these messages to the Python wording, so no separate comparison is needed here.
 - **Refresh during night, discussion, voting, or resolution**: the page reloads the session from the store at the same phase. The night script rebuilds identically because the role inputs and sequence are stored.
 - **Direct navigation to an unknown game id**: "Game not found" with a link to game setup, no exception.
 - **Corrupt store entry**: treated as missing.
-- **Session storage unavailable or full**: creation fails with a visible error rather than navigating to a page that cannot load.
+- **Session storage unavailable or full at creation**: creation fails with a visible error rather than navigating to a page that cannot load.
+- **Store write fails at start or advance**: the facilitator shows the error banner and keeps the previous phase rendered.
+- **Role edited after the game started**: the running game keeps its stored snapshot. Intended, no catalog reconciliation.
 - **Malformed router state on the wake-order page**: redirect to game setup, as the null case does today.
 - **Preview of a draft with no wake order**: empty preview, as the server returned.
 - **Preview of a draft mid-edit with an unknown ability type**: the step is skipped, no error.
@@ -77,12 +79,13 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 - **Dependency**: the Phase 04a engine contract and the Phase 3.6 wake order helpers stay stable.
 - **Risk**: the adapter drifts from what the backend actually returns for `GET /roles/{id}`. Mitigation: adapter tests use a fixture captured from a real response, and the manual QA runs against seed roles.
+- **Risk**: a page test keeps a path to the server through a leftover mock and the no-games-request criterion passes vacuously. Mitigation: enforce the guard in the shared axios mock in `src/test/setup.ts`, which is the only HTTP layer the tests can observe.
 - **Risk**: the store is a throwaway for Phase 05 and could grow. Mitigation: one module, one key scheme, no business logic inside it.
 - **Risk**: deleting the games client breaks a test that imported it indirectly. Mitigation: the full suite and the ESLint run are acceptance gates.
 
 ## Success Criteria
 
-- [ ] A full game (setup → night → discussion → voting → resolution → complete) completes with no request to any `/games` path, proven by a test that fails the suite on any such request and by the manual QA network check.
+- [ ] A full game (setup → night → discussion → voting → resolution → complete) completes with no request to any `/games` path, proven by the shared axios stub throwing on any such path and by the manual QA network check.
 - [ ] Refreshing the facilitator page during any phase after setup returns to that phase with the same night script.
 - [ ] The night script rendered for the seed roles matches the Phase 04a fixture output for the chosen sequence.
 - [ ] The narrator preview in the role builder updates without a request to `/roles/preview-script`, and role validation still calls the server.
@@ -91,7 +94,11 @@ Route those six call sites through the engine, persist the in-progress game in s
 - [ ] Malformed router state on the wake-order page redirects to game setup.
 - [ ] An unknown game id shows "Game not found" and a working link to game setup.
 - [ ] `rolesApi.getById` is tested, and the games client, its test, and unused mocks are gone.
-- [ ] Adapter tests cover null `wake_target`, null `ability_type`, and an empty step list.
+- [ ] A completed game survives refresh and still shows the completed view.
+- [ ] When one role detail fetch fails at Start Game, the error banner shows, no game is created, and the button re-enables.
+- [ ] When the store write fails at creation, an error shows and no navigation happens. When it fails at start or advance, the facilitator shows the error and keeps the previous phase.
+- [ ] The manual QA document exists and covers the full game flow, refresh in each phase, the offline check, and the narrator preview.
+- [ ] Adapter tests cover absent and null `wake_target`, absent and null `wake_order`, null `ability_type`, and an empty step list.
 - [ ] ESLint passes with zero warnings and no file under `src/engine/` changes.
 - [ ] Global coverage stays at or above the 80 percent threshold.
 
@@ -99,13 +106,14 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 - This phase changes user-facing flow, so a manual QA document is required. It must include the offline check: stop the backend after loading the roles list and complete a game.
 - Automated QA is the no-games-request guard, the adapter tests, and the updated page tests.
-- Affected suites: wake-order page, facilitator page, role builder page, game hooks, roles client, shared mocks.
+- Affected suites: wake-order page, facilitator page, role builder page, routes, game hooks, roles client, shared mocks.
 
 ## Notes for Phase - Execute
 
 Suggested decomposition: **(1)** adapters, store, and role detail fetch → **(2)** local game flow and games client deletion → **(3)** local narrator preview.
 
-- Feature 1 lands first and is pure enough to test without React. It owns the transport `Role` type extension and the null-handling tests.
+- Feature 1 lands first and is pure enough to test without React. It owns the null-handling tests.
+- No-games-request guard. Suggested implementation shape, to be verified by Phase - Execute against current code and tests: the app uses axios, not `fetch`, and `src/test/setup.ts` already replaces axios with stub methods. Make those stub `get` and `post` methods throw on any `/games` path, so every page and hook test enforces the criterion without a dedicated test.
 - Feature 2 owns the router state guard, the parallel detail fetch on Start Game, the store reads in the hooks, and the deletion. Keep the facilitator's phase views unchanged and swap only the data source.
 - Feature 3 is independent of feature 2 and small. Keep `rolesApi.validate` as is.
 - Do not touch `src/engine/` or `src/domain/`. Where an adapter needs a guard the engine lacks, put it in the adapter and test it there.
