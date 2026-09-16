@@ -12,13 +12,14 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from sqlalchemy.orm import Session
+
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.models.win_condition import WinCondition
-from app.seed.abilities import ABILITIES_DATA
-from sqlalchemy.orm import Session
+from app.seed.abilities import ABILITIES_DATA, SeedDataError
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +36,6 @@ KNOWN_ABILITY_TYPES = {ability["type"] for ability in ABILITIES_DATA}
 REQUIRED_ROLE_KEYS = ("wake_order", "wake_target", "description", "votes")
 REQUIRED_STEP_KEYS = ("order", "modifier", "ability_type", "is_required", "parameters")
 REQUIRED_WIN_CONDITION_KEYS = ("condition_type", "is_primary", "overrides_team")
-
-
-class SeedDataError(RuntimeError):
-    """Raised when the seed data file is missing, malformed, or inconsistent.
-
-    Loading fails before any database work begins, so a bad data file can
-    never produce a partial seed.
-    """
 
 
 def _require_keys(entry: dict[str, Any], keys: tuple[str, ...], what: str) -> None:
