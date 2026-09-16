@@ -680,6 +680,23 @@ class TestAbilitySeedDataLoader:
         with pytest.raises(SeedDataError, match="parameters_schema"):
             load_ability_seed_data(self._write(tmp_path, [ability]))
 
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [("type", None), ("name", 0), ("description", [])],
+    )
+    def test_invalid_string_field_shape_raises(
+        self,
+        tmp_path: Path,
+        field: str,
+        value: Any,
+    ) -> None:
+        """Ability string fields reject non-string JSON values."""
+        ability = dict(ABILITIES_DATA[0])
+        ability[field] = value
+
+        with pytest.raises(SeedDataError, match=field):
+            load_ability_seed_data(self._write(tmp_path, [ability]))
+
     def test_seed_uses_all_loaded_abilities(self, db_session: Session) -> None:
         """A valid ability file seeds all 15 records."""
         assert seed_abilities(db_session) == 15
