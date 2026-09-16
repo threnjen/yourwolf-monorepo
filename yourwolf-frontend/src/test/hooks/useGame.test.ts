@@ -62,6 +62,37 @@ describe('useNightScript', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('rebuilds the same ordered script from the stored custom sequence', async () => {
+    const zeta: EngineRoleInput = {...role, id: 'role-zeta', name: 'Zeta'};
+    const alpha: EngineRoleInput = {...role, id: 'role-alpha', name: 'Alpha'};
+    const customSession: GameSession = {
+      ...session,
+      role_ids: ['role-zeta', 'role-zeta', 'role-alpha', 'role-alpha'],
+      wake_order_sequence: ['role-zeta', 'role-alpha'],
+      phase: 'night',
+      current_wake_order: 0,
+    };
+    saveGameSnapshot({session: customSession, roles: [zeta, alpha]});
+
+    const first = renderHook(() => useNightScript('game-123'));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.script?.actions.map(({role_name}) => role_name)).toEqual([
+      'Narrator',
+      'Zeta',
+      'Zeta',
+      'Alpha',
+      'Alpha',
+      'Narrator',
+    ]);
+    expect(first.result.current.script?.total_duration_seconds).toBe(20);
+
+    const firstScript = first.result.current.script;
+    first.unmount();
+    const second = renderHook(() => useNightScript('game-123'));
+    await waitFor(() => expect(second.result.current.loading).toBe(false));
+    expect(second.result.current.script).toEqual(firstScript);
+  });
+
   it('does not read a script when disabled', () => {
     const {result} = renderHook(() => useNightScript('game-123', false));
     expect(result.current.script).toBeNull();

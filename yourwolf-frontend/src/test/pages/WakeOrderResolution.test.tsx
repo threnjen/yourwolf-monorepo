@@ -79,6 +79,18 @@ describe('WakeOrderResolutionPage', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('/games/new', {replace: true});
     });
+
+    it('accepts a null wake_order from the role-list response', () => {
+      const villager = createMockOfficialRole('Villager', 'village');
+
+      renderWithState({
+        ...makeState([villager]),
+        roles: [{...villager, wake_order: null}],
+      });
+
+      expect(screen.getByText('Review Wake Order')).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 
   describe('tile rendering', () => {
@@ -275,6 +287,35 @@ describe('WakeOrderResolutionPage', () => {
   });
 
   describe('game creation', () => {
+    it('starts all distinct detail requests before awaiting their results', async () => {
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      const seer = createMockOfficialRole('Seer', 'village', 4);
+      werewolf.max_count = 8;
+      seer.max_count = 8;
+      werewolf.is_primary_team_role = true;
+
+      const requestIds: string[] = [];
+      const releases: Array<() => void> = [];
+      const detail = {wake_target: null, ability_steps: []};
+      mockGetById.mockImplementation((roleId: string) => new Promise((resolve) => {
+        requestIds.push(roleId);
+        releases.push(() => resolve(detail));
+      }));
+
+      renderWithState(makeState([werewolf, seer], {[werewolf.id]: 4, [seer.id]: 4}));
+      const click = userEvent.setup().click(screen.getByText('Start Game'));
+
+      await waitFor(() => expect(requestIds).toEqual([werewolf.id, seer.id]));
+      expect(loadGameSnapshot('game-local')).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      for (const release of releases) {
+        release();
+      }
+      await click;
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/games/game-local'));
+    });
+
     it('fetches one detail per distinct role, stores the engine session, and navigates', async () => {
       mockGetById.mockResolvedValue({wake_target: null, ability_steps: []});
 
@@ -298,6 +339,48 @@ describe('WakeOrderResolutionPage', () => {
         ]);
         expect(mockNavigate).toHaveBeenCalledWith('/games/game-local');
       });
+    });
+
+    it('preserves the page custom sequence within a shared wake group', async () => {
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.999);
+      try {
+        mockGetById.mockResolvedValue({wake_target: null, ability_steps: []});
+
+        const zeta = createMockOfficialRole('Zeta', 'village', 4);
+        const alpha = createMockOfficialRole('Alpha', 'village', 4);
+        const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+        zeta.max_count = 8;
+        alpha.max_count = 8;
+        werewolf.max_count = 8;
+        werewolf.is_primary_team_role = true;
+
+        renderWithState(makeState([zeta, alpha, werewolf], {
+          [zeta.id]: 3,
+          [alpha.id]: 3,
+          [werewolf.id]: 2,
+        }));
+        await userEvent.setup().click(screen.getByText('Start Game'));
+
+        await waitFor(() => expect(
+          loadGameSnapshot('game-local')?.session.wake_order_sequence,
+        ).toEqual([werewolf.id, zeta.id, alpha.id]));
+      } finally {
+        randomSpy.mockRestore();
+      }
+    });
+
+    it('retains one waking role in the custom sequence', async () => {
+      mockGetById.mockResolvedValue({wake_target: null, ability_steps: []});
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      werewolf.max_count = 8;
+      werewolf.is_primary_team_role = true;
+
+      renderWithState(makeState([werewolf], {[werewolf.id]: 8}));
+      await userEvent.setup().click(screen.getByText('Start Game'));
+
+      await waitFor(() => expect(
+        loadGameSnapshot('game-local')?.session.wake_order_sequence,
+      ).toEqual([werewolf.id]));
     });
 
     it('retains repeated card ids and flattened custom wake ordering', async () => {

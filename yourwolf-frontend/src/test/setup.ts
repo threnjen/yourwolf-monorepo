@@ -13,7 +13,8 @@ vi.mock('axios', () => {
       create: vi.fn(() => ({
         get: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         post: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
-        put: vi.fn(),
+        put: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
+        patch: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         delete: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         interceptors: {
           request: {use: vi.fn()},

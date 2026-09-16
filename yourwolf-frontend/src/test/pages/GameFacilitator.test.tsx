@@ -30,6 +30,14 @@ function renderFacilitator(game: GameSession | null = makeGame('setup')) {
   );
 }
 
+function renderFacilitatorWithoutParam() {
+  return render(
+    <MemoryRouter initialEntries={['/games/']}>
+      <GameFacilitatorPage />
+    </MemoryRouter>,
+  );
+}
+
 describe('GameFacilitatorPage', () => {
   beforeEach(() => sessionStorage.clear());
   afterEach(() => vi.restoreAllMocks());
@@ -40,14 +48,34 @@ describe('GameFacilitatorPage', () => {
     expect(screen.getByRole('link', {name: 'New Game Setup'})).toHaveAttribute('href', '/games/new');
   });
 
+  it('shows a setup link when the game id route parameter is missing', () => {
+    renderFacilitatorWithoutParam();
+    expect(screen.getByText('Game not found')).toBeInTheDocument();
+    expect(screen.getByRole('link', {name: 'New Game Setup'})).toHaveAttribute('href', '/games/new');
+  });
+
+  it('shows loading while the stored snapshot is being read', async () => {
+    renderFacilitator(makeGame('setup'));
+    expect(screen.getByText('Loading game...')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
+  });
+
+  it('treats corrupt storage as a missing game with setup recovery', async () => {
+    sessionStorage.setItem('yourwolf:game:game-123', '{not-json');
+    renderFacilitator(null);
+    await waitFor(() => expect(screen.getByText('Game not found')).toBeInTheDocument());
+    expect(screen.getByRole('link', {name: 'New Game Setup'})).toHaveAttribute('href', '/games/new');
+  });
+
   it('renders setup warnings only when present', async () => {
-    renderFacilitator(makeGame('setup', ['Werewolf works best with Seer in the game']));
+    const warningView = renderFacilitator(makeGame('setup', ['Werewolf works best with Seer in the game']));
     await waitFor(() => expect(screen.getByText('Setup warnings')).toBeInTheDocument());
     expect(screen.getByText('Werewolf works best with Seer in the game')).toBeInTheDocument();
+    warningView.unmount();
     sessionStorage.clear();
     renderFacilitator(makeGame('setup'));
-    await waitFor(() => expect(screen.getAllByText('Begin Night Phase')).toHaveLength(2));
-    expect(screen.getAllByTestId('setup-warnings')).toHaveLength(1);
+    await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
+    expect(screen.queryByTestId('setup-warnings')).not.toBeInTheDocument();
   });
 
   it('starts locally and persists the night phase', async () => {
@@ -74,11 +102,35 @@ describe('GameFacilitatorPage', () => {
     expect(screen.getByText(/SETUP Phase/i)).toBeInTheDocument();
   });
 
-  it('renders the night script from local roles after refresh', async () => {
-    renderFacilitator(makeGame('night'));
+  it('keeps the previous phase when an advance write fails', async () => {
+    renderFacilitator(makeGame('discussion'));
+    await waitFor(() => expect(screen.getByText('Skip to Voting')).toBeInTheDocument());
+    vi.spyOn(gameStorage, 'saveGameSnapshot').mockImplementation(() => { throw new Error('Storage unavailable'); });
+    fireEvent.click(screen.getByText('Skip to Voting'));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Storage unavailable'));
+    expect(screen.getByText(/DISCUSSION Phase/i)).toBeInTheDocument();
+    expect(loadStoredPhase()).toBe('discussion');
+  });
+
+  it('rebuilds the night script after a refresh and resets the reader index', async () => {
+    const rendered = renderFacilitator(makeGame('night'));
     await waitFor(() => expect(screen.getByText('Everyone, close your eyes.')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Next →'));
     expect(screen.getByText(/Werewolf, wake up/)).toBeInTheDocument();
+
+    rendered.unmount();
+    renderFacilitator(makeGame('night'));
+    await waitFor(() => expect(screen.getByText('Everyone, close your eyes.')).toBeInTheDocument());
+    expect(screen.getByText('1 / 4')).toBeInTheDocument();
+  });
+
+  it('reloads the voting and resolution phases', async () => {
+    const voting = renderFacilitator(makeGame('voting'));
+    await waitFor(() => expect(screen.getByText('Reveal Results')).toBeInTheDocument());
+    voting.unmount();
+
+    renderFacilitator(makeGame('resolution'));
+    await waitFor(() => expect(screen.getByText('Complete Game')).toBeInTheDocument());
   });
 
   it('keeps completed sessions on refresh', async () => {
@@ -88,3 +140,9 @@ describe('GameFacilitatorPage', () => {
     expect(screen.queryByText('Leave Game')).not.toBeInTheDocument();
   });
 });
+
+function loadStoredPhase(): GameSession['phase'] | null {
+  const serialized = sessionStorage.getItem('yourwolf:game:game-123');
+  if (serialized === null) return null;
+  return (JSON.parse(serialized) as {session: GameSession}).session.phase;
+}

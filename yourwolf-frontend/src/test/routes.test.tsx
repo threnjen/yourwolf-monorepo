@@ -41,8 +41,12 @@ describe('AppRoutes', () => {
     });
   });
 
-  it('fails immediately if a test attempts a games request', () => {
+  it('fails immediately if a test attempts a games request through any HTTP method', () => {
     expect(() => apiClient.get('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.post('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.put('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
   });
 
   describe('home route', () => {
