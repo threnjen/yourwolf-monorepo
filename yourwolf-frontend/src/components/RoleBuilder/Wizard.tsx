@@ -100,7 +100,7 @@ function canProceedFromStep(step: WizardStep, draft: RoleDraft): boolean {
   return true;
 }
 
-export function Wizard({draft, validation, preview, previewLoading, onChange, onSave, saving, nameStatus = 'available'}: WizardProps) {
+export function Wizard({draft, validation, preview, previewLoading, onChange, onSave, saving, nameStatus = 'idle'}: WizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('basic');
 
   const currentIndex = STEPS.findIndex((s) => s.id === currentStep);

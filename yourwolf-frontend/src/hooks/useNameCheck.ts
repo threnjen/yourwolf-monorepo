@@ -32,6 +32,7 @@ export function useNameCheck(name: string, enabled = true): NameStatus {
     }
 
     if (trimmedName.length < MIN_CHECKABLE_LENGTH) {
+      requestIdRef.current += 1;
       setStatus('idle');
       return;
     }

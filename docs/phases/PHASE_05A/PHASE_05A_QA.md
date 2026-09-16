@@ -11,7 +11,7 @@
 |---|---|---|---|---|
 | 1.1 | Clear site data for `http://localhost:3000`, start the frontend, and open `/games/new`. | The bootstrap gate finishes and **New Game Setup** appears. | Pending | — |
 | 1.2 | Inspect the catalog in `/roles`. | The shipped catalog contains 30 official roles. | Pending | — |
-| 1.3 | Open the role palette or inspect the local catalog through the running app. | The seeded ability catalog contains 15 abilities. | Pending | — |
+| 1.3 | Open `/roles/new`, enter a temporary name, set **Wake Order (0–40)** to `1`, click **Next**, and inspect the **Abilities** step. | The seeded ability palette contains 15 abilities. | Pending | — |
 
 ## 2. Full game with the backend stopped from the start
 
@@ -33,7 +33,7 @@ Use the shipped six-card defaults. Set **Players** to `6`, set **Center Cards** 
 
 | # | Action | Expected | Status | Evidence |
 |---|---|---|---|---|
-| 3.1 | Open `/roles/new`, enter a unique name, and complete **Basic Info**, **Abilities**, **Win Conditions**, and **Review**. Add the required condition with **+ Add Condition**. | The **Create Role** control becomes enabled after the server validation and name check report success. | Pending | — |
+| 3.1 | Open `/roles/new`, enter a unique name, set **Wake Order (0–40)** to `1`, and complete **Basic Info**, **Abilities**, **Win Conditions**, and **Review**. Add the required condition with **+ Add Condition**. | The **Create Role** control becomes enabled after the server validation and name check report success. | Pending | — |
 | 3.2 | Click **Create Role**. | The role is stored locally and `/roles` opens. | Pending | — |
 | 3.3 | Keep the default **My Roles** filter active on `/roles`. | The new private role appears immediately without a reload. | Pending | — |
 | 3.4 | Open `/games/new`. | The same custom role appears in setup without a browser reload. | Pending | — |
@@ -42,17 +42,17 @@ Use the shipped six-card defaults. Set **Players** to `6`, set **Center Cards** 
 
 ## 4. Close and reopen at every game phase
 
-Create a game at `/games/new`, then use the same `/games/{gameId}` URL after each close and reopen.
+Create the six-card game described in Section 2 at `/games/new`, then use the same `/games/{gameId}` URL after each close and reopen.
 
 | # | Action | Expected | Status | Evidence |
 |---|---|---|---|---|
 | 4.1 | Close and reopen the browser at the facilitator **SETUP Phase**. | Setup returns with **Begin Night Phase**. | Pending | — |
 | 4.2 | Start night, close and reopen before advancing. | **NIGHT Phase** returns with the first action. | Pending | — |
 | 4.3 | Advance once, close and reopen. | **NIGHT Phase** returns and the reader starts at the first action. | Pending | — |
-| 4.4 | Click **Start Discussion**, close and reopen. | **DISCUSSION Phase** returns with the configured timer. | Pending | — |
-| 4.5 | Click **Skip to Voting**, close and reopen. | **VOTING Phase** returns with **Reveal Results**. | Pending | — |
-| 4.6 | Click **Reveal Results**, close and reopen. | **RESOLUTION Phase** returns with **Complete Game**. | Pending | — |
-| 4.7 | Click **Complete Game**, close and reopen. | **Game Over** and **New Game** remain visible. **Leave Game** is absent. | Pending | — |
+| 4.4 | Complete the night reader with **Next →** until **Start Discussion** appears. Click it, then close and reopen the same `/games/{gameId}` URL. | **DISCUSSION Phase** returns with the configured timer. | Pending | — |
+| 4.5 | Click **Skip to Voting**, then close and reopen the same `/games/{gameId}` URL. | **VOTING Phase** returns with **Reveal Results**. | Pending | — |
+| 4.6 | Click **Reveal Results**, then close and reopen the same `/games/{gameId}` URL. | **RESOLUTION Phase** returns with **Complete Game**. | Pending | — |
+| 4.7 | Click **Complete Game**, then close and reopen the same `/games/{gameId}` URL. | **Game Over** and **New Game** remain visible. **Leave Game** is absent. | Pending | — |
 
 ## 5. Two-tab refresh behavior
 
@@ -63,9 +63,34 @@ Create a game at `/games/new`, then use the same `/games/{gameId}` URL after eac
 
 ## 6. Seed-version reseed
 
+After the first launch, use DevTools Console to run this controlled local edit. It changes only the seed metadata version and leaves custom role records untouched:
+
+```js
+await new Promise((resolve, reject) => {
+  const request = indexedDB.open('yourwolf-local');
+  request.onerror = () => reject(request.error);
+  request.onsuccess = () => {
+    const database = request.result;
+    const transaction = database.transaction('metadata', 'readwrite');
+    const store = transaction.objectStore('metadata');
+    const read = store.get('seed');
+    read.onerror = () => reject(read.error);
+    read.onsuccess = () => {
+      const record = read.result;
+      record.seed_version = record.seed_version === 1 ? 2 : 1;
+      store.put(record, 'seed');
+    };
+    transaction.oncomplete = () => { database.close(); resolve(); };
+    transaction.onerror = () => reject(transaction.error);
+  };
+});
+```
+
+Confirm that the metadata record now has a different `seed_version`, then reload the page.
+
 | # | Action | Expected | Status | Evidence |
 |---|---|---|---|---|
-| 6.1 | Record the local metadata record for database `yourwolf-local`, whose metadata key is `seed` and shipped `SEED_VERSION` is `1`. Change the stored seed version to a different value in a controlled local test, then reload. | Bootstrap reseeds official data and abilities. | Pending | — |
+| 6.1 | In the `yourwolf-local` metadata store, confirm key `seed` and shipped `SEED_VERSION` `1`, run the controlled edit above, and reload `/roles`. | Bootstrap reseeds official data and abilities after the metadata version changes. | Pending | — |
 | 6.2 | After reload, open `/roles` and setup. | 30 official roles and 15 abilities remain available. | Pending | — |
 | 6.3 | After reseed, inspect the custom role from Section 3. | The custom role remains available. | Pending | — |
 

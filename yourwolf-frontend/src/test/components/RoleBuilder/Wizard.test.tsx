@@ -28,6 +28,7 @@ function renderWizard(draftOverrides: object = {}, validation: ValidationResult 
       onChange={mockOnChange}
       onSave={mockOnSave}
       saving={false}
+      nameStatus="available"
     />,
   );
 }
@@ -185,6 +186,25 @@ describe('Wizard', () => {
         <Wizard
           draft={draft}
           validation={null}
+          preview={null}
+          previewLoading={false}
+          onChange={mockOnChange}
+          onSave={mockOnSave}
+          saving={false}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByRole('button', {name: /create role/i})).toBeDisabled();
+    });
+
+    it('Create Role button is disabled when name status is omitted', () => {
+      const draft = createMockDraft({name: 'Test Role'});
+      render(
+        <Wizard
+          draft={draft}
+          validation={mockValidation}
           preview={null}
           previewLoading={false}
           onChange={mockOnChange}
