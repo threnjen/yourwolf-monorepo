@@ -22,6 +22,10 @@ vi.mock('../../api/abilities', () => ({
   },
 }));
 
+vi.mock('../../hooks/useAbilities', () => ({
+  useAbilities: vi.fn(() => ({abilities: [], loading: false, error: null})),
+}));
+
 // Mock navigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {

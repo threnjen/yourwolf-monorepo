@@ -4,6 +4,10 @@ import {Wizard} from '../../../components/RoleBuilder/Wizard';
 import {createMockDraft, createMockPreviewResponse} from '../../mocks';
 import {ValidationResult} from '../../../types/transport';
 
+vi.mock('../../../hooks/useAbilities', () => ({
+  useAbilities: vi.fn(() => ({abilities: [], loading: false, error: null})),
+}));
+
 const mockOnChange = vi.fn();
 const mockOnSave = vi.fn();
 

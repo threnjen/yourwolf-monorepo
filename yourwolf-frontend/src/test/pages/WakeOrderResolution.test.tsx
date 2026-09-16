@@ -5,7 +5,8 @@ import {MemoryRouter} from 'react-router-dom';
 import {WakeOrderResolutionPage} from '../../pages/WakeOrderResolution';
 import {createMockOfficialRole} from '../mocks';
 import type {RoleListItem} from '../../types/transport';
-import {rolesApi} from '../../api/roles';
+import {RepositoryProvider} from '../../context/repository_context';
+import type {IndexedDbRepositories} from '../../data';
 import {loadGameSnapshot} from '../../storage/game_session_storage';
 import * as gameStorage from '../../storage/game_session_storage';
 
@@ -18,19 +19,53 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('../../api/roles', () => ({
-  rolesApi: {
-    getById: vi.fn(),
-  },
-}));
-const mockGetById = rolesApi.getById as ReturnType<typeof vi.fn>;
+const mockGetById = vi.fn();
+const testRepositories = {
+  roles: {list: vi.fn(), get: mockGetById, put: vi.fn(), delete: vi.fn()},
+  abilities: {list: vi.fn()},
+  games: {get: vi.fn(), put: vi.fn()},
+  metadata: {get: vi.fn()},
+  bootstrap: vi.fn().mockResolvedValue(undefined),
+  reseed: vi.fn(),
+  close: vi.fn(),
+} as unknown as IndexedDbRepositories;
 
 function renderWithState(state: unknown) {
+  const roles = isRecordWithRoles(state) ? state.roles : [];
+  const configuredGet = mockGetById.getMockImplementation();
+  mockGetById.mockImplementation(async (roleId: string) => {
+    const role = roles.find((candidate) => candidate.id === roleId);
+    const configuredValue = configuredGet === undefined ? null : await configuredGet(roleId);
+    if (configuredValue === null || configuredValue === undefined) {
+      return role === undefined ? null : toLocalRole(role);
+    }
+    if (role === undefined || typeof configuredValue !== 'object') {
+      return configuredValue;
+    }
+    return {...toLocalRole(role), ...configuredValue};
+  });
   return render(
-    <MemoryRouter initialEntries={[{pathname: '/games/new/wake-order', state}]}>
-      <WakeOrderResolutionPage />
+    <MemoryRouter initialEntries={[{pathname: '/games/new/wake-order', state}]}> 
+      <RepositoryProvider repositories={testRepositories}>
+        <WakeOrderResolutionPage />
+      </RepositoryProvider>
     </MemoryRouter>,
   );
+}
+
+function isRecordWithRoles(value: unknown): value is {roles: RoleListItem[]} {
+  return typeof value === 'object' && value !== null && 'roles' in value && Array.isArray(value.roles);
+}
+
+function toLocalRole(role: RoleListItem) {
+  return {
+    ...role,
+    wake_target: null,
+    is_locked: false,
+    updated_at: role.created_at,
+    ability_steps: [],
+    win_conditions: [],
+  };
 }
 
 function makeState(roles: RoleListItem[], selectedRoleCounts?: Record<string, number>) {
@@ -56,7 +91,9 @@ describe('WakeOrderResolutionPage', () => {
     it('redirects to /games/new when Router state is missing', () => {
       render(
         <MemoryRouter initialEntries={['/games/new/wake-order']}>
-          <WakeOrderResolutionPage />
+          <RepositoryProvider repositories={testRepositories}>
+            <WakeOrderResolutionPage />
+          </RepositoryProvider>
         </MemoryRouter>,
       );
       expect(mockNavigate).toHaveBeenCalledWith('/games/new', {replace: true});

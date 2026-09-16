@@ -12,10 +12,19 @@ vi.mock('axios', () => {
       throw new Error(`Forbidden local preview request: ${url}`);
     }
   };
+  const rejectCatalogRead = (url: unknown) => {
+    if (typeof url !== 'string') return;
+    if (url === '/roles' || /^\/roles\/[^/]+$/.test(url) || url === '/abilities') {
+      throw new Error(`Forbidden catalog request: ${url}`);
+    }
+  };
   return {
     default: {
       create: vi.fn(() => ({
-        get: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
+        get: vi.fn((url: unknown) => {
+          rejectGamesRequest(url);
+          rejectCatalogRead(url);
+        }),
         post: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         put: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         patch: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
