@@ -14,9 +14,21 @@ vi.mock('../../hooks/useAbilities', () => ({useAbilities: vi.fn()}));
 vi.mock('../../context/repository_context', () => ({useRepositories: vi.fn()}));
 
 const mockNavigate = vi.fn();
+const wizardProbe = vi.hoisted(() => ({validation: null as unknown}));
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {...actual, useNavigate: () => mockNavigate};
+});
+
+vi.mock('../../components/RoleBuilder/Wizard', async () => {
+  const actual = await vi.importActual<typeof import('../../components/RoleBuilder/Wizard')>(
+    '../../components/RoleBuilder/Wizard',
+  );
+  function ObservedWizard(props: Parameters<typeof actual.Wizard>[0]) {
+    wizardProbe.validation = props.validation;
+    return actual.Wizard(props);
+  }
+  return {...actual, Wizard: ObservedWizard};
 });
 
 const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
@@ -49,6 +61,7 @@ async function navigateToReview() {
 describe('RoleBuilderPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    wizardProbe.validation = null;
     vi.useFakeTimers();
     mockUseRoles.mockReturnValue({roles: [], loading: false, error: null, refetch: vi.fn()});
     mockUseAbilities.mockReturnValue({abilities: [], loading: false, error: null});
@@ -76,6 +89,11 @@ describe('RoleBuilderPage', () => {
     fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
     fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
     expect(screen.getByText(/Generating preview/i)).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(screen.getByText(/Generating preview/i)).toBeInTheDocument();
+    expect(screen.queryByText('Seer, wake up.')).not.toBeInTheDocument();
     await settleValidation();
 
     const expected = buildPreview(adaptDraftToEngine(createMockDraft({name: 'Seer', wake_order: 4})));
@@ -83,6 +101,14 @@ describe('RoleBuilderPage', () => {
       expect(screen.getByText(action.instruction)).toBeInTheDocument();
     }
     expect(screen.queryByText(/Validation service unavailable/i)).not.toBeInTheDocument();
+  });
+
+  it('cancels pending preview and validation work on unmount', () => {
+    const view = renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Unmounted Role'}});
+    expect(vi.getTimerCount()).toBe(2);
+    view.unmount();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('waits for roles and abilities before publishing validation', async () => {
@@ -103,7 +129,8 @@ describe('RoleBuilderPage', () => {
     mockUseRoles.mockReturnValue(rolesState);
     mockUseAbilities.mockReturnValue(abilitiesState);
     const view = renderPage();
-    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'a'}});
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Latest Role'}});
     mockUseRoles.mockReturnValue({...rolesState, loading: false});
     mockUseAbilities.mockReturnValue({abilities: [], loading: false, error: null});
     view.rerender(<MemoryRouter><RoleBuilderPage /></MemoryRouter>);
@@ -112,7 +139,24 @@ describe('RoleBuilderPage', () => {
     fireEvent.click(screen.getByRole('button', {name: /next/i}));
     fireEvent.click(screen.getByRole('button', {name: /next/i}));
     expect(screen.queryByText(/Validating/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/at least 2 characters/i)).not.toBeInTheDocument();
     expect(screen.getByText(/At least one win condition/i)).toBeInTheDocument();
+  });
+
+  it('clears pending validation when a catalog becomes unavailable', async () => {
+    const view = renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Transient Role'}});
+    fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
+
+    mockUseAbilities.mockReturnValue({abilities: [], loading: true, error: null});
+    view.rerender(<MemoryRouter><RoleBuilderPage /></MemoryRouter>);
+
+    await settleValidation();
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    expect(screen.getByText(/Validating/i)).toBeInTheDocument();
+    expect(screen.getByText('Transient Role, wake up.')).toBeInTheDocument();
   });
 
   it('combines collision and domain errors with length precedence', async () => {
@@ -133,6 +177,29 @@ describe('RoleBuilderPage', () => {
     expect(screen.queryByText(/Validation service unavailable/i)).not.toBeInTheDocument();
   });
 
+  it('renders local domain warnings alongside a valid validation result', async () => {
+    mockUseAbilities.mockReturnValue({abilities: [createMockAbility()], loading: false, error: null});
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Warning Role'}});
+    fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
+    await settleValidation();
+
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    const abilityButton = screen.getByRole('button', {name: /view card/i});
+    for (let index = 0; index < 6; index += 1) {
+      fireEvent.click(abilityButton);
+    }
+    await settleValidation();
+
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    fireEvent.click(screen.getByRole('button', {name: /add condition/i}));
+    fireEvent.click(screen.getByLabelText(/primary win condition/i));
+    await settleValidation();
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+
+    expect(screen.getByText(/more than 5 ability steps/i)).toBeInTheDocument();
+  });
+
   it('suppresses collision for a trimmed 51-character name only when length is invalid', async () => {
     mockUseRoles.mockReturnValue({
       roles: [{name: 'x'.repeat(51)}],
@@ -141,7 +208,7 @@ describe('RoleBuilderPage', () => {
       refetch: vi.fn(),
     });
     renderPage();
-    const name = 'x'.repeat(51);
+    const name = `  ${'x'.repeat(51)}  `;
     fireEvent.change(screen.getByLabelText(/name/i), {target: {value: name}});
     await settleValidation();
     fireEvent.click(screen.getByRole('button', {name: /next/i}));
@@ -149,6 +216,25 @@ describe('RoleBuilderPage', () => {
     fireEvent.click(screen.getByRole('button', {name: /next/i}));
     expect(screen.getByText(/Role name must be at most 50 characters/i)).toBeInTheDocument();
     expect(screen.queryByText(/Name is already taken/)).not.toBeInTheDocument();
+  });
+
+  it('suppresses collision for a one-character name that matches a local role', async () => {
+    mockUseRoles.mockReturnValue({
+      roles: [{name: 'a'}],
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'a'}});
+    await settleValidation();
+    expect(wizardProbe.validation).toMatchObject({
+      is_valid: false,
+      errors: expect.arrayContaining(['Role name must be at least 2 characters.']),
+    });
+    expect(wizardProbe.validation).not.toMatchObject({
+      errors: expect.arrayContaining(['Name is already taken']),
+    });
   });
 
   it('keeps all save defenses and rechecks the repository immediately before put', async () => {
@@ -165,6 +251,41 @@ describe('RoleBuilderPage', () => {
     expect(mockRolesPut).not.toHaveBeenCalled();
   });
 
+  it('rechecks the repeated save gate before reading the repository', async () => {
+    const rolesList = vi.fn().mockResolvedValue([]);
+    mockUseRepositories.mockReturnValue({
+      repositories: {roles: {list: rolesList, put: mockRolesPut}},
+      loading: false,
+      error: null,
+    });
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Valid Role'}});
+    await settleValidation();
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+    fireEvent.click(screen.getByRole('button', {name: /next/i}));
+
+    const createButton = screen.getByRole('button', {name: /create role/i});
+    expect(createButton).toBeDisabled();
+    createButton.removeAttribute('disabled');
+    fireEvent.click(createButton);
+    await act(async () => {});
+    expect(rolesList).not.toHaveBeenCalled();
+    expect(mockRolesPut).not.toHaveBeenCalled();
+  });
+
+  it('keeps the draft when local persistence fails', async () => {
+    mockUseAbilities.mockReturnValue({abilities: [createMockAbility()], loading: false, error: null});
+    mockRolesPut.mockRejectedValue(new Error('Storage error'));
+    renderPage();
+    await navigateToReview();
+    fireEvent.click(screen.getByRole('button', {name: /create role/i}));
+    await act(async () => {});
+    expect(screen.getByText(/Error creating role: Storage error/i)).toBeInTheDocument();
+    expect(screen.getByText('Test Role')).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('saves a valid local role and navigates after persistence succeeds', async () => {
     mockUseAbilities.mockReturnValue({abilities: [createMockAbility()], loading: false, error: null});
     renderPage();
@@ -174,5 +295,24 @@ describe('RoleBuilderPage', () => {
     await act(async () => {});
     expect(mockRolesPut).toHaveBeenCalledWith(expect.objectContaining({name: 'Test Role'}));
     expect(mockNavigate).toHaveBeenCalledWith('/roles');
+  });
+
+  it('keeps preview generation independent of validation readiness for a non-waking role', async () => {
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Villager'}});
+    await settleValidation();
+    expect(screen.getByText(/does not wake up — no narrator instructions/i)).toBeInTheDocument();
+    expect(screen.queryByText(/preview service unavailable|preview failed/i)).not.toBeInTheDocument();
+  });
+
+  it('renders only the newest preview after rapid draft edits', async () => {
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'S'}});
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Se'}});
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+    fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
+    await settleValidation();
+    expect(screen.getByText('Seer, wake up.')).toBeInTheDocument();
+    expect(screen.queryByText('S, wake up.')).not.toBeInTheDocument();
   });
 });

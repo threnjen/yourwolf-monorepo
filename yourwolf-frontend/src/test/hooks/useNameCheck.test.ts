@@ -85,6 +85,26 @@ describe('useNameCheck', () => {
     expect(result.current).toBe('available');
   });
 
+  it('rechecks when the local role catalog changes', async () => {
+    const initialRoles: ReadonlyArray<{name: string}> = [];
+    const {result, rerender} = renderHook(
+      ({roles}: {roles: ReadonlyArray<{name: string}>}) => useNameCheck('Unique', roles),
+      {initialProps: {roles: initialRoles}},
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('available');
+
+    rerender({roles: [{name: ' unique '}]});
+    expect(result.current).toBe('checking');
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('taken');
+  });
+
   it('ignores pending work after the name becomes too short', async () => {
     const {result, rerender} = renderHook(
       ({name}: {name: string}) => useNameCheck(name, roles),
@@ -99,9 +119,28 @@ describe('useNameCheck', () => {
     expect(result.current).toBe('idle');
   });
 
+  it('ignores pending work after name checking is disabled', async () => {
+    const {result, rerender} = renderHook(
+      ({enabled}: {enabled: boolean}) => useNameCheck('Unique', roles, enabled),
+      {initialProps: {enabled: true}},
+    );
+
+    expect(result.current).toBe('checking');
+    rerender({enabled: false});
+    expect(result.current).toBe('idle');
+    expect(vi.getTimerCount()).toBe(0);
+
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('idle');
+  });
+
   it('cancels pending work when unmounted', async () => {
     const {unmount} = renderHook(() => useNameCheck('Unique', roles));
+    expect(vi.getTimerCount()).toBe(1);
     unmount();
+    expect(vi.getTimerCount()).toBe(0);
     await act(async () => {
       vi.advanceTimersByTime(500);
     });

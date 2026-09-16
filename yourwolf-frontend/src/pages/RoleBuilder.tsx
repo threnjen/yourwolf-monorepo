@@ -29,6 +29,10 @@ export function RoleBuilderPage() {
   const {repositories} = useRepositories();
   const {roles, loading: rolesLoading, error: rolesError} = useRoles();
   const {abilities, loading: abilitiesLoading, error: abilitiesError} = useAbilities();
+  const rolesRef = useRef(roles);
+  const abilitiesRef = useRef(abilities);
+  rolesRef.current = roles;
+  abilitiesRef.current = abilities;
   const localRolesReady = !rolesLoading && rolesError === null;
   const abilitiesReady = !abilitiesLoading && abilitiesError === null;
   const catalogsReady = localRolesReady && abilitiesReady;
@@ -56,30 +60,35 @@ export function RoleBuilderPage() {
         setPreviewLoading(false);
       }
 
-      if (!catalogsReady) {
+      if (!catalogsReadyRef.current) {
         return;
       }
 
       if (requestId === validateIdRef.current) {
-        const result = validateRoleDraft(updatedDraft, abilities);
+        const result = validateRoleDraft(updatedDraft, abilitiesRef.current);
         const trimmedLength = updatedDraft.name.trim().length;
-        const collision = hasRoleNameCollision(roles, updatedDraft.name);
+        const collision = hasRoleNameCollision(rolesRef.current, updatedDraft.name);
         const collisionApplies = collision && trimmedLength >= 2 && trimmedLength <= 50;
         const errors = collisionApplies ? ['Name is already taken', ...result.errors] : result.errors;
         setValidation({...result, is_valid: errors.length === 0, errors});
       }
     }, 1000);
-  }, [abilities, catalogsReady, roles]);
+  }, []);
 
   useEffect(() => {
     const becameReady = !catalogsReadyRef.current && catalogsReady;
+    const becameUnavailable = catalogsReadyRef.current && !catalogsReady;
     catalogsReadyRef.current = catalogsReady;
+    if (becameUnavailable) {
+      setValidation(null);
+      return;
+    }
     if (becameReady) {
       handleDraftChange(draft);
     }
   }, [catalogsReady, draft, handleDraftChange]);
 
-  // Validate initial draft on mount
+  // Cancel pending preview and validation work on unmount.
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
