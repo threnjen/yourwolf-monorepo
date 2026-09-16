@@ -1,3 +1,4 @@
+import {TEAMS, type Team} from '../domain/teams';
 import type {GameSession} from '../engine/gameSession';
 import type {EngineRoleInput} from '../engine/types';
 
@@ -13,7 +14,11 @@ function storageKey(gameId: string): string {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isTeam(value: unknown): value is Team {
+  return typeof value === 'string' && TEAMS.some((team) => team === value);
 }
 
 function isStringArray(value: unknown): value is readonly string[] {
@@ -38,7 +43,7 @@ function isEngineRoleInput(value: unknown): value is EngineRoleInput {
   if (
     typeof value.id !== 'string' ||
     typeof value.name !== 'string' ||
-    typeof value.team !== 'string' ||
+    !isTeam(value.team) ||
     (typeof value.wake_order !== 'number' && value.wake_order !== null) ||
     (typeof value.wake_target !== 'string' && value.wake_target !== null) ||
     typeof value.min_count !== 'number' ||

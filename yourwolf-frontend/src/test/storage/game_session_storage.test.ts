@@ -56,10 +56,49 @@ describe('game session storage', () => {
   it('treats a partial snapshot as missing', () => {
     sessionStorage.setItem(
       'yourwolf:game:partial',
-      JSON.stringify({session: snapshot.session}),
+      JSON.stringify({session: {...snapshot.session, id: 'partial'}}),
     );
 
     expect(loadGameSnapshot('partial')).toBeNull();
+  });
+
+  it('treats an invalid role team as missing', () => {
+    sessionStorage.setItem(
+      'yourwolf:game:invalid-team',
+      JSON.stringify({
+        ...snapshot,
+        session: {...snapshot.session, id: 'invalid-team'},
+        roles: [{...snapshot.roles[0], team: 'unknown'}],
+      }),
+    );
+
+    expect(loadGameSnapshot('invalid-team')).toBeNull();
+  });
+
+  it('treats array step parameters as missing', () => {
+    sessionStorage.setItem(
+      'yourwolf:game:invalid-parameters',
+      JSON.stringify({
+        ...snapshot,
+        session: {...snapshot.session, id: 'invalid-parameters'},
+        roles: [
+          {
+            ...snapshot.roles[0],
+            ability_steps: [
+              {
+                ability_type: 'view_card',
+                order: 1,
+                modifier: 'none',
+                is_required: true,
+                parameters: [],
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(loadGameSnapshot('invalid-parameters')).toBeNull();
   });
 
   it('lets storage write failures escape to the caller', () => {

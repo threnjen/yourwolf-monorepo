@@ -23,6 +23,11 @@ const listItem: RoleListItemAdapterInput = {
       required_role_name: 'Villager',
       dependency_type: 'recommends',
     },
+    {
+      required_role_id: 'role-doppelganger',
+      required_role_name: 'Doppelganger',
+      dependency_type: 'requires',
+    },
   ],
 };
 
@@ -102,15 +107,22 @@ describe('role adapters', () => {
     ]);
   });
 
-  it('normalizes absent nullable fields and preserves an empty step list', () => {
-    const result = adaptRoleToEngine(
+  it('normalizes absent and runtime-null fields and preserves empty steps', () => {
+    const absent = adaptRoleToEngine(
       {...listItem, wake_order: undefined},
       {ability_steps: [], wake_target: undefined},
     );
+    const runtimeNull = adaptRoleToEngine(
+      {...listItem, wake_order: null},
+      {ability_steps: [], wake_target: null},
+    );
 
-    expect(result.wake_order).toBeNull();
-    expect(result.wake_target).toBeNull();
-    expect(result.ability_steps).toEqual([]);
+    expect(absent.wake_order).toBeNull();
+    expect(absent.wake_target).toBeNull();
+    expect(absent.ability_steps).toEqual([]);
+    expect(runtimeNull.wake_order).toBeNull();
+    expect(runtimeNull.wake_target).toBeNull();
+    expect(runtimeNull.ability_steps).toEqual([]);
   });
 
   it('converts dependencies with the owning role id', () => {
@@ -119,6 +131,11 @@ describe('role adapters', () => {
         role_id: 'role-seer',
         required_role_id: 'role-villager',
         dependency_type: 'recommends',
+      },
+      {
+        role_id: 'role-seer',
+        required_role_id: 'role-doppelganger',
+        dependency_type: 'requires',
       },
     ]);
   });
