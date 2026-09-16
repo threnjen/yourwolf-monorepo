@@ -2,6 +2,7 @@ import {apiClient} from './client';
 import {Role, RoleListItem, ValidationResult, NameCheckResult, Visibility, NarratorPreviewResponse} from '../types/transport';
 import {RoleDraft} from '../domain/roleDraft';
 import {Team} from '../domain/teams';
+import type {RoleDetailAdapterInput} from '../adapters/role_adapters';
 
 interface RoleListParams {
   team?: string;
@@ -27,6 +28,11 @@ export const rolesApi = {
       },
     });
     return data.items;
+  },
+
+  getById: async (id: string): Promise<RoleDetailAdapterInput> => {
+    const {data} = await apiClient.get<RoleDetailAdapterInput>(`/roles/${id}`);
+    return data;
   },
 
   validate: async (draft: RoleDraft): Promise<ValidationResult> => {

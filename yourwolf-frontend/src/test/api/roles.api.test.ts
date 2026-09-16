@@ -2,6 +2,7 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {rolesApi} from '../../api/roles';
 import {createMockRoles, createMockRole, createMockDraft, createMockPreviewResponse} from '../mocks';
 import {RoleListItem} from '../../types/transport';
+import type {RoleDetailAdapterInput} from '../../adapters/role_adapters';
 
 // Mock the API client module
 vi.mock('../../api/client', () => ({
@@ -101,6 +102,29 @@ describe('rolesApi', () => {
       mockApiClient.get.mockRejectedValue(new Error('Network error'));
 
       await expect(rolesApi.list()).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('getById', () => {
+    it('fetches and returns the role detail projection', async () => {
+      const detail: RoleDetailAdapterInput = {
+        wake_target: 'player.self',
+        ability_steps: [
+          {
+            ability_type: 'view_card',
+            order: 1,
+            modifier: 'none',
+            is_required: true,
+            parameters: {target: 'player.other'},
+          },
+        ],
+      };
+      mockApiClient.get.mockResolvedValue({data: detail});
+
+      const result = await rolesApi.getById('role-seer');
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles/role-seer');
+      expect(result).toEqual(detail);
     });
   });
 
