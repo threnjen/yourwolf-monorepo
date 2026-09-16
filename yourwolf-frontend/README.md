@@ -15,21 +15,7 @@ A React + TypeScript + Vite frontend for the YourWolf customizable One Night Ult
 npm install
 ```
 
-### 2. Set up environment
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` to configure your API URL:
-
-```
-VITE_API_URL=http://localhost:8000
-```
-
-### 3. Start the development server
+### 2. Start the development server
 
 ```bash
 npm run dev
@@ -55,9 +41,6 @@ src/
 ├── App.tsx                # Root component with Router
 ├── routes.tsx             # Route definitions
 ├── vite-env.d.ts          # Vite types
-├── api/
-│   ├── client.ts          # Axios instance
-│   └── roles.ts           # Role API functions
 ├── components/
 │   ├── Layout.tsx         # Main layout wrapper
 │   ├── Header.tsx         # App header
@@ -84,7 +67,6 @@ src/
 - **TypeScript** - Type safety
 - **Vite** - Build tool
 - **React Router** - Client-side routing
-- **Axios** - HTTP client
 - **Vitest** - Testing framework
 
 ## Docker

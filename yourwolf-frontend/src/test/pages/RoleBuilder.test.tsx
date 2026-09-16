@@ -8,6 +8,7 @@ import {useRepositories} from '../../context/repository_context';
 import {buildPreview} from '../../engine/narration';
 import {adaptDraftToEngine} from '../../adapters/role_adapters';
 import {createMockAbility, createMockDraft} from '../mocks';
+import {installNoNetworkGuard} from '../test_utils';
 
 vi.mock('../../hooks/useRoles', () => ({useRoles: vi.fn()}));
 vi.mock('../../hooks/useAbilities', () => ({useAbilities: vi.fn()}));
@@ -101,6 +102,29 @@ describe('RoleBuilderPage', () => {
       expect(screen.getByText(action.instruction)).toBeInTheDocument();
     }
     expect(screen.queryByText(/Validation service unavailable/i)).not.toBeInTheDocument();
+  });
+
+  it('proves draft validation, name status, and preview stay offline', async () => {
+    const networkGuard = installNoNetworkGuard();
+    try {
+      renderPage();
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Offline Role'}});
+      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
+      await settleValidation();
+
+      expect(screen.getByText('Available ✓')).toBeInTheDocument();
+      expect(screen.getByText('Offline Role, wake up.')).toBeInTheDocument();
+      expect(wizardProbe.validation).toMatchObject({
+        is_valid: false,
+        errors: expect.arrayContaining(['At least one win condition is required.']),
+      });
+      expect(screen.queryByText(/Validation service unavailable/i)).not.toBeInTheDocument();
+      expect(networkGuard.getFetchAttempts()).toBe(0);
+      expect(networkGuard.getXhrAttempts()).toBe(0);
+      networkGuard.assertNoRequests();
+    } finally {
+      networkGuard.restore();
+    }
   });
 
   it('cancels pending preview and validation work on unmount', () => {

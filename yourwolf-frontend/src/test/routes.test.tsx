@@ -3,7 +3,6 @@ import {render, screen} from '@testing-library/react';
 import {MemoryRouter} from 'react-router-dom';
 import {AppRoutes} from '../routes';
 import {useRoles} from '../hooks/useRoles';
-import {apiClient} from '../api/client';
 
 // Mock useRoles to avoid actual API calls
 vi.mock('../hooks/useRoles', () => ({
@@ -30,16 +29,6 @@ vi.mock('../context/repository_context', () => ({
   })),
 }));
 
-// Mock rolesApi to avoid actual API calls from RoleBuilderPage
-vi.mock('../api/roles', () => ({
-  rolesApi: {
-    list: vi.fn(),
-    validate: vi.fn().mockResolvedValue({is_valid: true, errors: [], warnings: []}),
-    checkName: vi.fn(),
-    create: vi.fn(),
-  },
-}));
-
 const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
 
 function renderRoutes(initialRoute: string = '/') {
@@ -59,24 +48,6 @@ describe('AppRoutes', () => {
       error: null,
       refetch: vi.fn(),
     });
-  });
-
-  it('fails immediately if a test attempts a games request through any HTTP method', () => {
-    expect(() => apiClient.get('/games')).toThrow('Forbidden games request');
-    expect(() => apiClient.post('/games')).toThrow('Forbidden games request');
-    expect(() => apiClient.put('/games')).toThrow('Forbidden games request');
-    expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
-    expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
-    expect(() => apiClient.post('/roles/preview-script')).toThrow('Forbidden local preview request');
-    expect(() => apiClient.post('/roles')).toThrow('Forbidden role creation request');
-  });
-
-  it('fails immediately if a test attempts a catalog read through HTTP', () => {
-    expect(() => apiClient.get('/roles')).toThrow('Forbidden catalog request');
-    expect(() => apiClient.get('/roles/official')).toThrow('Forbidden catalog request');
-    expect(() => apiClient.get('/abilities')).toThrow('Forbidden catalog request');
-    expect(() => apiClient.post('/roles/validate')).not.toThrow('Forbidden catalog request');
-    expect(() => apiClient.get('/roles/check-name')).not.toThrow('Forbidden catalog request');
   });
 
   describe('home route', () => {

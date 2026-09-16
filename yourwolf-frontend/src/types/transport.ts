@@ -2,14 +2,12 @@
  * Transport DTOs — the shapes the roles API sends and receives over the wire.
  *
  * These mirror the server's contract and nothing else. The UI/editing model lives
- * in `src/domain` (see `domain/roleDraft.ts`), and they meet at the API
- * payload adapter in `src/api/roles.ts`.
+ * in `src/domain` (see `domain/roleDraft.ts`) and meets these shapes at a data boundary.
  *
  * Dependencies point inward: this module may import domain types (`Team`,
  * `StepModifier`), never the reverse.
  *
- * Named `transport` rather than `api` to stay distinct from the `src/api` HTTP
- * layer — these are the wire shapes, not the client that fetches them.
+ * Named `transport` to describe wire shapes separately from the local domain model.
  */
 import type {StepModifier} from '../domain/roleDraft';
 import type {Team} from '../domain/teams';
@@ -63,13 +61,6 @@ export interface ValidationResult {
   is_valid: boolean;
   errors: string[];
   warnings: string[];
-}
-
-/** Outcome of `GET /roles/check-name`. */
-export interface NameCheckResult {
-  name: string;
-  is_available: boolean;
-  message: string;
 }
 
 /** An ability definition from the abilities catalog. */

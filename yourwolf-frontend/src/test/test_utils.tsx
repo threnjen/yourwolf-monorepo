@@ -1,11 +1,51 @@
 import type {ReactNode} from 'react';
 import {render, waitFor, type RenderResult} from '@testing-library/react';
+import {vi} from 'vitest';
 import {
   createIndexedDbRepositories,
   deleteDatabase,
   type IndexedDbRepositories,
 } from '../data';
 import {RepositoryProvider} from '../context/repository_context';
+
+export interface NoNetworkGuard {
+  readonly getFetchAttempts: () => number;
+  readonly getXhrAttempts: () => number;
+  readonly assertNoRequests: () => void;
+  readonly restore: () => void;
+}
+
+export function installNoNetworkGuard(): NoNetworkGuard {
+  let fetchAttempts = 0;
+  let xhrAttempts = 0;
+  const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (...args) => {
+    void args;
+    fetchAttempts += 1;
+    return new Response(null, {status: 204});
+  });
+  const originalXmlHttpRequest = globalThis.XMLHttpRequest;
+  const xhrSpy = vi.spyOn(globalThis, 'XMLHttpRequest').mockImplementation(() => {
+    const request = new originalXmlHttpRequest();
+    vi.spyOn(request, 'send').mockImplementation(() => {
+      xhrAttempts += 1;
+    });
+    return request;
+  });
+
+  return {
+    getFetchAttempts: () => fetchAttempts,
+    getXhrAttempts: () => xhrAttempts,
+    assertNoRequests: () => {
+      if (fetchAttempts !== 0 || xhrAttempts !== 0) {
+        throw new Error(`Unexpected browser requests: fetch=${fetchAttempts}, XMLHttpRequest=${xhrAttempts}`);
+      }
+    },
+    restore: () => {
+      fetchSpy.mockRestore();
+      xhrSpy.mockRestore();
+    },
+  };
+}
 
 export interface RepositoryTestContext {
   readonly databaseName: string;
