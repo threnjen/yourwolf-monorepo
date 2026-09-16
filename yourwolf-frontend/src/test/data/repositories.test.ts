@@ -81,9 +81,16 @@ describe('IndexedDB repositories', () => {
       },
       roles: [],
     };
+    const completeSnapshot: GameSnapshot = {
+      ...snapshot,
+      session: {...snapshot.session, id: 'game-2', phase: 'complete'},
+    };
     expect(await repositories.games.get('game-1')).toBeNull();
     await repositories.games.put(snapshot);
+    await repositories.games.put(completeSnapshot);
     expect(await repositories.games.get('game-1')).toEqual(snapshot);
+    expect(await repositories.games.get('game-2')).toEqual(completeSnapshot);
+    expect(await repositories.games.get('missing')).toBeNull();
   });
 
   it('treats malformed game rows as missing', async () => {
@@ -91,6 +98,71 @@ describe('IndexedDB repositories', () => {
     databases.push(name);
     const repositories = await createIndexedDbRepositories({databaseName: name});
     closers.push(repositories.close);
+    const snapshot: GameSnapshot = {
+      session: {
+        id: 'game-1', player_count: 3, center_card_count: 3,
+        discussion_timer_seconds: 300, role_ids: [], phase: 'setup',
+        current_wake_order: null, warnings: [],
+      },
+      roles: [],
+    };
+    const database = await openDatabase(name);
+    await database.put(
+      'games',
+      {id: 'game-1', updated_at: 42 as unknown as string, snapshot},
+      'game-1',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'mismatched-game',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot,
+      },
+      'mismatched-game',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'stored-id',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot: {...snapshot, session: {...snapshot.session, id: 'stored-id'}},
+      },
+      'lookup-id',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'partial',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot: {session: {...snapshot.session, id: 'partial'}},
+      } as never,
+      'partial',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'array-snapshot',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot: [],
+      } as never,
+      'array-snapshot',
+    );
+    database.close();
+
+    expect(await repositories.games.get('game-1')).toBeNull();
+    expect(await repositories.games.get('mismatched-game')).toBeNull();
+    expect(await repositories.games.get('lookup-id')).toBeNull();
+    expect(await repositories.games.get('partial')).toBeNull();
+    expect(await repositories.games.get('array-snapshot')).toBeNull();
+  });
+
+  it('treats malformed snapshot roles and arrays as missing', async () => {
+    const name = databaseName('malformed-shapes');
+    databases.push(name);
+    const repositories = await createIndexedDbRepositories({databaseName: name});
+    closers.push(repositories.close);
+    await repositories.bootstrap();
     const snapshot: GameSnapshot = {
       session: {
         id: 'game-1', player_count: 3, center_card_count: 3,
@@ -112,41 +184,6 @@ describe('IndexedDB repositories', () => {
         parameters: [],
       }],
     } as never;
-    const database = await openDatabase(name);
-    await database.put(
-      'games',
-      {id: 'game-1', updated_at: 42 as unknown as string, snapshot},
-      'game-1',
-    );
-    await database.put(
-      'games',
-      {
-        id: 'mismatched-game',
-        updated_at: '2026-01-01T00:00:00.000Z',
-        snapshot,
-      },
-      'mismatched-game',
-    );
-    database.close();
-
-    expect(await repositories.games.get('game-1')).toBeNull();
-    expect(await repositories.games.get('mismatched-game')).toBeNull();
-  });
-
-  it('treats malformed snapshot roles and arrays as missing', async () => {
-    const name = databaseName('malformed-shapes');
-    databases.push(name);
-    const repositories = await createIndexedDbRepositories({databaseName: name});
-    closers.push(repositories.close);
-    await repositories.bootstrap();
-    const snapshot: GameSnapshot = {
-      session: {
-        id: 'game-1', player_count: 3, center_card_count: 3,
-        discussion_timer_seconds: 300, role_ids: [], phase: 'setup',
-        current_wake_order: null, warnings: [],
-      },
-      roles: [],
-    };
     const database = await openDatabase(name);
     await database.put(
       'games',

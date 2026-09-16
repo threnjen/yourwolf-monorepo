@@ -6,6 +6,7 @@ import {RepositoryProvider} from '../../context/repository_context';
 import type {GameSnapshot, IndexedDbRepositories} from '../../data';
 import type {GameSession} from '../../engine/gameSession';
 import type {EngineRoleInput} from '../../engine/types';
+import * as narration from '../../engine/narration';
 
 const role: EngineRoleInput = {
   id: 'role-1', name: 'Werewolf', team: 'werewolf', wake_order: 1,
@@ -21,21 +22,25 @@ const session: GameSession = {
 
 const snapshots = new Map<string, GameSnapshot>();
 
-function createRepositories(): IndexedDbRepositories {
+function createRepositoryDouble(games: IndexedDbRepositories['games']): IndexedDbRepositories {
   return {
     roles: {} as IndexedDbRepositories['roles'],
     abilities: {} as IndexedDbRepositories['abilities'],
-    games: {
-      get: vi.fn(async (id: string) => snapshots.get(id) ?? null),
-      put: vi.fn(async (snapshot: GameSnapshot) => {
-        snapshots.set(snapshot.session.id, snapshot);
-      }),
-    },
+    games,
     metadata: {} as IndexedDbRepositories['metadata'],
-    bootstrap: vi.fn(),
+    bootstrap: vi.fn().mockResolvedValue(undefined),
     reseed: vi.fn(),
     close: vi.fn(),
   };
+}
+
+function createRepositories(): IndexedDbRepositories {
+  return createRepositoryDouble({
+    get: vi.fn(async (id: string) => snapshots.get(id) ?? null),
+    put: vi.fn(async (snapshot: GameSnapshot) => {
+      snapshots.set(snapshot.session.id, snapshot);
+    }),
+  });
 }
 
 function saveSnapshot(snapshot: GameSnapshot): void {
@@ -85,7 +90,7 @@ describe('useGame', () => {
   it('reads the game snapshot from the repository provider', async () => {
     const providerSession = {...session, id: 'provider-game'};
     const games = {get: vi.fn().mockResolvedValue({session: providerSession, roles: [role]}), put: vi.fn()};
-    const repositories = {games} as unknown as IndexedDbRepositories;
+    const repositories = createRepositoryDouble(games);
     const wrapper = ({children}: {children: ReactNode}) => createElement(
       RepositoryProvider,
       {repositories, children},
@@ -164,7 +169,7 @@ describe('useNightScript', () => {
       get: vi.fn(() => firstRead),
       put: vi.fn(),
     };
-    const repositories = {games} as unknown as IndexedDbRepositories;
+    const repositories = createRepositoryDouble(games);
     const wrapper = ({children}: {children: ReactNode}) => createElement(
       RepositoryProvider,
       {repositories, children},
@@ -174,9 +179,68 @@ describe('useNightScript', () => {
       {initialProps: {enabled: true}, wrapper},
     );
     await waitFor(() => expect(games.get).toHaveBeenCalledWith('first'));
+    await waitFor(() => expect(rendered.result.current.loading).toBe(true));
     rendered.rerender({enabled: false});
+    await waitFor(() => expect(rendered.result.current.loading).toBe(false));
     releaseFirst?.({session, roles: [role]});
     await act(async () => await firstRead);
     expect(rendered.result.current.script).toBeNull();
+    expect(rendered.result.current.loading).toBe(false);
+  });
+
+  it('ignores a stale night-script read after the game id changes', async () => {
+    let releaseFirst: ((snapshot: GameSnapshot | null) => void) | undefined;
+    const firstRead = new Promise<GameSnapshot | null>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const secondSnapshot: GameSnapshot = {
+      session: {...session, id: 'second', phase: 'night'},
+      roles: [role],
+    };
+    const games = {
+      get: vi.fn((id: string) => id === 'first' ? firstRead : Promise.resolve(secondSnapshot)),
+      put: vi.fn(),
+    };
+    const repositories = createRepositoryDouble(games);
+    const wrapper = ({children}: {children: ReactNode}) => createElement(
+      RepositoryProvider,
+      {repositories, children},
+    );
+    const rendered = renderHook(
+      ({gameId}: {gameId: string}) => useNightScript(gameId),
+      {initialProps: {gameId: 'first'}, wrapper},
+    );
+    await waitFor(() => expect(games.get).toHaveBeenCalledWith('first'));
+    rendered.rerender({gameId: 'second'});
+    await waitFor(() => expect(rendered.result.current.script?.game_session_id).toBe('second'));
+
+    releaseFirst?.({session: {...session, phase: 'night'}, roles: [role]});
+    await act(async () => await firstRead);
+    expect(rendered.result.current.script?.game_session_id).toBe('second');
+  });
+
+  it('does not build a stale night script after unmount', async () => {
+    let releaseFirst: ((snapshot: GameSnapshot | null) => void) | undefined;
+    const firstRead = new Promise<GameSnapshot | null>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const games = {
+      get: vi.fn(() => firstRead),
+      put: vi.fn(),
+    };
+    const repositories = createRepositoryDouble(games);
+    const wrapper = ({children}: {children: ReactNode}) => createElement(
+      RepositoryProvider,
+      {repositories, children},
+    );
+    const buildScript = vi.spyOn(narration, 'buildNightScript');
+    const rendered = renderHook(() => useNightScript('first'), {wrapper});
+    await waitFor(() => expect(games.get).toHaveBeenCalledWith('first'));
+    rendered.unmount();
+
+    releaseFirst?.({session: {...session, phase: 'night'}, roles: [role]});
+    await act(async () => await firstRead);
+    expect(buildScript).not.toHaveBeenCalled();
+    buildScript.mockRestore();
   });
 });

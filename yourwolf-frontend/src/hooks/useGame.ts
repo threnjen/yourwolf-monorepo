@@ -46,8 +46,14 @@ export function useNightScript(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!enabled) return;
     let isCurrent = true;
+
+    if (!enabled) {
+      setLoading(false);
+      return () => {
+        isCurrent = false;
+      };
+    }
 
     const fetchScript = async () => {
       setLoading(true);
