@@ -20,7 +20,6 @@ import {CSS} from '@dnd-kit/utilities';
 import {adaptDependenciesToEngine, adaptRoleToEngine} from '../adapters/role_adapters';
 import {useRepositories} from '../context/repository_context';
 import {createGameSession} from '../engine/gameSession';
-import {saveGameSnapshot} from '../storage/game_session_storage';
 import {theme, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
@@ -147,7 +146,7 @@ export function WakeOrderResolutionPage() {
         dependencies,
         id_generator: crypto.randomUUID,
       });
-      saveGameSnapshot({session, roles});
+      await repositories.games.put({session, roles});
       navigate(`/games/${session.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create game');

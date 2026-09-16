@@ -2,8 +2,8 @@ import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {GameFacilitatorPage} from '../../pages/GameFacilitator';
-import {saveGameSnapshot} from '../../storage/game_session_storage';
-import * as gameStorage from '../../storage/game_session_storage';
+import {RepositoryProvider} from '../../context/repository_context';
+import type {GameSnapshot, IndexedDbRepositories} from '../../data';
 import type {GameSession} from '../../engine/gameSession';
 import type {EngineRoleInput} from '../../engine/types';
 
@@ -12,6 +12,24 @@ const role: EngineRoleInput = {
   wake_target: null, min_count: 1, max_count: 2,
   is_primary_team_role: true, ability_steps: [],
 };
+
+const snapshots = new Map<string, GameSnapshot>();
+const mockGamesGet = vi.fn(async (id: string) => snapshots.get(id) ?? null);
+const mockGamesPut = vi.fn(async (snapshot: GameSnapshot) => {
+  snapshots.set(snapshot.session.id, snapshot);
+});
+
+function createRepositories(): IndexedDbRepositories {
+  return {
+    roles: {} as IndexedDbRepositories['roles'],
+    abilities: {} as IndexedDbRepositories['abilities'],
+    games: {get: mockGamesGet, put: mockGamesPut},
+    metadata: {} as IndexedDbRepositories['metadata'],
+    bootstrap: vi.fn(),
+    reseed: vi.fn(),
+    close: vi.fn(),
+  };
+}
 
 function makeGame(phase: GameSession['phase'], warnings: readonly string[] = []): GameSession {
   return {
@@ -22,10 +40,12 @@ function makeGame(phase: GameSession['phase'], warnings: readonly string[] = [])
 }
 
 function renderFacilitator(game: GameSession | null = makeGame('setup')) {
-  if (game !== null) saveGameSnapshot({session: game, roles: [role]});
+  if (game !== null) snapshots.set(game.id, {session: game, roles: [role]});
   return render(
     <MemoryRouter initialEntries={['/games/game-123']}>
-      <Routes><Route path="/games/:gameId" element={<GameFacilitatorPage />} /></Routes>
+      <RepositoryProvider repositories={createRepositories()}>
+        <Routes><Route path="/games/:gameId" element={<GameFacilitatorPage />} /></Routes>
+      </RepositoryProvider>
     </MemoryRouter>,
   );
 }
@@ -39,7 +59,13 @@ function renderFacilitatorWithoutParam() {
 }
 
 describe('GameFacilitatorPage', () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => {
+    snapshots.clear();
+    mockGamesGet.mockImplementation(async (id: string) => snapshots.get(id) ?? null);
+    mockGamesPut.mockImplementation(async (snapshot: GameSnapshot) => {
+      snapshots.set(snapshot.session.id, snapshot);
+    });
+  });
   afterEach(() => vi.restoreAllMocks());
 
   it('shows a setup link for a missing game', async () => {
@@ -61,7 +87,7 @@ describe('GameFacilitatorPage', () => {
   });
 
   it('treats corrupt storage as a missing game with setup recovery', async () => {
-    sessionStorage.setItem('yourwolf:game:game-123', '{not-json');
+    mockGamesGet.mockResolvedValue(null);
     renderFacilitator(null);
     await waitFor(() => expect(screen.getByText('Game not found')).toBeInTheDocument());
     expect(screen.getByRole('link', {name: 'New Game Setup'})).toHaveAttribute('href', '/games/new');
@@ -72,7 +98,7 @@ describe('GameFacilitatorPage', () => {
     await waitFor(() => expect(screen.getByText('Setup warnings')).toBeInTheDocument());
     expect(screen.getByText('Werewolf works best with Seer in the game')).toBeInTheDocument();
     warningView.unmount();
-    sessionStorage.clear();
+    snapshots.clear();
     renderFacilitator(makeGame('setup'));
     await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
     expect(screen.queryByTestId('setup-warnings')).not.toBeInTheDocument();
@@ -83,7 +109,17 @@ describe('GameFacilitatorPage', () => {
     await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
     fireEvent.click(screen.getByText('Begin Night Phase'));
     await waitFor(() => expect(screen.getByText(/NIGHT Phase/i)).toBeInTheDocument());
-    expect(JSON.parse(sessionStorage.getItem('yourwolf:game:game-123') ?? '{}').session.phase).toBe('night');
+    expect(snapshots.get('game-123')?.session.phase).toBe('night');
+  });
+
+  it('keeps setup visible while the start write is pending', async () => {
+    mockGamesPut.mockImplementation(() => new Promise<void>(() => undefined));
+    renderFacilitator(makeGame('setup'));
+    await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Begin Night Phase'));
+    await waitFor(() => expect(mockGamesPut).toHaveBeenCalled());
+    expect(screen.getByText(/SETUP Phase/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', {name: 'NIGHT Phase'})).not.toBeInTheDocument();
   });
 
   it('advances discussion locally', async () => {
@@ -93,10 +129,20 @@ describe('GameFacilitatorPage', () => {
     await waitFor(() => expect(screen.getByRole('heading', {name: 'VOTING Phase'})).toBeInTheDocument());
   });
 
+  it('keeps discussion visible while the advance write is pending', async () => {
+    mockGamesPut.mockImplementation(() => new Promise<void>(() => undefined));
+    renderFacilitator(makeGame('discussion'));
+    await waitFor(() => expect(screen.getByText('Skip to Voting')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Skip to Voting'));
+    await waitFor(() => expect(mockGamesPut).toHaveBeenCalled());
+    expect(screen.getByText(/DISCUSSION Phase/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', {name: 'VOTING Phase'})).not.toBeInTheDocument();
+  });
+
   it('keeps the previous phase when a transition write fails', async () => {
     renderFacilitator(makeGame('setup'));
     await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
-    vi.spyOn(gameStorage, 'saveGameSnapshot').mockImplementation(() => { throw new Error('Storage unavailable'); });
+    mockGamesPut.mockRejectedValueOnce(new Error('Storage unavailable'));
     fireEvent.click(screen.getByText('Begin Night Phase'));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Storage unavailable'));
     expect(screen.getByText(/SETUP Phase/i)).toBeInTheDocument();
@@ -105,7 +151,7 @@ describe('GameFacilitatorPage', () => {
   it('keeps the previous phase when an advance write fails', async () => {
     renderFacilitator(makeGame('discussion'));
     await waitFor(() => expect(screen.getByText('Skip to Voting')).toBeInTheDocument());
-    vi.spyOn(gameStorage, 'saveGameSnapshot').mockImplementation(() => { throw new Error('Storage unavailable'); });
+    mockGamesPut.mockRejectedValueOnce(new Error('Storage unavailable'));
     fireEvent.click(screen.getByText('Skip to Voting'));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Storage unavailable'));
     expect(screen.getByText(/DISCUSSION Phase/i)).toBeInTheDocument();
@@ -142,7 +188,5 @@ describe('GameFacilitatorPage', () => {
 });
 
 function loadStoredPhase(): GameSession['phase'] | null {
-  const serialized = sessionStorage.getItem('yourwolf:game:game-123');
-  if (serialized === null) return null;
-  return (JSON.parse(serialized) as {session: GameSession}).session.phase;
+  return snapshots.get('game-123')?.session.phase ?? null;
 }

@@ -1,7 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import type {GameSession} from '../engine/gameSession';
 import {buildNightScript, totalDurationSeconds} from '../engine/narration';
-import {loadGameSnapshot} from '../storage/game_session_storage';
+import {useRepositories} from '../context/repository_context';
 import type {NightScript} from '../types/game';
 import {useFetch} from './useFetch';
 
@@ -13,9 +13,15 @@ interface UseGameResult {
 }
 
 export function useGame(gameId: string): UseGameResult {
+  const {repositories} = useRepositories();
   const fetcher = useCallback(
-    async (): Promise<GameSession | null> => loadGameSnapshot(gameId)?.session ?? null,
-    [gameId],
+    async (): Promise<GameSession | null> => {
+      if (repositories === null) {
+        throw new Error('Repositories are unavailable');
+      }
+      return (await repositories.games.get(gameId))?.session ?? null;
+    },
+    [gameId, repositories],
   );
   const {data, loading, error, refetch} = useFetch(fetcher, {
     errorMessage: 'Failed to load game',
@@ -34,18 +40,24 @@ export function useNightScript(
   gameId: string,
   enabled: boolean = true,
 ): UseNightScriptResult {
+  const {repositories} = useRepositories();
   const [script, setScript] = useState<NightScript | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
+    let isCurrent = true;
 
     const fetchScript = async () => {
       setLoading(true);
       setError(null);
       try {
-        const snapshot = loadGameSnapshot(gameId);
+        if (repositories === null) {
+          throw new Error('Repositories are unavailable');
+        }
+        const snapshot = await repositories.games.get(gameId);
+        if (!isCurrent) return;
         if (snapshot === null) {
           setScript(null);
           return;
@@ -60,16 +72,23 @@ export function useNightScript(
           total_duration_seconds: totalDurationSeconds(actions),
         });
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load night script',
-        );
+        if (isCurrent) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to load night script',
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isCurrent) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchScript();
-  }, [gameId, enabled]);
+    void fetchScript();
+    return () => {
+      isCurrent = false;
+    };
+  }, [gameId, enabled, repositories]);
 
   return {script, loading, error};
 }

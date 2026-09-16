@@ -2,7 +2,7 @@ import React from 'react';
 import {useParams, useNavigate, Link} from 'react-router-dom';
 import {useGame, useNightScript} from '../hooks/useGame';
 import {startGame, advancePhase} from '../engine/gameSession';
-import {loadGameSnapshot, saveGameSnapshot} from '../storage/game_session_storage';
+import {useRepositories} from '../context/repository_context';
 import {Timer} from '../components/Timer';
 import {ScriptReader} from '../components/ScriptReader';
 import {theme} from '../styles/theme';
@@ -209,6 +209,7 @@ function GameFacilitatorContent({
   gameId: string;
   navigate: ReturnType<typeof useNavigate>;
 }) {
+  const {repositories} = useRepositories();
   const {game, loading, error, refetch} = useGame(gameId);
   const {script, loading: scriptLoading, error: scriptError} = useNightScript(gameId, game?.phase === 'night');
   const [actionError, setActionError] = React.useState<string | null>(null);
@@ -229,12 +230,15 @@ function GameFacilitatorContent({
   const handleAdvancePhase = async () => {
     setActionError(null);
     try {
-      const snapshot = loadGameSnapshot(gameId);
+      if (repositories === null) {
+        throw new Error('Repositories are unavailable');
+      }
+      const snapshot = await repositories.games.get(gameId);
       if (snapshot === null) {
         throw new Error('Game not found');
       }
       const nextGame = advancePhase(game);
-      saveGameSnapshot({session: nextGame, roles: snapshot.roles});
+      await repositories.games.put({session: nextGame, roles: snapshot.roles});
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to advance phase';
@@ -245,12 +249,15 @@ function GameFacilitatorContent({
   const handleStartGame = async () => {
     setActionError(null);
     try {
-      const snapshot = loadGameSnapshot(gameId);
+      if (repositories === null) {
+        throw new Error('Repositories are unavailable');
+      }
+      const snapshot = await repositories.games.get(gameId);
       if (snapshot === null) {
         throw new Error('Game not found');
       }
       const nextGame = startGame(game);
-      saveGameSnapshot({session: nextGame, roles: snapshot.roles});
+      await repositories.games.put({session: nextGame, roles: snapshot.roles});
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game';

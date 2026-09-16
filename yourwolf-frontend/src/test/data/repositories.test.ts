@@ -99,6 +99,19 @@ describe('IndexedDB repositories', () => {
       },
       roles: [],
     };
+    const invalidTeamRole = {
+      id: 'role-1', name: 'Role', wake_target: null, wake_order: null,
+      ability_steps: [], is_primary_team_role: false, min_count: 1,
+      max_count: 1, team: 'unknown',
+    } as never;
+    const invalidParametersRole = {
+      id: 'role-1', name: 'Role', wake_target: null, wake_order: null,
+      is_primary_team_role: false, min_count: 1, max_count: 1, team: 'village',
+      ability_steps: [{
+        ability_type: 'view_card', order: 1, modifier: 'none', is_required: true,
+        parameters: [],
+      }],
+    } as never;
     const database = await openDatabase(name);
     await database.put(
       'games',
@@ -118,6 +131,55 @@ describe('IndexedDB repositories', () => {
 
     expect(await repositories.games.get('game-1')).toBeNull();
     expect(await repositories.games.get('mismatched-game')).toBeNull();
+  });
+
+  it('treats malformed snapshot roles and arrays as missing', async () => {
+    const name = databaseName('malformed-shapes');
+    databases.push(name);
+    const repositories = await createIndexedDbRepositories({databaseName: name});
+    closers.push(repositories.close);
+    await repositories.bootstrap();
+    const snapshot: GameSnapshot = {
+      session: {
+        id: 'game-1', player_count: 3, center_card_count: 3,
+        discussion_timer_seconds: 300, role_ids: [], phase: 'setup',
+        current_wake_order: null, warnings: [],
+      },
+      roles: [],
+    };
+    const database = await openDatabase(name);
+    await database.put(
+      'games',
+      {
+        id: 'invalid-team',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot: {
+          ...snapshot,
+          session: {...snapshot.session, id: 'invalid-team'},
+          roles: [invalidTeamRole],
+        },
+      } as never,
+      'invalid-team',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'invalid-parameters',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot: {
+          ...snapshot,
+          session: {...snapshot.session, id: 'invalid-parameters'},
+          roles: [invalidParametersRole],
+        },
+      } as never,
+      'invalid-parameters',
+    );
+    await database.put('games', [] as never, 'invalid-array');
+    database.close();
+
+    expect(await repositories.games.get('invalid-team')).toBeNull();
+    expect(await repositories.games.get('invalid-parameters')).toBeNull();
+    expect(await repositories.games.get('invalid-array')).toBeNull();
   });
 
   it('reseeds official records while preserving custom records and removing stale officials', async () => {
