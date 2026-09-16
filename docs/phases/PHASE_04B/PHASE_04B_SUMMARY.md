@@ -1,6 +1,6 @@
 # Phase 4b: Engine Frontend Integration
 
-**Status**: In Progress
+**Status**: Complete
 **Depends on**: Phase 04a (Client-Side Game Engine)
 **Estimated complexity**: Medium
 **Cross-references**: Engine contract in `yourwolf-frontend/src/engine/`; Phase 04a summary at `docs/phases/PHASE_04A/PHASE_04A_SUMMARY.md`; planning decisions in `docs/phases/DISCOVERY_CONTEXT.md`; Python reference stays untouched in `yourwolf-backend/`
