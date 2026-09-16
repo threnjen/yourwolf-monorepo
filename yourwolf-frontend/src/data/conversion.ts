@@ -173,6 +173,24 @@ export function convertSeedRole(
   if (new Set(winConditions.map((condition) => condition.id)).size !== winConditions.length) {
     throw new Error(`Duplicate generated win condition id for role: ${role.name}`);
   }
+  const convertedDependencies = dependencies
+    .filter((dependency) => dependency.source === role.name)
+    .map((dependency) => {
+      const requiredRoleId = roleIds.get(dependency.target);
+      if (requiredRoleId === undefined) {
+        throw new Error(`Unknown dependency target: ${dependency.target}`);
+      }
+      const result: RoleDependencyRecord = {
+        id: dependencyId(id, requiredRoleId),
+        required_role_id: requiredRoleId,
+        required_role_name: dependency.target,
+        dependency_type: dependency.dependency_type,
+      };
+      return result;
+    });
+  if (new Set(convertedDependencies.map((dependency) => dependency.id)).size !== convertedDependencies.length) {
+    throw new Error(`Duplicate generated dependency id for role: ${role.name}`);
+  }
   const converted: RoleRecord = {
     id,
     name: role.name,
@@ -191,21 +209,7 @@ export function convertSeedRole(
     min_count: role.min_count ?? 1,
     max_count: role.max_count ?? 1,
     is_primary_team_role: role.is_primary_team_role ?? false,
-    dependencies: dependencies
-      .filter((dependency) => dependency.source === role.name)
-      .map((dependency) => {
-        const requiredRoleId = roleIds.get(dependency.target);
-        if (requiredRoleId === undefined) {
-          throw new Error(`Unknown dependency target: ${dependency.target}`);
-        }
-        const result: RoleDependencyRecord = {
-          id: dependencyId(id, requiredRoleId),
-          required_role_id: requiredRoleId,
-          required_role_name: dependency.target,
-          dependency_type: dependency.dependency_type,
-        };
-        return result;
-      }),
+    dependencies: convertedDependencies,
   };
   return converted;
 }

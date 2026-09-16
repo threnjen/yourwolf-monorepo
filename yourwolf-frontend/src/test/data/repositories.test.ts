@@ -3,6 +3,7 @@ import abilitiesSeed from '../../data/seed/abilities.json';
 import {
   createIndexedDbRepositories,
   deleteDatabase,
+  openDatabase,
 } from '../../data/indexeddb';
 import {createCustomRole} from '../../data/conversion';
 import {officialRoleId} from '../../data/ids';
@@ -43,8 +44,10 @@ describe('IndexedDB repositories', () => {
     closers.push(repositories.close);
     await repositories.bootstrap();
     const before = await repositories.roles.get(officialRoleId('Villager'));
+    const beforeMetadata = await repositories.metadata.get();
     await repositories.bootstrap();
     expect(await repositories.roles.get(officialRoleId('Villager'))).toEqual(before);
+    expect(await repositories.metadata.get()).toEqual(beforeMetadata);
   });
 
   it('lists by team and visibility, gets, puts, deletes, and returns null when missing', async () => {
@@ -83,35 +86,89 @@ describe('IndexedDB repositories', () => {
     expect(await repositories.games.get('game-1')).toEqual(snapshot);
   });
 
+  it('treats malformed game rows as missing', async () => {
+    const name = databaseName('malformed-games');
+    databases.push(name);
+    const repositories = await createIndexedDbRepositories({databaseName: name});
+    closers.push(repositories.close);
+    const snapshot: GameSnapshot = {
+      session: {
+        id: 'game-1', player_count: 3, center_card_count: 3,
+        discussion_timer_seconds: 300, role_ids: [], phase: 'setup',
+        current_wake_order: null, warnings: [],
+      },
+      roles: [],
+    };
+    const database = await openDatabase(name);
+    await database.put(
+      'games',
+      {id: 'game-1', updated_at: 42 as unknown as string, snapshot},
+      'game-1',
+    );
+    await database.put(
+      'games',
+      {
+        id: 'mismatched-game',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        snapshot,
+      },
+      'mismatched-game',
+    );
+    database.close();
+
+    expect(await repositories.games.get('game-1')).toBeNull();
+    expect(await repositories.games.get('mismatched-game')).toBeNull();
+  });
+
   it('reseeds official records while preserving custom records and removing stale officials', async () => {
     const name = databaseName('reseed');
     databases.push(name);
     const repositories = await createIndexedDbRepositories({databaseName: name});
     closers.push(repositories.close);
     await repositories.bootstrap();
-    const custom = createCustomRole({
-      id: 'draft', name: 'Local', description: '', team: 'village', wake_order: null,
-      wake_target: null, votes: 1, is_primary_team_role: false, ability_steps: [],
-      win_conditions: [], created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z',
-    });
+    const custom = {
+      ...createCustomRole({
+        id: 'draft', name: 'Local', description: '', team: 'village', wake_order: null,
+        wake_target: null, votes: 1, is_primary_team_role: false, ability_steps: [],
+        win_conditions: [], created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z',
+      }),
+      dependencies: [{
+        id: 'draft:dependency:official-role:tanner',
+        required_role_id: officialRoleId('Tanner'),
+        required_role_name: 'Tanner',
+        dependency_type: 'requires' as const,
+      }],
+    };
     await repositories.roles.put(custom);
     const nextSeed = {...rolesSeed, roles: rolesSeed.roles.slice(0, -1)};
     await repositories.reseed(nextSeed, abilitiesSeed, SEED_VERSION + 1);
     expect(await repositories.roles.get(custom.id)).toEqual(custom);
+    const tanner = await repositories.roles.get(officialRoleId('Tanner'));
+    expect(tanner?.id).toBe(officialRoleId('Tanner'));
     const staleRole = rolesSeed.roles[rolesSeed.roles.length - 1];
     expect(await repositories.roles.get(officialRoleId(staleRole.name))).toBeNull();
     expect(await repositories.metadata.get()).toMatchObject({seed_version: SEED_VERSION + 1});
   });
 
-  it('rolls back seed and metadata when the transaction fails', async () => {
+  it('rolls back every store after a partial seed transaction failure', async () => {
     const name = databaseName('rollback');
     databases.push(name);
     const repositories = await createIndexedDbRepositories({databaseName: name});
     closers.push(repositories.close);
     await repositories.bootstrap();
-    const before = await repositories.roles.get(officialRoleId('Villager'));
-    await expect(repositories.reseed({...rolesSeed, roles: [{...rolesSeed.roles[0], name: 'Broken'}]}, abilitiesSeed, SEED_VERSION + 1, {failAfter: 0})).rejects.toThrow();
-    expect(await repositories.roles.get(officialRoleId('Villager'))).toEqual(before);
-    expect(await repositories.metadata.get()).toMatchObject({seed_version: SEED_VERSION});
+    const beforeRoles = await repositories.roles.list();
+    const beforeAbilities = await repositories.abilities.list();
+    const beforeMetadata = await repositories.metadata.get();
+    await expect(
+      repositories.reseed(
+        {...rolesSeed, roles: [{...rolesSeed.roles[0], name: 'Broken'}]},
+        abilitiesSeed,
+        SEED_VERSION + 1,
+        {failAfter: 1},
+      ),
+    ).rejects.toThrow();
+    expect(await repositories.roles.list()).toEqual(beforeRoles);
+    expect(await repositories.abilities.list()).toEqual(beforeAbilities);
+    expect(await repositories.metadata.get()).toEqual(beforeMetadata);
   });
 });

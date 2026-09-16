@@ -19,6 +19,24 @@ describe('seed conversion', () => {
     expect(converted.abilities).toHaveLength(15);
     expect(new Set(converted.roles.map((role) => role.id)).size).toBe(30);
     expect(new Set(converted.abilities.map((ability) => ability.id)).size).toBe(15);
+    expect(converted.abilities.every((ability) => ability.is_active)).toBe(true);
+    const abilityNames = new Map(abilitiesSeed.map((ability) => [ability.type, ability.name]));
+    for (const [index, seedRole] of rolesSeed.roles.entries()) {
+      const role = converted.roles[index];
+      expect(role.default_count).toBe(seedRole.default_count ?? 1);
+      expect(role.min_count).toBe(seedRole.min_count ?? 1);
+      expect(role.max_count).toBe(seedRole.max_count ?? 1);
+      expect(role.is_primary_team_role).toBe(seedRole.is_primary_team_role ?? false);
+      expect(role.ability_steps.map((step) => step.id)).toEqual(
+        seedRole.ability_steps.map((step) => `${role.id}:step:${step.order}`),
+      );
+      expect(role.ability_steps.map((step) => step.ability_name)).toEqual(
+        seedRole.ability_steps.map((step) => abilityNames.get(step.ability_type)),
+      );
+      expect(role.win_conditions.map((condition) => condition.id)).toEqual(
+        seedRole.win_conditions.map((_, conditionIndex) => `${role.id}:win:${conditionIndex}`),
+      );
+    }
     expect(converted.roles[0]).toMatchObject({
       id: officialRoleId(converted.roles[0].name),
       visibility: 'official',
@@ -62,6 +80,56 @@ describe('seed conversion', () => {
         {timestamp: '2026-01-01T00:00:00.000Z'},
       ),
     ).toThrow('Unknown ability type');
+  });
+
+  it('rejects generated id collisions in roles, abilities, steps, and dependencies', () => {
+    const duplicateRoleNames = {
+      ...rolesSeed,
+      roles: [
+        rolesSeed.roles[0],
+        {...rolesSeed.roles[1], name: rolesSeed.roles[0].name.toLowerCase()},
+      ],
+    };
+    expect(() => convertSeedCatalog(duplicateRoleNames, abilitiesSeed)).toThrow(
+      'Duplicate generated role id',
+    );
+
+    const duplicateAbilityTypes = [
+      abilitiesSeed[0],
+      {...abilitiesSeed[1], type: abilitiesSeed[0].type.toUpperCase()},
+    ];
+    expect(() => convertSeedCatalog(rolesSeed, duplicateAbilityTypes)).toThrow(
+      'Duplicate generated ability id',
+    );
+
+    const werewolf = rolesSeed.roles[1];
+    const duplicateStepOrders = {
+      ...rolesSeed,
+      roles: [
+        {...werewolf, ability_steps: [
+          werewolf.ability_steps[0],
+          {...werewolf.ability_steps[1], order: werewolf.ability_steps[0].order},
+        ]},
+      ],
+      role_dependencies: [],
+    };
+    expect(() => convertSeedCatalog(duplicateStepOrders, abilitiesSeed)).toThrow(
+      'Duplicate generated step id',
+    );
+
+    const duplicateDependencies = {
+      roles: [
+        {...rolesSeed.roles[0], name: 'Source'},
+        {...rolesSeed.roles[1], name: 'Target'},
+      ],
+      role_dependencies: [
+        {source: 'Source', target: 'Target', dependency_type: 'requires' as const},
+        {source: 'Source', target: 'Target', dependency_type: 'recommends' as const},
+      ],
+    };
+    expect(() => convertSeedCatalog(duplicateDependencies, abilitiesSeed)).toThrow(
+      'Duplicate generated dependency id',
+    );
   });
 
   it('creates private custom roles with a UUID and local defaults', () => {

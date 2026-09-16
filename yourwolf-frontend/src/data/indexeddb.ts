@@ -134,6 +134,16 @@ function isRoleRecord(value: unknown): value is RoleRecord {
   );
 }
 
+function isGameSnapshotRecord(value: unknown, id: string): value is GameSnapshotRecord {
+  return (
+    isRecord(value) &&
+    value.id === id &&
+    typeof value.updated_at === 'string' &&
+    isGameSnapshot(value.snapshot) &&
+    value.snapshot.session.id === id
+  );
+}
+
 function ensure(condition: boolean, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
@@ -214,7 +224,7 @@ export async function createIndexedDbRepositories(
   const games: GameRepository = {
     async get(id) {
       const record = await database.get('games', id);
-      if (record === undefined || record.id !== id || !isGameSnapshot(record.snapshot)) {
+      if (!isGameSnapshotRecord(record, id)) {
         return null;
       }
       return record.snapshot;
