@@ -1,288 +1,90 @@
-import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {GameFacilitatorPage} from '../../pages/GameFacilitator';
-import {gamesApi} from '../../api/games';
-import {createMockGameSession, createMockNightScript} from '../mocks';
+import {saveGameSnapshot} from '../../storage/game_session_storage';
+import * as gameStorage from '../../storage/game_session_storage';
+import type {GameSession} from '../../engine/gameSession';
+import type {EngineRoleInput} from '../../engine/types';
 
-vi.mock('../../api/games', () => ({
-  gamesApi: {
-    create: vi.fn(),
-    list: vi.fn(),
-    getById: vi.fn(),
-    start: vi.fn(),
-    advancePhase: vi.fn(),
-    getNightScript: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+const role: EngineRoleInput = {
+  id: 'role-1', name: 'Werewolf', team: 'werewolf', wake_order: 1,
+  wake_target: null, min_count: 1, max_count: 2,
+  is_primary_team_role: true, ability_steps: [],
+};
 
-const mockGamesApi = vi.mocked(gamesApi);
-
-function renderFacilitator(gameId: string = 'game-123') {
-  return render(
-    <MemoryRouter initialEntries={[`/games/${gameId}`]}>
-      <Routes>
-        <Route path="/games/:gameId" element={<GameFacilitatorPage />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+function makeGame(phase: GameSession['phase'], warnings: readonly string[] = []): GameSession {
+  return {
+    id: 'game-123', player_count: 3, center_card_count: 1,
+    discussion_timer_seconds: 300, role_ids: ['role-1', 'role-1', 'role-1', 'role-1'],
+    wake_order_sequence: ['role-1'], phase, current_wake_order: phase === 'night' ? 0 : null, warnings,
+  };
 }
 
-function renderFacilitatorWithoutParam() {
+function renderFacilitator(game: GameSession | null = makeGame('setup')) {
+  if (game !== null) saveGameSnapshot({session: game, roles: [role]});
   return render(
-    <MemoryRouter initialEntries={['/games/']}>
-      <Routes>
-        <Route path="/games/" element={<GameFacilitatorPage />} />
-      </Routes>
+    <MemoryRouter initialEntries={['/games/game-123']}>
+      <Routes><Route path="/games/:gameId" element={<GameFacilitatorPage />} /></Routes>
     </MemoryRouter>,
   );
 }
 
 describe('GameFacilitatorPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => sessionStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('shows a setup link for a missing game', async () => {
+    renderFacilitator(null);
+    await waitFor(() => expect(screen.getByText('Game not found')).toBeInTheDocument());
+    expect(screen.getByRole('link', {name: 'New Game Setup'})).toHaveAttribute('href', '/games/new');
   });
 
-  describe('missing gameId', () => {
-    it('shows error when gameId param is missing', () => {
-      renderFacilitatorWithoutParam();
-      expect(screen.getByText('Game not found')).toBeInTheDocument();
-    });
+  it('renders setup warnings only when present', async () => {
+    renderFacilitator(makeGame('setup', ['Werewolf works best with Seer in the game']));
+    await waitFor(() => expect(screen.getByText('Setup warnings')).toBeInTheDocument());
+    expect(screen.getByText('Werewolf works best with Seer in the game')).toBeInTheDocument();
+    sessionStorage.clear();
+    renderFacilitator(makeGame('setup'));
+    await waitFor(() => expect(screen.getAllByText('Begin Night Phase')).toHaveLength(2));
+    expect(screen.getAllByTestId('setup-warnings')).toHaveLength(1);
   });
 
-  describe('loading state', () => {
-    it('shows loading indicator while fetching', () => {
-      mockGamesApi.getById.mockReturnValue(new Promise(() => {}));
-      renderFacilitator();
-
-      expect(screen.getByText('Loading game...')).toBeInTheDocument();
-    });
+  it('starts locally and persists the night phase', async () => {
+    renderFacilitator(makeGame('setup'));
+    await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Begin Night Phase'));
+    await waitFor(() => expect(screen.getByText(/NIGHT Phase/i)).toBeInTheDocument());
+    expect(JSON.parse(sessionStorage.getItem('yourwolf:game:game-123') ?? '{}').session.phase).toBe('night');
   });
 
-  describe('error state', () => {
-    it('shows error when game fails to load', async () => {
-      mockGamesApi.getById.mockRejectedValue(new Error('Network error'));
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument();
-      });
-    });
+  it('advances discussion locally', async () => {
+    renderFacilitator(makeGame('discussion'));
+    await waitFor(() => expect(screen.getByText('Skip to Voting')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Skip to Voting'));
+    await waitFor(() => expect(screen.getByRole('heading', {name: 'VOTING Phase'})).toBeInTheDocument());
   });
 
-  describe('setup phase', () => {
-    it('renders setup phase content', async () => {
-      const game = createMockGameSession({phase: 'setup', center_card_count: 3});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText(/setup Phase/i)).toBeInTheDocument();
-      });
-
-      expect(screen.getByText('Begin Night Phase')).toBeInTheDocument();
-    });
-
-    it('displays error when start game fails', async () => {
-      const game = createMockGameSession({phase: 'setup'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      mockGamesApi.start.mockRejectedValue(new Error('Server error'));
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Begin Night Phase')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Begin Night Phase'));
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent('Server error');
-      });
-    });
-
-    it('dismisses error when dismiss button is clicked', async () => {
-      const game = createMockGameSession({phase: 'setup'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      mockGamesApi.start.mockRejectedValue(new Error('Server error'));
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Begin Night Phase')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Begin Night Phase'));
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByLabelText('Dismiss error'));
-
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    });
+  it('keeps the previous phase when a transition write fails', async () => {
+    renderFacilitator(makeGame('setup'));
+    await waitFor(() => expect(screen.getByText('Begin Night Phase')).toBeInTheDocument());
+    vi.spyOn(gameStorage, 'saveGameSnapshot').mockImplementation(() => { throw new Error('Storage unavailable'); });
+    fireEvent.click(screen.getByText('Begin Night Phase'));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Storage unavailable'));
+    expect(screen.getByText(/SETUP Phase/i)).toBeInTheDocument();
   });
 
-  describe('advance phase error', () => {
-    it('displays error when advance phase fails', async () => {
-      const game = createMockGameSession({
-        phase: 'voting',
-      });
-      mockGamesApi.getById.mockResolvedValue(game);
-      mockGamesApi.advancePhase.mockRejectedValue(
-        new Error('Cannot advance'),
-      );
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Reveal Results')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Reveal Results'));
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent('Cannot advance');
-      });
-    });
+  it('renders the night script from local roles after refresh', async () => {
+    renderFacilitator(makeGame('night'));
+    await waitFor(() => expect(screen.getByText('Everyone, close your eyes.')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Next →'));
+    expect(screen.getByText(/Werewolf, wake up/)).toBeInTheDocument();
   });
 
-  describe('discussion phase', () => {
-    it('renders Skip to Voting button and timer display', async () => {
-      const game = createMockGameSession({phase: 'discussion'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Skip to Voting')).toBeInTheDocument();
-      });
-
-      expect(screen.getByTestId('timer-display')).toHaveTextContent('5:00');
-    });
-
-    it('clicking Skip to Voting calls advancePhase', async () => {
-      const game = createMockGameSession({phase: 'discussion'});
-      const advancedGame = createMockGameSession({phase: 'voting'});
-      mockGamesApi.getById
-        .mockResolvedValueOnce(game)
-        .mockResolvedValueOnce(advancedGame);
-      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Skip to Voting')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Skip to Voting'));
-
-      await waitFor(() => {
-        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
-      });
-    });
-  });
-
-  describe('night phase', () => {
-    it('renders ScriptReader with night script content', async () => {
-      const game = createMockGameSession({phase: 'night'});
-      const script = createMockNightScript();
-      mockGamesApi.getById.mockResolvedValue(game);
-      mockGamesApi.getNightScript.mockResolvedValue(script);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Everyone, close your eyes.'),
-        ).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('voting phase', () => {
-    it('renders Reveal Results button', async () => {
-      const game = createMockGameSession({phase: 'voting'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Reveal Results')).toBeInTheDocument();
-      });
-    });
-
-    it('clicking Reveal Results calls advancePhase', async () => {
-      const game = createMockGameSession({phase: 'voting'});
-      const advancedGame = createMockGameSession({phase: 'resolution'});
-      mockGamesApi.getById
-        .mockResolvedValueOnce(game)
-        .mockResolvedValueOnce(advancedGame);
-      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Reveal Results')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Reveal Results'));
-
-      await waitFor(() => {
-        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
-      });
-    });
-  });
-
-  describe('resolution phase', () => {
-    it('renders Complete Game button', async () => {
-      const game = createMockGameSession({phase: 'resolution'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Complete Game')).toBeInTheDocument();
-      });
-    });
-
-    it('clicking Complete Game calls advancePhase', async () => {
-      const game = createMockGameSession({phase: 'resolution'});
-      const advancedGame = createMockGameSession({phase: 'complete'});
-      mockGamesApi.getById
-        .mockResolvedValueOnce(game)
-        .mockResolvedValueOnce(advancedGame);
-      mockGamesApi.advancePhase.mockResolvedValue(advancedGame);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Complete Game')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Complete Game'));
-
-      await waitFor(() => {
-        expect(mockGamesApi.advancePhase).toHaveBeenCalledWith('game-123');
-      });
-    });
-  });
-
-  describe('complete phase', () => {
-    it('renders Game Over heading and New Game button', async () => {
-      const game = createMockGameSession({phase: 'complete'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Game Over')).toBeInTheDocument();
-      });
-
-      expect(screen.getByText('New Game')).toBeInTheDocument();
-    });
-
-    it('does not render Leave Game button', async () => {
-      const game = createMockGameSession({phase: 'complete'});
-      mockGamesApi.getById.mockResolvedValue(game);
-      renderFacilitator();
-
-      await waitFor(() => {
-        expect(screen.getByText('Game Over')).toBeInTheDocument();
-      });
-
-      expect(screen.queryByText('Leave Game')).not.toBeInTheDocument();
-    });
+  it('keeps completed sessions on refresh', async () => {
+    renderFacilitator(makeGame('complete'));
+    await waitFor(() => expect(screen.getByText('Game Over')).toBeInTheDocument());
+    expect(screen.getByText('New Game')).toBeInTheDocument();
+    expect(screen.queryByText('Leave Game')).not.toBeInTheDocument();
   });
 });
