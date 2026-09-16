@@ -7,9 +7,12 @@ import {
 import type {AbilityStepDraft, RoleDraft, WinConditionDraft} from '../../domain/roleDraft';
 
 // Literal oracle transcribed from backend TestValidateRole, TestValidateRoleModule,
-// TestRoleNameLengthBounds, TestGetWarnings, and TestGetWarningsModule.
+// TestRoleNameLengthBounds, TestGetWarnings, TestGetWarningsModule,
+// TestCheckDuplicateName, and TestCheckDuplicateNameModule.
 // Excluded: TestValidateEndpoint, TestCheckNameEndpoint, and
 // TestCreateValidateAgreement because they require HTTP/database integration.
+// The exclude-own-id cases from the two duplicate-name classes are excluded
+// because the local builder has no edit flow.
 // TestRoleRulePrecedence is caller-composition coverage owned by Feature 2.
 // Deliberate frontend-only divergences: the trimmed 50-character error and the
 // local collision message "Name is already taken".
@@ -95,9 +98,10 @@ describe('validateRoleDraft', () => {
   });
 
   it('reports the frontend-only trimmed upper-bound error', () => {
-    expect(validateRoleDraft(makeDraft({name: `  ${'x'.repeat(51)}  `}), [])).toMatchObject({
+    expect(validateRoleDraft(makeDraft({name: `  ${'x'.repeat(51)}  `}), [])).toEqual({
       is_valid: false,
       errors: ['Role name must be at most 50 characters.'],
+      warnings: [],
     });
   });
 
@@ -129,6 +133,15 @@ describe('validateRoleDraft', () => {
     expect(validateRoleDraft(draft, [VALID_ABILITY]).errors).toEqual([
       "The first ability step must have modifier 'none'.",
     ]);
+  });
+
+  it('does not reorder draft steps while finding the lowest-order step', () => {
+    const steps = [makeStep('later', 2), makeStep('first', 1, 'none')];
+    const draft = makeDraft({ability_steps: steps});
+
+    expect(validateRoleDraft(draft, [VALID_ABILITY]).errors).toEqual([]);
+    expect(draft.ability_steps).toBe(steps);
+    expect(draft.ability_steps.map((step) => step.id)).toEqual(['later', 'first']);
   });
 
   it('reports absent and inactive abilities in draft order with one literal message', () => {
@@ -188,10 +201,13 @@ describe('validateRoleDraft', () => {
   });
 
   it('returns an independent error list without throwing for an invalid draft', () => {
-    const errors = validateRoleDraft(makeDraft({win_conditions: []}), []).errors;
+    const draft = makeDraft({win_conditions: []});
+    const firstResult = validateRoleDraft(draft, []).errors;
 
-    expect(errors).toEqual(['At least one win condition is required.']);
-    expect(Array.isArray(errors)).toBe(true);
+    firstResult.push('caller mutation');
+    expect(validateRoleDraft(draft, []).errors).toEqual([
+      'At least one win condition is required.',
+    ]);
   });
 });
 
@@ -237,9 +253,9 @@ describe('getRoleWarnings', () => {
       index === 0 ? 'none' : 'and',
     ));
 
-    expect(getRoleWarnings(makeDraft({ability_steps: steps}))).toContain(
+    expect(getRoleWarnings(makeDraft({ability_steps: steps}))).toEqual([
       'This role has more than 5 ability steps, which may make it complex to balance.',
-    );
+    ]);
   });
 
   it('reports the conflicting-ability warning independently', () => {
