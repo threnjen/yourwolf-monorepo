@@ -1,6 +1,6 @@
 # Phase 5a: Local Catalog and Store
 
-**Status**: Implementation Complete — Browser Manual QA Pending
+**Status**: Complete — Browser Manual QA Pending
 **Depends on**: Phase 04b (Engine Frontend Integration)
 **Estimated complexity**: Medium
 **Cross-references**: Planning decisions and research summary in `docs/phases/DISCOVERY_CONTEXT.md` (section "Phase 05 replanning"); refinement context in `docs/phases/PHASE_05A/PHASE_05A_DISCOVERY_CONTEXT.md`; research report in `dev/research/tauri-v2-webview-storage-and-speech/`; Phase 04b summary at `docs/phases/PHASE_04B/PHASE_04B_SUMMARY.md`; canonical seed data in `yourwolf-backend/app/seed/`
