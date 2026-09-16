@@ -1,21 +1,11 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useNameCheck} from '../../hooks/useNameCheck';
-import {rolesApi} from '../../api/roles';
 
-vi.mock('../../api/roles', () => ({
-  rolesApi: {
-    checkName: vi.fn(),
-  },
-}));
-
-const mockRolesApi = rolesApi as unknown as {
-  checkName: ReturnType<typeof vi.fn>;
-};
+const roles = [{name: 'Seer'}, {name: 'Private Role'}];
 
 describe('useNameCheck', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.useFakeTimers();
   });
 
@@ -24,234 +14,96 @@ describe('useNameCheck', () => {
   });
 
   describe('names too short to check', () => {
-    it('stays idle for an empty name and does not call the API', () => {
-      const {result} = renderHook(() => useNameCheck(''));
-
-      expect(result.current).toBe('idle');
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-    });
-
-    it('stays idle for a whitespace-only name and does not call the API', () => {
-      const {result} = renderHook(() => useNameCheck('   '));
-
-      expect(result.current).toBe('idle');
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-    });
-
-    it('stays idle for a single-character name and does not call the API', () => {
-      const {result} = renderHook(() => useNameCheck('a'));
-
-      expect(result.current).toBe('idle');
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('debounce', () => {
-    it('reports checking immediately without calling the API', () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Seer',
-        is_available: true,
-        message: 'Available',
-      });
-
-      const {result} = renderHook(() => useNameCheck('Seer'));
-
-      expect(result.current).toBe('checking');
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-    });
-
-    it('calls the API once 500ms have elapsed', async () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Seer',
-        is_available: true,
-        message: 'Available',
-      });
-
-      renderHook(() => useNameCheck('Seer'));
-
-      await act(async () => {
-        vi.advanceTimersByTime(499);
-      });
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-
-      await act(async () => {
-        vi.advanceTimersByTime(1);
-      });
-      expect(mockRolesApi.checkName).toHaveBeenCalledWith('Seer');
-    });
-
-    it('trims the name before sending it to the API', async () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Seer',
-        is_available: true,
-        message: 'Available',
-      });
-
-      renderHook(() => useNameCheck('  Seer  '));
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(mockRolesApi.checkName).toHaveBeenCalledWith('Seer');
-    });
-
-    it('only issues one request when the name changes rapidly', async () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Seer',
-        is_available: true,
-        message: 'Available',
-      });
-
-      const {rerender} = renderHook(({name}: {name: string}) => useNameCheck(name), {
-        initialProps: {name: 'Se'},
-      });
-
-      rerender({name: 'See'});
-      rerender({name: 'Seer'});
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(mockRolesApi.checkName).toHaveBeenCalledTimes(1);
-      expect(mockRolesApi.checkName).toHaveBeenCalledWith('Seer');
-    });
-  });
-
-  describe('result states', () => {
-    it('reports available when the name is free', async () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Seer',
-        is_available: true,
-        message: 'Available',
-      });
-
-      const {result} = renderHook(() => useNameCheck('Seer'));
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(result.current).toBe('available');
-    });
-
-    it('reports taken when the name is in use', async () => {
-      mockRolesApi.checkName.mockResolvedValue({
-        name: 'Werewolf',
-        is_available: false,
-        message: 'Name is taken',
-      });
-
-      const {result} = renderHook(() => useNameCheck('Werewolf'));
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(result.current).toBe('taken');
-    });
-
-    it('falls back to idle when the request fails', async () => {
-      mockRolesApi.checkName.mockRejectedValue(new Error('Network error'));
-
-      const {result} = renderHook(() => useNameCheck('Seer'));
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
+    it.each(['', '   ', 'a'])('stays idle for %j', (name) => {
+      const {result} = renderHook(() => useNameCheck(name, roles));
       expect(result.current).toBe('idle');
     });
   });
 
-  describe('stale-response handling', () => {
-    it('ignores a resolved response once the name has moved on', async () => {
-      let resolveFirst: (value: unknown) => void = () => {};
-      mockRolesApi.checkName
-        .mockImplementationOnce(
-          () =>
-            new Promise((resolve) => {
-              resolveFirst = resolve;
-            }),
-        )
-        .mockResolvedValueOnce({name: 'Robber', is_available: false, message: 'Taken'});
+  it('reports checking immediately and settles to available after 500ms', async () => {
+    const {result} = renderHook(() => useNameCheck('Unique', roles));
 
-      const {result, rerender} = renderHook(({name}: {name: string}) => useNameCheck(name), {
-        initialProps: {name: 'Seer'},
-      });
-
-      // Let the first request fire, then move to a new name and let it settle.
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      rerender({name: 'Robber'});
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(result.current).toBe('taken');
-
-      // The stale first response resolving must not overwrite the newer result.
-      await act(async () => {
-        resolveFirst({name: 'Seer', is_available: true, message: 'Available'});
-      });
-
-      expect(result.current).toBe('taken');
+    expect(result.current).toBe('checking');
+    await act(async () => {
+      vi.advanceTimersByTime(499);
     });
-
-    it('ignores a pending response after the name becomes too short to check', async () => {
-      let resolveFirst: (value: unknown) => void = () => {};
-      mockRolesApi.checkName.mockImplementationOnce(
-        () => new Promise((resolve) => {
-          resolveFirst = resolve;
-        }),
-      );
-
-      const {result, rerender} = renderHook(({name}: {name: string}) => useNameCheck(name), {
-        initialProps: {name: 'Seer'},
-      });
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      rerender({name: 'a'});
-      expect(result.current).toBe('idle');
-
-      await act(async () => {
-        resolveFirst({name: 'Seer', is_available: true, message: 'Available'});
-      });
-
-      expect(result.current).toBe('idle');
+    expect(result.current).toBe('checking');
+    await act(async () => {
+      vi.advanceTimersByTime(1);
     });
+    expect(result.current).toBe('available');
+  });
 
-    it('ignores a pending response after name checking is disabled', async () => {
-      let resolveFirst: (value: unknown) => void = () => {};
-      mockRolesApi.checkName.mockImplementationOnce(
-        () => new Promise((resolve) => {
-          resolveFirst = resolve;
-        }),
-      );
+  it('trims and compares names case-insensitively across local roles', async () => {
+    const {result} = renderHook(() => useNameCheck('  private ROLE  ', roles));
 
-      const {result, rerender} = renderHook(
-        ({name, enabled}: {name: string; enabled: boolean}) => useNameCheck(name, enabled),
-        {initialProps: {name: 'Seer', enabled: true}},
-      );
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('taken');
+  });
 
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
+  it('reports taken for an official role collision', async () => {
+    const {result} = renderHook(() => useNameCheck('Werewolf', [{name: 'Werewolf'}]));
 
-      rerender({name: 'Seer', enabled: false});
-      expect(result.current).toBe('idle');
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('taken');
+  });
 
-      await act(async () => {
-        resolveFirst({name: 'Seer', is_available: true, message: 'Available'});
-      });
+  it('does not report available until the local roles are ready', async () => {
+    const {result, rerender} = renderHook(
+      ({enabled}: {enabled: boolean}) => useNameCheck('Unique', roles, enabled),
+      {initialProps: {enabled: false}},
+    );
 
-      expect(result.current).toBe('idle');
+    expect(result.current).toBe('idle');
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('idle');
+    rerender({enabled: true});
+    expect(result.current).toBe('checking');
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('available');
+  });
+
+  it('only settles the newest name after rapid changes', async () => {
+    const {result, rerender} = renderHook(
+      ({name}: {name: string}) => useNameCheck(name, roles),
+      {initialProps: {name: 'Se'}},
+    );
+
+    rerender({name: 'Seer'});
+    rerender({name: 'Newest'});
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('available');
+  });
+
+  it('ignores pending work after the name becomes too short', async () => {
+    const {result, rerender} = renderHook(
+      ({name}: {name: string}) => useNameCheck(name, roles),
+      {initialProps: {name: 'Unique'}},
+    );
+
+    rerender({name: 'a'});
+    expect(result.current).toBe('idle');
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(result.current).toBe('idle');
+  });
+
+  it('cancels pending work when unmounted', async () => {
+    const {unmount} = renderHook(() => useNameCheck('Unique', roles));
+    unmount();
+    await act(async () => {
+      vi.advanceTimersByTime(500);
     });
   });
 });

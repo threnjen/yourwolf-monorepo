@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 import {RoleDraft} from '../../../domain/roleDraft';
-import {useNameCheck} from '../../../hooks/useNameCheck';
 import type {NameStatus} from '../../../hooks/useNameCheck';
 import {TEAMS, Team} from '../../../domain/teams';
 import {theme, TEAM_COLORS} from '../../../styles/theme';
@@ -9,7 +8,7 @@ import {capitalize} from '../../../utils/format';
 interface BasicInfoStepProps {
   draft: RoleDraft;
   onChange: (draft: RoleDraft) => void;
-  nameStatus?: NameStatus;
+  nameStatus: NameStatus;
 }
 
 const fieldGroupStyles: React.CSSProperties = {
@@ -73,10 +72,8 @@ function getTeamButtonStyles(team: Team, isSelected: boolean): React.CSSProperti
   };
 }
 
-export function BasicInfoStep({draft, onChange, nameStatus: providedNameStatus}: BasicInfoStepProps) {
+export function BasicInfoStep({draft, onChange, nameStatus}: BasicInfoStepProps) {
   const [localName, setLocalName] = useState(draft.name);
-  const hookNameStatus = useNameCheck(localName, providedNameStatus === undefined);
-  const nameStatus = providedNameStatus ?? hookNameStatus;
 
   // Sync localName when draft.name changes externally (e.g., draft restore)
   useEffect(() => {

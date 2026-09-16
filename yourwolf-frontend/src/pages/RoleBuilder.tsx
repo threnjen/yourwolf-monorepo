@@ -1,9 +1,8 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
-import type {ValidationResult, NarratorPreviewResponse, RoleListItem} from '../types/transport';
-import {rolesApi} from '../api/roles';
-import {extractApiErrorMessages} from '../api/errors';
+import type {ValidationResult, NarratorPreviewResponse} from '../types/transport';
 import {createEmptyDraft, RoleDraft} from '../domain/roleDraft';
+import {hasRoleNameCollision, validateRoleDraft} from '../domain/roleValidation';
 import {adaptDraftToEngine} from '../adapters/role_adapters';
 import {buildPreview} from '../engine/narration';
 import {Wizard} from '../components/RoleBuilder/Wizard';
@@ -11,15 +10,10 @@ import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyl
 import {ErrorBanner} from '../components/ErrorBanner';
 import {useRepositories} from '../context/repository_context';
 import {useRoles} from '../hooks/useRoles';
-import {useNameCheck, NameStatus} from '../hooks/useNameCheck';
+import {useNameCheck} from '../hooks/useNameCheck';
+import type {NameStatus} from '../hooks/useNameCheck';
+import {useAbilities} from '../hooks/useAbilities';
 import {createCustomRole} from '../data/conversion';
-
-function hasRoleNameCollision(roles: ReadonlyArray<Pick<RoleListItem, 'name'>>, name: string): boolean {
-  const normalizedName = name.trim().toLocaleLowerCase();
-  return normalizedName.length > 0 && roles.some(
-    (role) => role.name.trim().toLocaleLowerCase() === normalizedName,
-  );
-}
 
 export function RoleBuilderPage() {
   const navigate = useNavigate();
@@ -31,13 +25,14 @@ export function RoleBuilderPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const validateIdRef = useRef(0);
-  const localRolesReadyRef = useRef(false);
+  const catalogsReadyRef = useRef(false);
   const {repositories} = useRepositories();
   const {roles, loading: rolesLoading, error: rolesError} = useRoles();
-  const isLocalNameTaken = hasRoleNameCollision(roles, draft.name);
+  const {abilities, loading: abilitiesLoading, error: abilitiesError} = useAbilities();
   const localRolesReady = !rolesLoading && rolesError === null;
-  const serverNameStatus = useNameCheck(draft.name, localRolesReady && !isLocalNameTaken);
-  const nameStatus: NameStatus = isLocalNameTaken ? 'taken' : serverNameStatus;
+  const abilitiesReady = !abilitiesLoading && abilitiesError === null;
+  const catalogsReady = localRolesReady && abilitiesReady;
+  const nameStatus: NameStatus = useNameCheck(draft.name, roles, localRolesReady);
 
   const handleDraftChange = useCallback((updatedDraft: RoleDraft) => {
     setDraft(updatedDraft);
@@ -51,7 +46,7 @@ export function RoleBuilderPage() {
 
     setPreviewLoading(true);
 
-    debounceRef.current = setTimeout(async () => {
+    debounceRef.current = setTimeout(() => {
       const localPreview: NarratorPreviewResponse = {
         actions: buildPreview(adaptDraftToEngine(updatedDraft)),
       };
@@ -61,43 +56,28 @@ export function RoleBuilderPage() {
         setPreviewLoading(false);
       }
 
-      const localCollision = hasRoleNameCollision(roles, updatedDraft.name);
-      if (!localRolesReady || localCollision) {
-        if (requestId === validateIdRef.current && localCollision) {
-          setValidation({is_valid: false, errors: ['Name is already taken'], warnings: []});
-        }
+      if (!catalogsReady) {
         return;
       }
 
-      const validationPromise = rolesApi.validate(updatedDraft);
-
-      const [validationSettled] = await Promise.allSettled([validationPromise]);
-
       if (requestId === validateIdRef.current) {
-        if (validationSettled.status === 'fulfilled') {
-          setValidation(validationSettled.value);
-        } else {
-          // A rejection is not necessarily an outage: the server rejects a draft that
-          // breaks its schema (a too-short name, say) with a 422 describing the field.
-          // Show that where we have it, and keep the generic message for real failures.
-          const serverErrors = extractApiErrorMessages(validationSettled.reason);
-          setValidation({
-            is_valid: false,
-            errors: serverErrors ?? ['Validation service unavailable'],
-            warnings: [],
-          });
-        }
+        const result = validateRoleDraft(updatedDraft, abilities);
+        const trimmedLength = updatedDraft.name.trim().length;
+        const collision = hasRoleNameCollision(roles, updatedDraft.name);
+        const collisionApplies = collision && trimmedLength >= 2 && trimmedLength <= 50;
+        const errors = collisionApplies ? ['Name is already taken', ...result.errors] : result.errors;
+        setValidation({...result, is_valid: errors.length === 0, errors});
       }
     }, 1000);
-  }, [localRolesReady, roles]);
+  }, [abilities, catalogsReady, roles]);
 
   useEffect(() => {
-    const becameReady = !localRolesReadyRef.current && localRolesReady;
-    localRolesReadyRef.current = localRolesReady;
-    if (becameReady && draft.name.trim().length >= 2 && !isLocalNameTaken) {
+    const becameReady = !catalogsReadyRef.current && catalogsReady;
+    catalogsReadyRef.current = catalogsReady;
+    if (becameReady) {
       handleDraftChange(draft);
     }
-  }, [draft, handleDraftChange, isLocalNameTaken, localRolesReady]);
+  }, [catalogsReady, draft, handleDraftChange]);
 
   // Validate initial draft on mount
   useEffect(() => {
