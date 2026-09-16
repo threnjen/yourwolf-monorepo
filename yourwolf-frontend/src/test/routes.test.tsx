@@ -10,6 +10,26 @@ vi.mock('../hooks/useRoles', () => ({
   useRoles: vi.fn(),
 }));
 
+vi.mock('../hooks/useAbilities', () => ({
+  useAbilities: vi.fn(() => ({abilities: [], loading: false, error: null})),
+}));
+
+vi.mock('../context/repository_context', () => ({
+  useRepositories: vi.fn(() => ({
+    repositories: {
+      roles: {list: vi.fn(), get: vi.fn(), put: vi.fn(), delete: vi.fn()},
+      abilities: {list: vi.fn()},
+      games: {get: vi.fn(), put: vi.fn()},
+      metadata: {get: vi.fn()},
+      bootstrap: vi.fn(),
+      reseed: vi.fn(),
+      close: vi.fn(),
+    },
+    loading: false,
+    error: null,
+  })),
+}));
+
 // Mock rolesApi to avoid actual API calls from RoleBuilderPage
 vi.mock('../api/roles', () => ({
   rolesApi: {
@@ -48,6 +68,15 @@ describe('AppRoutes', () => {
     expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.post('/roles/preview-script')).toThrow('Forbidden local preview request');
+    expect(() => apiClient.post('/roles')).toThrow('Forbidden role creation request');
+  });
+
+  it('fails immediately if a test attempts a catalog read through HTTP', () => {
+    expect(() => apiClient.get('/roles')).toThrow('Forbidden catalog request');
+    expect(() => apiClient.get('/roles/official')).toThrow('Forbidden catalog request');
+    expect(() => apiClient.get('/abilities')).toThrow('Forbidden catalog request');
+    expect(() => apiClient.post('/roles/validate')).not.toThrow('Forbidden catalog request');
+    expect(() => apiClient.get('/roles/check-name')).not.toThrow('Forbidden catalog request');
   });
 
   describe('home route', () => {

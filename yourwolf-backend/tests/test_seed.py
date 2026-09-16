@@ -5,12 +5,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy.orm import Session
+
 from app.models.ability import Ability
 from app.models.ability_step import AbilityStep, StepModifier
 from app.models.role import Role, Team, Visibility
 from app.models.role_dependency import DependencyType, RoleDependency
 from app.models.win_condition import WinCondition
-from app.seed.abilities import ABILITIES_DATA, seed_abilities
+from app.seed.abilities import ABILITIES_DATA, load_ability_seed_data, seed_abilities
 from app.seed.roles import (
     ROLE_DEPENDENCIES_DATA,
     ROLES_DATA,
@@ -19,7 +21,6 @@ from app.seed.roles import (
     seed_role_dependencies,
     seed_roles,
 )
-from sqlalchemy.orm import Session
 
 EXPECTED_SNAPSHOT_PATH = Path(__file__).parent / "data" / "expected_seed_snapshot.json"
 
@@ -622,3 +623,81 @@ class TestSeedDataLoader:
         roles, deps = load_seed_data()
         assert len(roles) == 30
         assert len(deps) == 9
+
+
+class TestAbilitySeedDataLoader:
+    """Fail-fast validation in the ability data-file loader."""
+
+    def _write(self, tmp_path: Path, payload: Any) -> Path:
+        """Write a JSON payload to a temporary ability data file."""
+        path = tmp_path / "abilities.json"
+        path.write_text(json.dumps(payload))
+        return path
+
+    def test_shipped_data_file_loads_all_abilities(self) -> None:
+        """The shipped ability file preserves every ability record."""
+        abilities = load_ability_seed_data()
+
+        assert abilities == ABILITIES_DATA
+        assert len(abilities) == 15
+
+    def test_missing_file_raises(self, tmp_path: Path) -> None:
+        """A missing ability data file fails fast with a clear error."""
+        with pytest.raises(SeedDataError, match="not found"):
+            load_ability_seed_data(tmp_path / "does_not_exist.json")
+
+    def test_malformed_json_raises(self, tmp_path: Path) -> None:
+        """Malformed ability JSON fails fast with a clear error."""
+        path = tmp_path / "abilities.json"
+        path.write_text("{not valid json")
+
+        with pytest.raises(SeedDataError, match="not valid JSON"):
+            load_ability_seed_data(path)
+
+    def test_non_list_payload_raises(self, tmp_path: Path) -> None:
+        """An ability data file must contain a top-level list."""
+        with pytest.raises(SeedDataError, match="JSON list"):
+            load_ability_seed_data(self._write(tmp_path, {"abilities": []}))
+
+    def test_non_object_entry_raises(self, tmp_path: Path) -> None:
+        """Every ability entry must be a JSON object."""
+        with pytest.raises(SeedDataError, match="non-object"):
+            load_ability_seed_data(self._write(tmp_path, ["not an object"]))
+
+    def test_missing_required_field_raises(self, tmp_path: Path) -> None:
+        """Every ability entry must contain all persisted fields."""
+        ability = dict(ABILITIES_DATA[0])
+        del ability["name"]
+
+        with pytest.raises(SeedDataError, match="name"):
+            load_ability_seed_data(self._write(tmp_path, [ability]))
+
+    def test_invalid_field_shape_raises(self, tmp_path: Path) -> None:
+        """Persisted ability fields must have their expected JSON shapes."""
+        ability = dict(ABILITIES_DATA[0])
+        ability["parameters_schema"] = []
+
+        with pytest.raises(SeedDataError, match="parameters_schema"):
+            load_ability_seed_data(self._write(tmp_path, [ability]))
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [("type", None), ("name", 0), ("description", [])],
+    )
+    def test_invalid_string_field_shape_raises(
+        self,
+        tmp_path: Path,
+        field: str,
+        value: Any,
+    ) -> None:
+        """Ability string fields reject non-string JSON values."""
+        ability = dict(ABILITIES_DATA[0])
+        ability[field] = value
+
+        with pytest.raises(SeedDataError, match=field):
+            load_ability_seed_data(self._write(tmp_path, [ability]))
+
+    def test_seed_uses_all_loaded_abilities(self, db_session: Session) -> None:
+        """A valid ability file seeds all 15 records."""
+        assert seed_abilities(db_session) == 15
+        assert db_session.query(Ability).count() == 15

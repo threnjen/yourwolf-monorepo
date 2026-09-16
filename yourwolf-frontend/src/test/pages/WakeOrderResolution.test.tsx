@@ -5,9 +5,8 @@ import {MemoryRouter} from 'react-router-dom';
 import {WakeOrderResolutionPage} from '../../pages/WakeOrderResolution';
 import {createMockOfficialRole} from '../mocks';
 import type {RoleListItem} from '../../types/transport';
-import {rolesApi} from '../../api/roles';
-import {loadGameSnapshot} from '../../storage/game_session_storage';
-import * as gameStorage from '../../storage/game_session_storage';
+import {RepositoryProvider} from '../../context/repository_context';
+import type {IndexedDbRepositories} from '../../data';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -18,19 +17,57 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('../../api/roles', () => ({
-  rolesApi: {
-    getById: vi.fn(),
-  },
-}));
-const mockGetById = rolesApi.getById as ReturnType<typeof vi.fn>;
+const mockGetById = vi.fn();
+const mockGamesPut = vi.fn();
+const testRepositories = {
+  roles: {list: vi.fn(), get: mockGetById, put: vi.fn(), delete: vi.fn()},
+  abilities: {list: vi.fn()},
+  games: {get: vi.fn(), put: mockGamesPut},
+  metadata: {get: vi.fn()},
+  bootstrap: vi.fn().mockResolvedValue(undefined),
+  reseed: vi.fn(),
+  close: vi.fn(),
+} as unknown as IndexedDbRepositories;
 
 function renderWithState(state: unknown) {
+  const roles = isRecordWithRoles(state) ? state.roles : [];
+  const configuredGet = mockGetById.getMockImplementation();
+  mockGetById.mockImplementation(async (roleId: string) => {
+    const role = roles.find((candidate) => candidate.id === roleId);
+    const configuredValue = configuredGet === undefined ? null : await configuredGet(roleId);
+    if (configuredValue === undefined) {
+      return role === undefined ? null : toLocalRole(role);
+    }
+    if (configuredValue === null) {
+      return null;
+    }
+    if (role === undefined || typeof configuredValue !== 'object') {
+      return configuredValue;
+    }
+    return {...toLocalRole(role), ...configuredValue};
+  });
   return render(
-    <MemoryRouter initialEntries={[{pathname: '/games/new/wake-order', state}]}>
-      <WakeOrderResolutionPage />
+    <MemoryRouter initialEntries={[{pathname: '/games/new/wake-order', state}]}> 
+      <RepositoryProvider repositories={testRepositories}>
+        <WakeOrderResolutionPage />
+      </RepositoryProvider>
     </MemoryRouter>,
   );
+}
+
+function isRecordWithRoles(value: unknown): value is {roles: RoleListItem[]} {
+  return typeof value === 'object' && value !== null && 'roles' in value && Array.isArray(value.roles);
+}
+
+function toLocalRole(role: RoleListItem) {
+  return {
+    ...role,
+    wake_target: null,
+    is_locked: false,
+    updated_at: role.created_at,
+    ability_steps: [],
+    win_conditions: [],
+  };
 }
 
 function makeState(roles: RoleListItem[], selectedRoleCounts?: Record<string, number>) {
@@ -47,8 +84,9 @@ function makeState(roles: RoleListItem[], selectedRoleCounts?: Record<string, nu
 describe('WakeOrderResolutionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetById.mockReset();
+    mockGamesPut.mockReset();
     mockNavigate.mockClear();
-    sessionStorage.clear();
     vi.stubGlobal('crypto', {randomUUID: () => 'game-local'});
   });
 
@@ -56,7 +94,9 @@ describe('WakeOrderResolutionPage', () => {
     it('redirects to /games/new when Router state is missing', () => {
       render(
         <MemoryRouter initialEntries={['/games/new/wake-order']}>
-          <WakeOrderResolutionPage />
+          <RepositoryProvider repositories={testRepositories}>
+            <WakeOrderResolutionPage />
+          </RepositoryProvider>
         </MemoryRouter>,
       );
       expect(mockNavigate).toHaveBeenCalledWith('/games/new', {replace: true});
@@ -287,6 +327,20 @@ describe('WakeOrderResolutionPage', () => {
   });
 
   describe('game creation', () => {
+    it('waits for the initial snapshot write before navigating', async () => {
+      mockGamesPut.mockImplementation(() => new Promise<void>(() => undefined));
+      mockGetById.mockResolvedValue({wake_target: null, ability_steps: []});
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      werewolf.max_count = 8;
+      werewolf.is_primary_team_role = true;
+
+      renderWithState(makeState([werewolf], {[werewolf.id]: 8}));
+      await userEvent.setup().click(screen.getByText('Start Game'));
+
+      await waitFor(() => expect(mockGamesPut).toHaveBeenCalled());
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('starts all distinct detail requests before awaiting their results', async () => {
       const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
       const seer = createMockOfficialRole('Seer', 'village', 4);
@@ -306,7 +360,7 @@ describe('WakeOrderResolutionPage', () => {
       const click = userEvent.setup().click(screen.getByText('Start Game'));
 
       await waitFor(() => expect(requestIds).toEqual([werewolf.id, seer.id]));
-      expect(loadGameSnapshot('game-local')).toBeNull();
+      expect(mockGamesPut).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
 
       for (const release of releases) {
@@ -333,7 +387,7 @@ describe('WakeOrderResolutionPage', () => {
 
       await waitFor(() => {
         expect(mockGetById).toHaveBeenCalledTimes(2);
-        expect(loadGameSnapshot('game-local')?.session.role_ids).toEqual([
+        expect(mockGamesPut.mock.calls[0]?.[0].session.role_ids).toEqual([
           werewolf.id, werewolf.id, werewolf.id, werewolf.id,
           seer.id, seer.id, seer.id, seer.id,
         ]);
@@ -362,7 +416,7 @@ describe('WakeOrderResolutionPage', () => {
         await userEvent.setup().click(screen.getByText('Start Game'));
 
         await waitFor(() => expect(
-          loadGameSnapshot('game-local')?.session.wake_order_sequence,
+          mockGamesPut.mock.calls[0]?.[0].session.wake_order_sequence,
         ).toEqual([werewolf.id, zeta.id, alpha.id]));
       } finally {
         randomSpy.mockRestore();
@@ -379,7 +433,7 @@ describe('WakeOrderResolutionPage', () => {
       await userEvent.setup().click(screen.getByText('Start Game'));
 
       await waitFor(() => expect(
-        loadGameSnapshot('game-local')?.session.wake_order_sequence,
+        mockGamesPut.mock.calls[0]?.[0].session.wake_order_sequence,
       ).toEqual([werewolf.id]));
     });
 
@@ -400,7 +454,7 @@ describe('WakeOrderResolutionPage', () => {
       await user.click(screen.getByText('Start Game'));
 
       await waitFor(() => {
-        const snapshot = loadGameSnapshot('game-local');
+        const snapshot = mockGamesPut.mock.calls[0]?.[0];
         const seq = snapshot?.session.wake_order_sequence ?? [];
         expect(snapshot?.session.role_ids).toEqual([seer.id, seer.id, seer.id, robber.id, robber.id, robber.id, werewolf.id, werewolf.id]);
         // Werewolf (wake 1) must come before both Seer and Robber (wake 4)
@@ -427,7 +481,21 @@ describe('WakeOrderResolutionPage', () => {
         expect(screen.getByText('Start Game')).not.toBeDisabled();
       });
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(loadGameSnapshot('game-local')).toBeNull();
+      expect(mockGamesPut).not.toHaveBeenCalled();
+    });
+
+    it('shows a missing-role error and prevents navigation when a repository read returns null', async () => {
+      mockGetById.mockResolvedValue(null);
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      werewolf.max_count = 8;
+      werewolf.is_primary_team_role = true;
+      renderWithState(makeState([werewolf], {[werewolf.id]: 8}));
+
+      await userEvent.setup().click(screen.getByText('Start Game'));
+
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(`Role not found: ${werewolf.id}`));
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGamesPut).not.toHaveBeenCalled();
     });
 
     it('passes an empty custom sequence when no waking roles', async () => {
@@ -441,7 +509,7 @@ describe('WakeOrderResolutionPage', () => {
       await user.click(screen.getByText('Start Game'));
 
       await waitFor(() => {
-        expect(loadGameSnapshot('game-local')?.session.wake_order_sequence).toEqual([]);
+        expect(mockGamesPut.mock.calls[0]?.[0].session.wake_order_sequence).toEqual([]);
       });
     });
 
@@ -459,7 +527,7 @@ describe('WakeOrderResolutionPage', () => {
       const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
       werewolf.max_count = 8;
       werewolf.is_primary_team_role = true;
-      vi.spyOn(gameStorage, 'saveGameSnapshot').mockImplementation(() => { throw new Error('Storage unavailable'); });
+      mockGamesPut.mockRejectedValue(new Error('Storage unavailable'));
       renderWithState(makeState([werewolf], {[werewolf.id]: 8}));
       await userEvent.setup().click(screen.getByText('Start Game'));
       await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Storage unavailable'));

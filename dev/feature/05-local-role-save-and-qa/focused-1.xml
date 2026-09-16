@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="48" failures="2" errors="0" time="1.585">
+    <testsuite name="src/test/routes.test.tsx" timestamp="2026-09-16T18:50:37.353Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="1" errors="0" skipped="0" time="0.09336425">
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a games request through any HTTP method" time="0.001301375">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a catalog read through HTTP" time="0.004397292">
+            <failure message="expected [Function] to throw error including &apos;Forbidden catalog request&apos; but got &apos;Forbidden role creation request: /rol…&apos;" type="AssertionError">
+AssertionError: expected [Function] to throw error including &apos;Forbidden catalog request&apos; but got &apos;Forbidden role creation request: /rol…&apos;
+
+Expected: &quot;Forbidden catalog request&quot;
+Received: &quot;Forbidden role creation request: /roles&quot;
+
+ ❯ src/test/routes.test.tsx:75:43
+            </failure>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; home route &gt; renders Home page at &quot;/&quot; path" time="0.03841975">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; roles route &gt; renders Roles page at &quot;/roles&quot; path" time="0.025563166">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; role builder route &gt; renders RoleBuilder page at &quot;/roles/new&quot; path" time="0.012867208">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; renders WakeOrderResolution page at &quot;/games/new/wake-order&quot; path with state" time="0.005365625">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; redirects to /games/new when accessed without state" time="0.004610458">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/RoleBuilder.test.tsx" timestamp="2026-09-16T18:50:37.356Z" hostname="Jennys-MacBook-Air.local" tests="12" failures="1" errors="0" skipped="0" time="0.325814292">
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the page heading" time="0.046123583">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the Wizard component" time="0.008594833">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders step indicator with all steps" time="0.037674541">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; navigates to roles listing after successful create" time="0.052081542">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; shows error message when local persistence fails and keeps the draft" time="0.041709708">
+            <failure message="Unable to find a label with the text of: /name/i
+
+Ignored nodes: comments, script, style
+[36m&lt;body&gt;[39m
+  [36m&lt;div&gt;[39m
+    [36m&lt;div[39m
+      [33mstyle[39m=[32m&quot;width: 100%;&quot;[39m
+    [36m&gt;[39m
+      [36m&lt;header[39m
+        [33mstyle[39m=[32m&quot;margin-bottom: 24px;&quot;[39m
+      [36m&gt;[39m
+        [36m&lt;h1[39m
+          [33mstyle[39m=[32m&quot;font-size: 2rem; font-weight: 700; color: rgb(224, 224, 224); margin-bottom: 4px;&quot;[39m
+        [36m&gt;[39m
+          [0mCreate New Role[0m
+        [36m&lt;/h1&gt;[39m
+        [36m&lt;p[39m
+          [33mstyle[39m=[32m&quot;font-size: 1rem; color: rgb(154, 154, 154);&quot;[39m
+        [36m&gt;[39m
+          [0mBuild a custom role by composing abilities and win conditions[0m
+        [36m&lt;/p&gt;[39m
+      [36m&lt;/header&gt;[39m
+      [36m&lt;div[39m
+        [33mrole[39m=[32m&quot;alert&quot;[39m
+        [33mstyle[39m=[32m&quot;background-color: rgba(198, 40, 40, 0.125); border: 1px solid rgb(198, 40, 40); border-radius: 8px; padding: 24px; color: rgb(198, 40, 40); text-align: center; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;&quot;[39m
+      [36m&gt;[39m
+        [36m&lt;div&gt;[39m
+          [36m&lt;span&gt;[39m
+            [0mError creating role: Storage error[0m
+          [36m&lt;/span&gt;[39m
+        [36m&lt;/div&gt;[39m
+      [36m&lt;/div&gt;[39m
+      [36m&lt;div[39m
+        [33mstyle[39m=[32m&quot;width: 100%;&quot;[39m
+      [36m&gt;[39m
+        [36m&lt;div[39m
+          [33mstyle[39m=[32m&quot;display: flex; gap: 8px; margin-bottom: 32px; border-bottom: 1px solid rgb(74, 74, 74); padding-bottom: 16px;&quot;[39m
+        [36m&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;[39m
+          [36m&gt;[39m
+            [0mBasic Info[0m
+          [36m&lt;/button&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;[39m
+          [36m&gt;[39m
+            [0mAbilities[0m
+          [36m&lt;/button&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;[39m
+          [36m&gt;[39m
+            [0mWin Conditions[0m
+          [36m&lt;/button&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; color: rgb(224, 224, 224); background-color: rgb(37, 37, 37); font-size: 0.9rem; border-bottom: 2px solid rgb(165, 42, 42);&quot;[39m
+          [36m&gt;[39m
+            [0mReview[0m
+          [36m&lt;/button&gt;[39m
+        [36m&lt;/div&gt;[39m
+        [36m&lt;div&gt;[39m
+          [36m&lt;div&gt;[39m
+            [36m&lt;div[39m
+              [33mstyle[39m=[32m&quot;margin-bottom: 32px;&quot;[39m
+            [36m&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;[39m
+              [36m&gt;[39m
+                [0mRole Summary[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;font-size: 1.5rem; font-weight: 700; color: rgb(224, 224, 224); margin-bottom: 4px;&quot;[39m
+              [36m&gt;[39m
+                [0mTest Role[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: rgba(74, 124, 89, 0.19); color: rgb(74, 124, 89); font-size: 0.8rem; font-weight: 600; text-transform: capitalize; margin-bottom: 8px;&quot;[39m
+              [36m&gt;[39m
+                [0mvillage[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;display: flex; gap: 32px; color: rgb(154, 154, 154); font-size: 0.9rem; margin-bottom: 16px;&quot;[39m
+              [36m&gt;[39m
+                [36m&lt;span&gt;[39m
+                  [0mWake Order: [0m
+                  [0m0[0m
+                [36m&lt;/span&gt;[39m
+                [36m&lt;span&gt;[39m
+                  [0mVotes: [0m
+                  [0m1[0m
+                [36m&lt;/span&gt;[39m
+              [36m&lt;/div&gt;[39m
+            [36m&lt;/div&gt;[39m
+            [36m&lt;div[39m
+              [33mstyle[39m=[32m&quot;margin-bottom: 32px;&quot;[39m
+            [36m&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;[39m
+              [36m&gt;[39m
+                [0mAbility Steps ([0m
+                [0m0[0m
+                [0m)[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;p[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.9rem;&quot;[39m
+              [36m&gt;[39m
+                [0mNo ability steps configured[0m
+              [36m&lt;/p&gt;[39m
+            [36m&lt;/div&gt;[39m
+            [36m&lt;div[39m
+              [33mstyle[39m=[32m&quot;margin-bottom: 32px;&quot;[39m
+            [36m&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;[39m
+              [36m&gt;[39m
+                [0mWin Conditions ([0m
+                [0m0[0m
+                [0m)[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;p[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.9rem;&quot;[39m
+              [36m&gt;[39m
+                [0mNo win conditions configured[0m
+              [36m&lt;/p&gt;[39m
+            [36m&lt;/div&gt;[39m
+            [36m&lt;div[39m
+              [33mstyle[39m=[32m&quot;margin-bottom: 32px;&quot;[39m
+            [36m&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;[39m
+              [36m&gt;[39m
+                [0mValidation[0m
+              [36m&lt;/div&gt;[39m
+              [36m&lt;div[39m
+                [33mstyle[39m=[32m&quot;padding: 16px; border-radius: 8px; background-color: rgb(37, 37, 37);&quot;[39m
+              [36m&gt;[39m
+                [36m&lt;p[39m
+                  [33mstyle[39m=[32m&quot;color: rgb(46, 125, 50); font-weight: 600; font-size: 0.9rem;&quot;[39m
+                [36m&gt;[39m
+                  [0m✓ Valid — ready to create[0m
+                [36m&lt;/p&gt;[39m
+              [36m&lt;/div&gt;[39m
+            [36m&lt;/div&gt;[39m
+          [36m&lt;/div&gt;[39m
+        [36m&lt;/div&gt;[39m
+        [36m&lt;div[39m
+          [33mdata-testid[39m=[32m&quot;narrator-preview&quot;[39m
+          [33mstyle[39m=[32m&quot;background-color: rgb(26, 26, 26); border-left: 3px solid rgb(165, 42, 42); border-radius: 8px; padding: 16px; margin-top: 24px;&quot;[39m
+        [36m&gt;[39m
+          [36m&lt;div[39m
+            [33mstyle[39m=[32m&quot;font-size: 0.85rem; font-weight: 600; color: rgb(154, 154, 154); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;&quot;[39m
+          [36m&gt;[39m
+            [0mNarrator Preview[0m
+          [36m&lt;/div&gt;[39m
+          [36m&lt;p[39m
+            [33mstyle[39m=[32m&quot;color: rgb(154, 154, 154); font-size: 0.9rem; font-style: italic;&quot;[39m
+          [36m&gt;[39m
+            [0mThis role does not wake up — no narrator instructions.[0m
+          [36m&lt;/p&gt;[39m
+        [36m&lt;/div&gt;[39m
+        [36m&lt;div[39m
+          [33mstyle[39m=[32m&quot;display: flex; justify-content: space-between; margin-top: 32px; padding-top: 16px; border-top: 1px solid rgb(74, 74, 74);&quot;[39m
+        [36m&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background-color: transparent; color: rgb(224, 224, 224); opacity: 1; border: 1px solid rgb(154, 154, 154);&quot;[39m
+          [36m&gt;[39m
+            [0mBack[0m
+          [36m&lt;/button&gt;[39m
+          [36m&lt;button[39m
+            [33mstyle[39m=[32m&quot;padding: 8px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background-color: rgb(139, 0, 0); color: rgb(224, 224, 224); opacity: 1;&quot;[39m
+          [36m&gt;[39m
+            [0mCreate Role[0m
+          [36m&lt;/button&gt;[39m
+        [36m&lt;/div&gt;[39m
+      [36m&lt;/div&gt;[39m
+    [36m&lt;/div&gt;[39m
+  [36m&lt;/div&gt;[39m
+[36m&lt;/body&gt;[39m" type="TestingLibraryElementError">
+TestingLibraryElementError: Unable to find a label with the text of: /name/i
+
+Ignored nodes: comments, script, style
+&lt;body&gt;
+  &lt;div&gt;
+    &lt;div
+      style=&quot;width: 100%;&quot;
+    &gt;
+      &lt;header
+        style=&quot;margin-bottom: 24px;&quot;
+      &gt;
+        &lt;h1
+          style=&quot;font-size: 2rem; font-weight: 700; color: rgb(224, 224, 224); margin-bottom: 4px;&quot;
+        &gt;
+          Create New Role
+        &lt;/h1&gt;
+        &lt;p
+          style=&quot;font-size: 1rem; color: rgb(154, 154, 154);&quot;
+        &gt;
+          Build a custom role by composing abilities and win conditions
+        &lt;/p&gt;
+      &lt;/header&gt;
+      &lt;div
+        role=&quot;alert&quot;
+        style=&quot;background-color: rgba(198, 40, 40, 0.125); border: 1px solid rgb(198, 40, 40); border-radius: 8px; padding: 24px; color: rgb(198, 40, 40); text-align: center; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;&quot;
+      &gt;
+        &lt;div&gt;
+          &lt;span&gt;
+            Error creating role: Storage error
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div
+        style=&quot;width: 100%;&quot;
+      &gt;
+        &lt;div
+          style=&quot;display: flex; gap: 8px; margin-bottom: 32px; border-bottom: 1px solid rgb(74, 74, 74); padding-bottom: 16px;&quot;
+        &gt;
+          &lt;button
+            style=&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;
+          &gt;
+            Basic Info
+          &lt;/button&gt;
+          &lt;button
+            style=&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;
+          &gt;
+            Abilities
+          &lt;/button&gt;
+          &lt;button
+            style=&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 400; color: rgb(165, 42, 42); background-color: transparent; font-size: 0.9rem; border-bottom: 2px solid transparent;&quot;
+          &gt;
+            Win Conditions
+          &lt;/button&gt;
+          &lt;button
+            style=&quot;padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 700; color: rgb(224, 224, 224); background-color: rgb(37, 37, 37); font-size: 0.9rem; border-bottom: 2px solid rgb(165, 42, 42);&quot;
+          &gt;
+            Review
+          &lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;div&gt;
+            &lt;div
+              style=&quot;margin-bottom: 32px;&quot;
+            &gt;
+              &lt;div
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;
+              &gt;
+                Role Summary
+              &lt;/div&gt;
+              &lt;div
+                style=&quot;font-size: 1.5rem; font-weight: 700; color: rgb(224, 224, 224); margin-bottom: 4px;&quot;
+              &gt;
+                Test Role
+              &lt;/div&gt;
+              &lt;div
+                style=&quot;display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: rgba(74, 124, 89, 0.19); color: rgb(74, 124, 89); font-size: 0.8rem; font-weight: 600; text-transform: capitalize; margin-bottom: 8px;&quot;
+              &gt;
+                village
+              &lt;/div&gt;
+              &lt;div
+                style=&quot;display: flex; gap: 32px; color: rgb(154, 154, 154); font-size: 0.9rem; margin-bottom: 16px;&quot;
+              &gt;
+                &lt;span&gt;
+                  Wake Order: 
+                  0
+                &lt;/span&gt;
+                &lt;span&gt;
+                  Votes: 
+                  1
+                &lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div
+              style=&quot;margin-bottom: 32px;&quot;
+            &gt;
+              &lt;div
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;
+              &gt;
+                Ability Steps (
+                0
+                )
+              &lt;/div&gt;
+              &lt;p
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.9rem;&quot;
+              &gt;
+                No ability steps configured
+              &lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div
+              style=&quot;margin-bottom: 32px;&quot;
+            &gt;
+              &lt;div
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;
+              &gt;
+                Win Conditions (
+                0
+                )
+              &lt;/div&gt;
+              &lt;p
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.9rem;&quot;
+              &gt;
+                No win conditions configured
+              &lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div
+              style=&quot;margin-bottom: 32px;&quot;
+            &gt;
+              &lt;div
+                style=&quot;color: rgb(154, 154, 154); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;&quot;
+              &gt;
+                Validation
+              &lt;/div&gt;
+              &lt;div
+                style=&quot;padding: 16px; border-radius: 8px; background-color: rgb(37, 37, 37);&quot;
+              &gt;
+                &lt;p
+                  style=&quot;color: rgb(46, 125, 50); font-weight: 600; font-size: 0.9rem;&quot;
+                &gt;
+                  ✓ Valid — ready to create
+                &lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div
+          data-testid=&quot;narrator-preview&quot;
+          style=&quot;background-color: rgb(26, 26, 26); border-left: 3px solid rgb(165, 42, 42); border-radius: 8px; padding: 16px; margin-top: 24px;&quot;
+        &gt;
+          &lt;div
+            style=&quot;font-size: 0.85rem; font-weight: 600; color: rgb(154, 154, 154); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;&quot;
+          &gt;
+            Narrator Preview
+          &lt;/div&gt;
+          &lt;p
+            style=&quot;color: rgb(154, 154, 154); font-size: 0.9rem; font-style: italic;&quot;
+          &gt;
+            This role does not wake up — no narrator instructions.
+          &lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div
+          style=&quot;display: flex; justify-content: space-between; margin-top: 32px; padding-top: 16px; border-top: 1px solid rgb(74, 74, 74);&quot;
+        &gt;
+          &lt;button
+            style=&quot;padding: 8px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background-color: transparent; color: rgb(224, 224, 224); opacity: 1; border: 1px solid rgb(154, 154, 154);&quot;
+          &gt;
+            Back
+          &lt;/button&gt;
+          &lt;button
+            style=&quot;padding: 8px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; background-color: rgb(139, 0, 0); color: rgb(224, 224, 224); opacity: 1;&quot;
+          &gt;
+            Create Role
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText node_modules/@testing-library/dom/dist/queries/label-text.js:111:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/test/pages/RoleBuilder.test.tsx:143:21
+            </failure>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; blocks local and server writes for a case-insensitive local name collision" time="0.008435">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; sets fallback validation when validate call fails" time="0.027441042">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; surfaces the server field message when validate rejects with a 422" time="0.03004775">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders the engine preview after debounce while validation remains server-backed" time="0.012965416">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders only the newest draft after rapid edits within one debounce window" time="0.014302334">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; keeps the newest validation when an older validation resolves late" time="0.036294375">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders an empty preview for a non-waking draft without a preview error state" time="0.009182292">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useNameCheck.test.ts" timestamp="2026-09-16T18:50:37.357Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.01936425">
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for an empty name and does not call the API" time="0.008116458">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a whitespace-only name and does not call the API" time="0.000771083">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a single-character name and does not call the API" time="0.00058875">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; reports checking immediately without calling the API" time="0.001325834">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; calls the API once 500ms have elapsed" time="0.001988209">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; trims the name before sending it to the API" time="0.000869583">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; only issues one request when the name changes rapidly" time="0.001024916">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports available when the name is free" time="0.000981208">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports taken when the name is in use" time="0.000695333">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; falls back to idle when the request fails" time="0.001171125">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; stale-response handling &gt; ignores a resolved response once the name has moved on" time="0.001040667">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/Wizard.test.tsx" timestamp="2026-09-16T18:50:37.358Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.422123958">
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows Basic Info step first" time="0.041768417">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows step indicator with all 4 steps" time="0.03173825">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; Back button is disabled on step 1" time="0.016756458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is empty" time="0.01397">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is only whitespace" time="0.012632334">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is enabled when name has at least 2 chars" time="0.019380584">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; advances to Abilities step on Next" time="0.024312042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; navigates through all 4 steps" time="0.028384375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; Back navigation returns to previous step" time="0.026468625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; shows Create Role button on review step instead of Next" time="0.031530292">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking Create Role calls onSave" time="0.026313459">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking step indicator navigates to that step (for completed steps)" time="0.026358542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; saving state &gt; Create Role button is disabled while saving" time="0.026710208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is invalid" time="0.027592667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is null" time="0.026196417">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Basic Info tab" time="0.004902291">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Abilities tab" time="0.014742208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on all 4 tabs when navigated" time="0.02130925">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
-import {abilitiesApi} from '../api/abilities';
-import {Ability} from '../types/transport';
+import {useRepositories} from '../context/repository_context';
+import type {Ability} from '../types/transport';
 import {useFetch} from './useFetch';
 
 interface UseAbilitiesResult {
@@ -10,7 +10,13 @@ interface UseAbilitiesResult {
 }
 
 export function useAbilities(): UseAbilitiesResult {
-  const fetcher = useCallback(() => abilitiesApi.list(), []);
+  const {repositories} = useRepositories();
+  const fetcher = useCallback(async (): Promise<Ability[]> => {
+    if (repositories === null) {
+      throw new Error('Repositories are unavailable');
+    }
+    return repositories.abilities.list();
+  }, [repositories]);
   const {data, loading, error} = useFetch(fetcher, {
     initialData: [],
     errorMessage: 'Failed to fetch abilities',

@@ -59,13 +59,21 @@ docker compose down
 
 **Symptom**: All roles and game sessions are missing after restarting.
 
-**Cause**: You ran `docker compose down -v`, which deletes the PostgreSQL data volume.
+**Cause**: You ran `docker compose down -v`, which deletes the PostgreSQL data volume. This command does not clear frontend IndexedDB data for `http://localhost:3000`.
 
-**Fix**: Re-run `docker compose up`. The seed script re-populates the 30 base roles and 15 abilities automatically. Custom roles and game sessions created during development are lost.
+**Fix**: Re-run `docker compose up`. The backend seed script re-populates the 30 base roles and 15 abilities. Check the browser's `yourwolf-local` IndexedDB database separately for local custom roles and game snapshots.
 
 ---
 
 ## Frontend
+
+### The catalog never leaves the loading state or shows a database error
+
+**Symptom**: The navigation renders, but routes stay behind the catalog loading gate or an IndexedDB error appears.
+
+**Cause**: The browser blocked or failed to open the `yourwolf-local` IndexedDB database. A failed seed transaction leaves the seed version unapplied so the next launch can retry.
+
+**Fix**: Confirm that the browser permits site storage for the current origin, then reload. For a clean development reset, clear site data for that exact origin. Development and packaged Tauri origins use separate stores.
 
 ### Frontend shows stale code after changes
 
@@ -248,7 +256,7 @@ vi.mock('../../api/roles');
 const mockList = rolesApi.list as ReturnType<typeof vi.fn>;
 ```
 
-Game creation and phase transitions use the TypeScript engine and `src/storage/game_session_storage.ts`. Tests for those paths mock `sessionStorage` or the storage module, not an API client.
+Game creation and phase transitions use the TypeScript engine and the provider-backed `GameRepository` in `src/data/indexeddb.ts`. Tests for those paths mock repository reads and writes, not an API client.
 
 ---
 

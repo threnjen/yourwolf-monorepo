@@ -18,14 +18,21 @@ const DEBOUNCE_MS = 500;
  * than whichever request happened to finish last. A failed request degrades to
  * `idle` — name availability is advisory, and the server validates on save.
  */
-export function useNameCheck(name: string): NameStatus {
+export function useNameCheck(name: string, enabled = true): NameStatus {
   const [status, setStatus] = useState<NameStatus>('idle');
   const requestIdRef = useRef(0);
 
   const trimmedName = name.trim();
 
   useEffect(() => {
+    if (!enabled) {
+      requestIdRef.current += 1;
+      setStatus('idle');
+      return;
+    }
+
     if (trimmedName.length < MIN_CHECKABLE_LENGTH) {
+      requestIdRef.current += 1;
       setStatus('idle');
       return;
     }
@@ -49,7 +56,7 @@ export function useNameCheck(name: string): NameStatus {
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [trimmedName]);
+  }, [enabled, trimmedName]);
 
   return status;
 }

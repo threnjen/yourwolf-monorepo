@@ -200,5 +200,58 @@ describe('useNameCheck', () => {
 
       expect(result.current).toBe('taken');
     });
+
+    it('ignores a pending response after the name becomes too short to check', async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      mockRolesApi.checkName.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveFirst = resolve;
+        }),
+      );
+
+      const {result, rerender} = renderHook(({name}: {name: string}) => useNameCheck(name), {
+        initialProps: {name: 'Seer'},
+      });
+
+      await act(async () => {
+        vi.advanceTimersByTime(500);
+      });
+
+      rerender({name: 'a'});
+      expect(result.current).toBe('idle');
+
+      await act(async () => {
+        resolveFirst({name: 'Seer', is_available: true, message: 'Available'});
+      });
+
+      expect(result.current).toBe('idle');
+    });
+
+    it('ignores a pending response after name checking is disabled', async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      mockRolesApi.checkName.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveFirst = resolve;
+        }),
+      );
+
+      const {result, rerender} = renderHook(
+        ({name, enabled}: {name: string; enabled: boolean}) => useNameCheck(name, enabled),
+        {initialProps: {name: 'Seer', enabled: true}},
+      );
+
+      await act(async () => {
+        vi.advanceTimersByTime(500);
+      });
+
+      rerender({name: 'Seer', enabled: false});
+      expect(result.current).toBe('idle');
+
+      await act(async () => {
+        resolveFirst({name: 'Seer', is_available: true, message: 'Available'});
+      });
+
+      expect(result.current).toBe('idle');
+    });
   });
 });

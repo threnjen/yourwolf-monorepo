@@ -17,10 +17,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import {rolesApi} from '../api/roles';
 import {adaptDependenciesToEngine, adaptRoleToEngine} from '../adapters/role_adapters';
+import {useRepositories} from '../context/repository_context';
 import {createGameSession} from '../engine/gameSession';
-import {saveGameSnapshot} from '../storage/game_session_storage';
 import {theme, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
@@ -66,6 +65,7 @@ function SortableTile({role, disabled}: {role: WakingRole; disabled?: boolean}) 
 export function WakeOrderResolutionPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const {repositories} = useRepositories();
   const state = isWakeOrderRouterState(location.state) ? location.state : null;
 
   const [error, setError] = useState<string | null>(null);
@@ -122,19 +122,19 @@ export function WakeOrderResolutionPage() {
     const flatSequence = flattenWakeOrder(sortedGroupKeys, groupOrders);
 
     try {
+      if (repositories === null) {
+        throw new Error('Repositories are unavailable');
+      }
       const distinctRoleIds = [...new Set(selectedRoleIds)];
-      const details = await Promise.all(
-        distinctRoleIds.map((roleId) => rolesApi.getById(roleId)),
-      );
-      const roles = distinctRoleIds.map((roleId, index) => {
-        const listItem = state.roles.find((role) => role.id === roleId);
-        if (!listItem) {
-          throw new Error(`Role not found: ${roleId}`);
+      const details = await Promise.all(distinctRoleIds.map((roleId) => repositories.roles.get(roleId)));
+      const roles = details.map((role, index) => {
+        if (role === null) {
+          throw new Error(`Role not found: ${distinctRoleIds[index]}`);
         }
-        return adaptRoleToEngine(listItem, details[index]);
+        return adaptRoleToEngine(role, role);
       });
-      const dependencies = state.roles
-        .filter((role) => distinctRoleIds.includes(role.id))
+      const dependencies = details
+        .filter((role): role is NonNullable<typeof role> => role !== null)
         .flatMap(adaptDependenciesToEngine);
       const session = createGameSession({
         player_count: state.playerCount,
@@ -144,9 +144,9 @@ export function WakeOrderResolutionPage() {
         wake_order_sequence: flatSequence,
         roles,
         dependencies,
-        id_generator: crypto.randomUUID,
+        id_generator: () => crypto.randomUUID(),
       });
-      saveGameSnapshot({session, roles});
+      await repositories.games.put({session, roles});
       navigate(`/games/${session.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create game');

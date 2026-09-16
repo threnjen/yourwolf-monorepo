@@ -8,6 +8,7 @@
         "build": "tsc && vite build",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
+        "seed:refresh": "cp ../yourwolf-backend/app/seed/data/roles.json src/data/seed/roles.json && cp ../yourwolf-backend/app/seed/data/abilities.json src/data/seed/abilities.json",
         "test": "vitest",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage"
@@ -17,6 +18,7 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "axios": "^1.6.5",
+        "idb": "8.0.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.21.0"
@@ -34,6 +36,7 @@
         "@vitest/coverage-v8": "^2.1.9",
         "eslint": "^9.39.2",
         "eslint-plugin-react-hooks": "^5.2.0",
+        "fake-indexeddb": "6.2.4",
         "globals": "^17.3.0",
         "jsdom": "^25.0.0",
         "typescript": "^5.3.3",

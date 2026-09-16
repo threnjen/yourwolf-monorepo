@@ -1,236 +1,98 @@
 """Seed data for ability primitives."""
 
+import json
 import logging
+from pathlib import Path
+from typing import Any
+
+from sqlalchemy.orm import Session
 
 from app.models.ability import Ability
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-# 15 Ability Primitives
-ABILITIES_DATA = [
-    {
-        "type": "take_card",
-        "name": "Take Card",
-        "description": "Take another player's card and give them your card.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string",
-                    "description": "The card to take (player.other, center.main, etc.)",
-                },
-            },
-            "required": ["target"],
-        },
-    },
-    {
-        "type": "swap_card",
-        "name": "Swap Card",
-        "description": "Swap two cards with each other.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target_a": {
-                    "type": "string",
-                    "description": "First card to swap",
-                },
-                "target_b": {
-                    "type": "string",
-                    "description": "Second card to swap",
-                },
-            },
-            "required": ["target_a", "target_b"],
-        },
-    },
-    {
-        "type": "view_card",
-        "name": "View Card",
-        "description": "Look at a card without moving it.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string",
-                    "description": "The card to view",
-                },
-                "count": {
-                    "type": "integer",
-                    "description": "Number of cards to view",
-                    "default": 1,
-                },
-            },
-            "required": ["target"],
-        },
-    },
-    {
-        "type": "flip_card",
-        "name": "Flip Card",
-        "description": "Turn a card face-up so all players can see it.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string",
-                    "description": "The card to flip",
-                },
-            },
-            "required": ["target"],
-        },
-    },
-    {
-        "type": "copy_role",
-        "name": "Copy Role",
-        "description": "Change your role to match a viewed card.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "type": "view_awake",
-        "name": "View Awake",
-        "description": "See which players have their eyes open.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string",
-                    "description": "Which group to observe (team.werewolf, role.mason, etc.)",
-                },
-            },
-            "required": ["target"],
-        },
-    },
-    {
-        "type": "thumbs_up",
-        "name": "Thumbs Up",
-        "description": "Put up a thumb to signal identity to awake players.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string",
-                    "description": "Who should put thumb up",
-                },
-            },
-            "required": ["target"],
-        },
-    },
-    {
-        "type": "explicit_no_view",
-        "name": "Explicit No View",
-        "description": "The narrator emphasizes that the player does NOT view their changes.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "type": "rotate_all",
-        "name": "Rotate All",
-        "description": "Move all player cards in a direction.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "direction": {
-                    "type": "string",
-                    "enum": ["left", "right"],
-                    "description": "Direction to rotate cards",
-                },
-                "count": {
-                    "type": "integer",
-                    "description": "Number of positions to rotate",
-                    "default": 1,
-                },
-            },
-            "required": ["direction"],
-        },
-    },
-    {
-        "type": "touch",
-        "name": "Touch",
-        "description": "Physically touch another player to signal.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "who": {
-                    "type": "string",
-                    "description": "Who does the touching",
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Who gets touched",
-                },
-                "location": {
-                    "type": "string",
-                    "description": "Where the touch occurs",
-                    "default": "adjacent",
-                },
-            },
-            "required": ["who", "target"],
-        },
-    },
-    {
-        "type": "change_to_team",
-        "name": "Change to Team",
-        "description": "Change the active player's team allegiance.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "team": {
-                    "type": "string",
-                    "enum": ["village", "werewolf", "vampire", "alien", "neutral"],
-                    "description": "New team to join",
-                },
-            },
-            "required": ["team"],
-        },
-    },
-    {
-        "type": "perform_as",
-        "name": "Perform As",
-        "description": "Perform abilities as your current role at normal wake time.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "type": "perform_immediately",
-        "name": "Perform Immediately",
-        "description": "Perform copied role's abilities immediately.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "type": "stop",
-        "name": "Stop",
-        "description": "Stop executing further ability steps.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "type": "random_num_players",
-        "name": "Random Number of Players",
-        "description": "Select a random number of players from given options.",
-        "parameters_schema": {
-            "type": "object",
-            "properties": {
-                "options": {
-                    "type": "array",
-                    "items": {"type": "integer"},
-                    "description": "Possible values to choose from",
-                },
-            },
-            "required": ["options"],
-        },
-    },
-]
+DATA_FILE = Path(__file__).parent / "data" / "abilities.json"
+AbilityData = dict[str, Any]
+REQUIRED_ABILITY_KEYS = ("type", "name", "description", "parameters_schema")
+
+
+class SeedDataError(RuntimeError):
+    """Raised when a seed data file is missing, malformed, or inconsistent."""
+
+
+def _read_ability_data_file(path: Path) -> Any:
+    """Read and parse an ability seed data file.
+
+    Args:
+        path: Path to the JSON data file.
+
+    Returns:
+        The parsed JSON payload.
+
+    Raises:
+        SeedDataError: If the file is missing, unreadable, or invalid JSON.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SeedDataError(f"Seed data file not found: {path}") from exc
+    except (OSError, UnicodeError) as exc:
+        raise SeedDataError(f"Seed data file could not be read: {path}") from exc
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SeedDataError(f"Seed data file is not valid JSON: {path}: {exc}") from exc
+
+
+def load_ability_seed_data(path: Path = DATA_FILE) -> list[AbilityData]:
+    """Load and validate the canonical ability seed data.
+
+    Args:
+        path: Path to the JSON data file. Defaults to the packaged file.
+
+    Returns:
+        Validated ability records in file order.
+
+    Raises:
+        SeedDataError: If the data file is missing, malformed, or inconsistent.
+    """
+    payload = _read_ability_data_file(path)
+    if not isinstance(payload, list):
+        raise SeedDataError(f"Seed data file must contain a JSON list: {path}")
+
+    abilities: list[AbilityData] = []
+    for index, entry in enumerate(payload):
+        if not isinstance(entry, dict):
+            raise SeedDataError(
+                f"Seed ability entries contain a non-object: {path} "
+                f"(index {index})",
+            )
+
+        missing = [key for key in REQUIRED_ABILITY_KEYS if key not in entry]
+        if missing:
+            raise SeedDataError(
+                f"Ability at index {index} is missing required field(s): "
+                f"{', '.join(missing)}",
+            )
+
+        for key in ("type", "name", "description"):
+            if not isinstance(entry[key], str) or not entry[key]:
+                raise SeedDataError(
+                    f"Ability at index {index} has invalid {key!r} field",
+                )
+        if not isinstance(entry["parameters_schema"], dict):
+            raise SeedDataError(
+                f"Ability at index {index} has invalid 'parameters_schema' field",
+            )
+
+        abilities.append(dict(entry))
+
+    return abilities
+
+
+# Public compatibility surface retained for role validation and seed callers.
+ABILITIES_DATA = load_ability_seed_data()
 
 
 def seed_abilities(db: Session) -> int:

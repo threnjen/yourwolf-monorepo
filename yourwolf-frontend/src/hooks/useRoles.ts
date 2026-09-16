@@ -1,6 +1,6 @@
 import {useCallback, useMemo} from 'react';
-import {rolesApi} from '../api/roles';
-import {RoleListItem} from '../types/transport';
+import {useRepositories} from '../context/repository_context';
+import type {RoleListItem} from '../types/transport';
 import {useFetch} from './useFetch';
 
 interface UseRolesResult {
@@ -11,16 +11,23 @@ interface UseRolesResult {
 }
 
 export function useRoles(visibility?: string[]): UseRolesResult {
+  const {repositories} = useRepositories();
   const visibilityKey = useMemo(
     () => (visibility === undefined ? '__undefined__' : [...visibility].sort().join(',')),
     [visibility],
   );
 
-  const fetcher = useCallback(
-    () => rolesApi.list({visibility, limit: 100}),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- visibilityKey is a stable serialization of the visibility array; using the array directly causes infinite re-renders
-    [visibilityKey],
-  );
+  const fetcher = useCallback(async (): Promise<RoleListItem[]> => {
+    if (repositories === null) {
+      throw new Error('Repositories are unavailable');
+    }
+    const roles = await repositories.roles.list();
+    if (visibilityKey === '__undefined__' || visibilityKey === '') {
+      return roles;
+    }
+    const allowedVisibility = new Set(visibilityKey.split(','));
+    return roles.filter((role) => allowedVisibility.has(role.visibility));
+  }, [repositories, visibilityKey]);
 
   const {data, loading, error, refetch} = useFetch(fetcher, {
     initialData: [],

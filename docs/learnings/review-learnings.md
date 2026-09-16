@@ -307,3 +307,16 @@ Durable, reusable review rules distilled from past feature reviews. No dates, no
 ## Manual acceptance steps must follow runtime defaults and controls
 
 **A manual checklist is executable only when its scenario reaches the asserted state using the shipped defaults.** The signal is a step that combines named seed roles without totaling their default card counts, expects a warning before the session is created, or names a button that belongs to a later route. Reproduce the flow from the actual page controls and seeded data, then state the route, exact action, visible result, and relevant network path. Keep every row pending until a human or browser-capable runner records the observation.
+
+## File-loader shape checks need one test per validated field family
+
+**A single malformed-field test does not defend a validator loop.** The signal is a loader that validates several fields in one branch but a test that mutates only one field, leaving the other checks removable without a failing test.
+
+## Deterministic nested IDs need collision probes
+
+**A deterministic ID function does not reject source records that collapse to one key.** The signal is an ID derived from normalized names or a parent pair while the converter only checks top-level uniqueness, allowing duplicate nested records to overwrite or coexist ambiguously.
+
+## Async resource seams need failure-path and endpoint-exception probes
+
+- **Start the cleanup boundary before the first awaited resource factory.** Signal: `const resource = await create...` appears outside the `try` that closes and deletes the resource on bootstrap failure.
+- **Put retained endpoint exceptions ahead of generic path guards.** Signal: a `/resource/{id}` matcher also matches a named validation or availability endpoint that still needs to call the server.

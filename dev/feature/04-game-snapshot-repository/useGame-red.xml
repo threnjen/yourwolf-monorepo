@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="8" failures="1" errors="0" time="0.981">
+    <testsuite name="src/test/hooks/useGame.test.ts" timestamp="2026-09-16T18:05:34.978Z" hostname="Jennys-MacBook-Air.local" tests="8" failures="1" errors="0" skipped="0" time="0.247496667">
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; starts loading and returns the stored session" time="0.062365125">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; returns an absent game without an error" time="0.053692042">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; refetches a changed snapshot" time="0.055953458">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; reads the game snapshot from the repository provider" time="0.06444225">
+            <failure message="expected null to deeply equal { id: &apos;provider-game&apos;, …(8) }" type="AssertionError">
+AssertionError: expected null to deeply equal { id: &apos;provider-game&apos;, …(8) }
+
+- Expected: 
+Object {
+  &quot;center_card_count&quot;: 1,
+  &quot;current_wake_order&quot;: null,
+  &quot;discussion_timer_seconds&quot;: 300,
+  &quot;id&quot;: &quot;provider-game&quot;,
+  &quot;phase&quot;: &quot;setup&quot;,
+  &quot;player_count&quot;: 3,
+  &quot;role_ids&quot;: Array [
+    &quot;role-1&quot;,
+    &quot;role-1&quot;,
+    &quot;role-1&quot;,
+    &quot;role-1&quot;,
+  ],
+  &quot;wake_order_sequence&quot;: Array [
+    &quot;role-1&quot;,
+  ],
+  &quot;warnings&quot;: Array [],
+}
+
++ Received: 
+null
+
+ ❯ src/test/hooks/useGame.test.ts:66:33
+            </failure>
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; builds a script from the stored roles and wake sequence" time="0.003061125">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; rebuilds the same ordered script from the stored custom sequence" time="0.004527583">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; does not read a script when disabled" time="0.000659083">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; returns no script when the snapshot is missing" time="0.002049375">
+        </testcase>
+    </testsuite>
+</testsuites>
