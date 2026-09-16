@@ -165,3 +165,8 @@ Decisions made during one feature that constrain or inform later phases. Append-
 ## Phase 05a QA Handoff
 
 - **Packaged-origin separation requires the packaged Tauri runtime.** The signal is a local-storage QA step that compares `http://localhost:3000` with the production webview origin. `Must-do in Phase 06`: execute Phase 05a QA row 7.2 after packaging exists; keep it deferred rather than blocking the Phase 05a browser checklist.
+
+## Phase 05b Refinement
+
+- **The frontend role validator diverges from the backend in exactly two messages.** The signal is a parity check between `src/domain/` validation and `app/services/role_validation.py`. A trimmed name over 50 characters is a frontend-only error, because the backend rejects it at the pydantic schema and has no rule message. The local duplicate-name error reads "Name is already taken", because the backend message names public and official roles and the local check compares against every local role. `Must-do before Phase 09`: sync treats both as client-side rules, not as parity claims, and the server remains the authority for public and official uniqueness.
+- **The name step component no longer calls the name check hook itself.** The signal is a render of `BasicInfoStep` without a `nameStatus` prop. The page owns the status, because the local check needs the role list and a second fetch inside the step would duplicate it.
