@@ -44,8 +44,8 @@ export default tseslint.config(
     },
   },
   {
-    // Import boundary: src/domain (and the future src/engine) is a pure TypeScript
-    // layer. It must not reach up into React or any UI/transport layer.
+    // Import boundary: src/domain, src/engine, and src/data are pure TypeScript
+    // layers. They must not reach up into React or any UI/transport layer.
     //
     // Transport DTOs leaked into the domain before the transport/domain type split
     // because `types` was simply absent from the restricted groups below, not
@@ -53,7 +53,11 @@ export default tseslint.config(
     // rules report `import type` against a path pattern. The typescript-eslint
     // variant is used here for the `allowTypeImports` option (left at its default
     // of false), which the base rule does not offer.
-    files: ['src/domain/**/*.{ts,tsx}', 'src/engine/**/*.{ts,tsx}'],
+    files: [
+      'src/domain/**/*.{ts,tsx}',
+      'src/engine/**/*.{ts,tsx}',
+      'src/data/**/*.{ts,tsx}',
+    ],
     rules: {
       'no-restricted-imports': 'off',
       '@typescript-eslint/no-restricted-imports': [
@@ -63,17 +67,17 @@ export default tseslint.config(
             {
               group: ['react', 'react/**', 'react-dom', 'react-dom/**'],
               message:
-                'src/domain and src/engine must stay pure TypeScript — no React imports.',
+                'src/domain, src/engine, and src/data must stay pure TypeScript — no React imports.',
             },
             {
               group: layerPatterns(UI_LAYERS),
               message:
-                'src/domain and src/engine must not import from api, hooks, components, pages, or styles. Dependencies point inward.',
+                'src/domain, src/engine, and src/data must not import from api, hooks, components, pages, or styles. Dependencies point inward.',
             },
             {
-              group: layerPatterns(TRANSPORT_LAYERS),
+              group: [...layerPatterns(TRANSPORT_LAYERS), '@/types', '@/types/**'],
               message:
-                'src/domain and src/engine must not import transport DTOs from src/types — the domain owns its own shapes. Declare the shape the rule needs in src/domain instead; transport types may depend on domain types, never the reverse.',
+                'src/domain, src/engine, and src/data must not import transport DTOs from src/types — declare the shape each pure layer needs locally; transport types may depend on pure-layer types, never the reverse.',
             },
           ],
         },
