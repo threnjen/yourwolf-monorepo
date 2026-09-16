@@ -28,7 +28,7 @@ The project is a monorepo:
 ┌─────────────────────────────────────────────────────────┐
 │              Tauri Dev (Offline App)                     │
 ├─────────────────────────────────────────────────────────┤
-│   Vite Frontend + TypeScript Game Engine + SQLite       │
+│   Vite Frontend + TypeScript Game Engine + IndexedDB    │
 │   Port: 3000 (dev) / native window (Tauri)              │
 └─────────────────────────────────────────────────────────┘
 
@@ -131,20 +131,20 @@ gantt
 | Component | Deliverables |
 |-----------|--------------|
 | 04a Engine | Complete: verified night scripts, narrator previews, deterministic wake order, setup validation, and immutable phase state under `src/engine/` |
-| 04b Integration | Planned: replace backend API calls with local engine adapters and settle refresh behavior |
+| 04b Integration | Complete: local engine adapters drive game flow and IndexedDB preserves in-progress sessions |
 
 **Milestone**: After 04b, a full game runs in the browser with no backend server.
 
 ---
 
-### Phase 5: Local Data Layer
-**Goal**: SQLite-based local storage for offline role and game persistence.
+### Phase 5: Local Data and Authoring
+**Goal**: IndexedDB-backed role and game persistence with fully local role authoring.
 
 | Component | Deliverables |
 |-----------|--------------|
-| Storage | SQLite schema, sql.js for browser, repository pattern |
-| Data | Bundled seed data (30 roles), custom role persistence, draft migration |
-| Preferences | User settings (timer defaults, theme) in SQLite |
+| 05a Catalog and Store | Complete: repository contracts, one IndexedDB implementation, bundled seed data, custom roles, and game snapshots |
+| 05b Local Authoring | Complete: local draft validation, warnings, name checks, and zero frontend server calls |
+| 05c Backup | Planned: JSON export and import for custom roles |
 
 **Milestone**: All data persists locally; app works without any backend.
 
@@ -155,7 +155,7 @@ gantt
 
 | Component | Deliverables |
 |-----------|--------------|
-| Shell | Tauri v2 wrapping React frontend, native SQLite via plugin |
+| Shell | Tauri v2 wrapping the React frontend and its IndexedDB repository |
 | Builds | macOS (.dmg), Windows (.msi/.exe), Linux (.AppImage) best-effort |
 | CI | GitHub Actions builds on release tag |
 
@@ -183,7 +183,7 @@ gantt
 |-----------|--------------|
 | Builds | iOS (.ipa) and Android (.apk/.aab) via Tauri v2 mobile |
 | UI | Responsive layout, touch-optimized interactions |
-| Verification | TTS narration working on mobile, SQLite persistence |
+| Verification | TTS narration working on mobile, IndexedDB persistence |
 
 **Milestone**: Full game with narration runs on phone, fully offline.
 
@@ -261,12 +261,12 @@ flowchart TB
     subgraph NativeApp["Native App (Tauri v2)"]
         UI[React Frontend]
         Engine[TypeScript Game Engine]
-        SQLite[(Local SQLite)]
+        LocalStore[(Local IndexedDB)]
         TTS[TTS Narration]
     end
     
     UI --> Engine
-    Engine --> SQLite
+    Engine --> LocalStore
     UI --> TTS
     UI -->|"online + logged in"| CloudAPI
     
@@ -290,7 +290,7 @@ flowchart TB
 The app is a standalone native application. All core features (role browsing, role creation, game facilitation, narration) work with zero internet connectivity. Cloud features (auth, community, sync) are additive layers.
 
 ### 2. Dual Data Path
-SQLite handles local/offline storage. PostgreSQL via FastAPI handles cloud/online storage. The repository pattern abstracts storage behind interfaces so the app doesn't care where data comes from.
+IndexedDB handles local and offline storage in browser and Tauri webviews. PostgreSQL via FastAPI handles future cloud storage. Repository interfaces isolate the application from persistence details.
 
 ### 3. TypeScript Game Engine
 Night script generation, wake order resolution, and ability step logic run client-side in TypeScript. The Python backend is not bundled — it exists only as the cloud API for connected features.

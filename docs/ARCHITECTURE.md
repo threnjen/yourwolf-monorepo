@@ -2,17 +2,17 @@
 
 ## System Overview
 
-YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The frontend runs game sessions, catalog reads, narrator previews, and custom-role persistence locally. It still uses the backend for draft validation and name availability checks.
+YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The frontend runs game sessions, catalog reads, narrator previews, draft validation, name checks, and custom-role persistence locally. It makes no server requests. The backend remains available as the future cloud API.
 
-**Current state (Phase 05a):** `src/engine/` creates and advances games, validates setup, generates night scripts, and builds narrator previews. IndexedDB stores the bundled catalog, custom roles, and validated game snapshots across browser sessions. Phase 05a implementation is complete. Browser manual QA remains pending, and the packaged-runtime origin check belongs to Phase 06.
+**Current state (Phase 05b):** `src/engine/` creates and advances games, validates setup, generates night scripts, and builds narrator previews. `src/domain/roleValidation.ts` validates role drafts and checks local name collisions. IndexedDB stores the bundled catalog, custom roles, and validated game snapshots across browser sessions. Phase 05b implementation is complete; browser manual QA remains pending.
 
 ```mermaid
-%% Current Phase 05a runtime boundaries.
+%% Current Phase 05b runtime boundaries.
 flowchart LR
     FE[React Frontend<br>Port 3000] -->|Local game and preview calls| ENG[Game Engine<br>Pure TypeScript]
+    FE -->|Local draft validation| DOMAIN[Domain Rules<br>Pure TypeScript]
     FE -->|Read and write local data| STORE[(Browser IndexedDB Repositories)]
-    FE -->|Validation and name-check APIs| BE[FastAPI Backend<br>Port 8000]
-    BE --> DB[(PostgreSQL<br>Port 5432)]
+    BE[FastAPI Backend<br>Future cloud API<br>Port 8000] --> DB[(PostgreSQL<br>Port 5432)]
     FE -.->|Phase 06 shell| TAURI[Tauri v2]
 ```
 
@@ -26,19 +26,16 @@ flowchart LR
         Pages["Pages<br>HomePage, RolesPage, GameSetup,<br>WakeOrderResolution,<br>GameFacilitator, RoleBuilder"]
         Components["Components<br>Layout, Header, Sidebar,<br>ScriptReader, Timer, RoleCard,<br>ErrorBanner, RoleBuilder/"]
         Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useNameCheck, useFetch"]
-        API["API Clients<br>client.ts, roles.ts,<br>abilities.ts, errors.ts"]
         Adapters["Adapters<br>role_adapters.ts"]
         Storage["Data<br>repositories, records,<br>seed, IndexedDB"]
         Context["Repository Context<br>bootstrap and route gate"]
         Types["Types<br>game.ts, transport.ts,<br>routerState.ts plus guard"]
-        Domain["Domain (pure TS)<br>teams, constants, roleDraft,<br>roleSelection, abilitySteps,<br>wakeOrder"]
+        Domain["Domain (pure TS)<br>teams, constants, roleDraft,<br>roleValidation, roleSelection,<br>abilitySteps, wakeOrder"]
         Engine["Engine (pure TS)<br>types, templates, narration,<br>setup validation, game session"]
         Styles["Styles<br>theme.ts, shared.ts"]
 
         Pages --> Components
         Pages --> Hooks
-        Hooks --> API
-        Pages --> API
         Pages --> Adapters
         Pages --> Engine
         Pages --> Storage
@@ -49,7 +46,6 @@ flowchart LR
         Hooks --> Context
         Pages --> Types
         Components --> Types
-        API --> Types
         Adapters --> Engine
         Adapters --> Domain
         Storage --> Engine
@@ -85,7 +81,6 @@ flowchart LR
 
     Main["main.py<br>exception handlers"] -.->|"maps DomainError<br>to HTTP status"| Exceptions
 
-    API -->|"Axios HTTP<br>/api/v1/*"| Routers
     Models --> DB[(PostgreSQL)]
 ```
 
@@ -162,7 +157,7 @@ React Router v6 with these routes:
 
 ### Domain Layer
 
-`src/domain/` holds the game's rules as pure TypeScript — role selection and card-count math, ability-step manipulation, wake-order grouping, and draft shapes — extracted out of React components. It has no React, no API, and no transport-DTO dependencies.
+`src/domain/` holds the game's rules as pure TypeScript — role validation, local name collision checks, role selection and card-count math, ability-step manipulation, wake-order grouping, and draft shapes — extracted out of React components. It has no React, HTTP, or transport-DTO dependencies.
 
 Two reasons this layer exists:
 
@@ -178,7 +173,7 @@ Purity is enforced by ESLint, not convention — see Import Boundaries below.
 | Layer | Must not import |
 |-------|-----------------|
 | `src/data/**`, `src/domain/**`, `src/engine/**` | `react`, `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` |
-| `src/components/**` | `src/api` — data arrives through hooks |
+| `src/components/**` | `src/api` — the frontend has no HTTP layer |
 
 Dependencies point inward: transport types may depend on domain types, never the reverse. The engine imports only domain types and other engine modules. The `react-hooks` plugin is also wired, with `exhaustive-deps` promoted to `error`.
 
@@ -203,14 +198,14 @@ The narration port reproduces the Python templates and fixture-covered output. I
 ### Data Flow
 
 1. **Repository provider** bootstraps bundled seed data and exposes role, ability, game, and metadata repositories.
-2. **Resource clients** (`api/roles.ts`) send draft validation and name-check requests that remain server-backed.
+2. **Domain validation** (`domain/roleValidation.ts`) validates drafts and compares names against the local role catalog.
 3. **Adapters** (`adapters/role_adapters.ts`) convert local role records and editable drafts into engine inputs.
 4. **Engine** (`engine/`) validates setup, creates sessions, builds scripts and previews, and advances phases.
 5. **Snapshot store** (`data/indexeddb.ts`) persists the session and adapted roles together in the local IndexedDB repository.
-6. **Hooks** (`hooks/useGame.ts`) read snapshots and rebuild night scripts locally.
-7. **Pages** render the local session and write each successful start or advance before re-rendering.
+6. **Hooks** read local catalogs and snapshots, rebuild night scripts, and debounce local name checks.
+7. **Pages** render the local session and write each successful role save, game start, or phase advance before re-rendering.
 
-The role catalog uses the local repository. RoleBuilder builds its preview locally, calls `/roles/validate` and `/roles/check-name` for non-colliding drafts, and saves custom roles through the local role repository.
+The role catalog uses the local repository. RoleBuilder builds its preview and validation locally, checks name availability against the local role list, and saves custom roles through the local role repository.
 
 ### Styling
 
@@ -242,7 +237,7 @@ The active application path uses `src/engine/narration.ts`:
 3. The engine emits each waking role's wake instruction, ordered ability steps, and close-eyes instruction.
 4. The engine wraps the role actions with opening and closing narration and assigns durations.
 
-RoleBuilder calls `buildPreview()` over an adapted draft after the same one-second debounce used for server validation. The frontend never calls `/api/v1/roles/preview-script`.
+RoleBuilder calls `buildPreview()` and `validateRoleDraft()` after a one-second debounce. The name indicator performs its local collision check after 500 milliseconds. The frontend never calls the backend narration or role endpoints.
 
 The backend narration package remains the reference implementation and supports backend `/games` routes for future cloud use. Committed TypeScript fixtures cover the 30 seed roles and previews. Default wake-order ties use deterministic role-name ordering instead of Python's incidental database row order.
 
@@ -257,11 +252,11 @@ The backend narration package remains the reference implementation and supports 
 
 Backend tests use an **in-memory SQLite** database. `conftest.py` sets `DATABASE_URL` and `ENVIRONMENT` in a `pytest_configure()` hook and clears the settings cache; because settings resolve lazily, this no longer depends on running before app imports.
 
-Frontend tests use **jsdom** with `@testing-library/react` and mock Axios via `vi.mock`. `src/test/` mirrors the source tree (`api/`, `hooks/`, `domain/`, `components/`, `pages/`, `utils/`), so a test's location is derivable from the module it covers.
+Frontend tests use **jsdom** with `@testing-library/react`. Offline boundary tests replace `fetch` and `XMLHttpRequest` with throwing guards, so any attempted request fails the test. `src/test/` mirrors the source tree (`hooks/`, `domain/`, `components/`, `pages/`, `utils/`), so a test's location is derivable from the module it covers.
 
 ## Key Design Decisions
 
-- **Offline-first data**: Bundled catalog reads, custom-role persistence, and stored games use IndexedDB. Draft validation and name availability remain server-backed until Phase 05b.
+- **Offline-first application**: Bundled catalog reads, custom-role persistence, stored games, draft validation, name availability, and narrator previews all run locally. The frontend has no HTTP layer.
 - **Ability composition**: Roles are built from 15 atomic ability primitives with AND/OR/IF sequencing, not hardcoded behaviors.
 - **Purity at the engine boundary**: `app/services/narration/`, `src/domain/`, and `src/engine/` stay free of framework, ORM, and transport dependencies. Python uses dataclass-only narration inputs. TypeScript uses ESLint import boundaries.
 - **Lazy configuration**: Settings, engine, and session factory are cached accessors rather than import-time globals, so importing a module has no side effects and tests need no import-order choreography.
