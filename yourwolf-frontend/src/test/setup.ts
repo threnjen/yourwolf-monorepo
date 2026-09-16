@@ -26,7 +26,12 @@ vi.mock('axios', () => {
           rejectGamesRequest(url);
           rejectCatalogRead(url);
         }),
-        post: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
+        post: vi.fn((url: unknown) => {
+          rejectGamesRequest(url);
+          if (url === '/roles') {
+            throw new Error(`Forbidden role creation request: ${url}`);
+          }
+        }),
         put: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         patch: vi.fn((url: unknown) => { rejectGamesRequest(url); }),
         delete: vi.fn((url: unknown) => { rejectGamesRequest(url); }),

@@ -7,6 +7,7 @@ import {AbilitiesStep} from './steps/AbilitiesStep';
 import {WinConditionsStep} from './steps/WinConditionsStep';
 import {ReviewStep} from './steps/ReviewStep';
 import {NarratorPreview} from './NarratorPreview';
+import type {NameStatus} from '../../hooks/useNameCheck';
 
 type WizardStep = 'basic' | 'abilities' | 'win' | 'review';
 
@@ -25,6 +26,7 @@ interface WizardProps {
   onChange: (draft: RoleDraft) => void;
   onSave: () => void;
   saving: boolean;
+  nameStatus?: NameStatus;
 }
 
 const containerStyles: React.CSSProperties = {
@@ -98,7 +100,7 @@ function canProceedFromStep(step: WizardStep, draft: RoleDraft): boolean {
   return true;
 }
 
-export function Wizard({draft, validation, preview, previewLoading, onChange, onSave, saving}: WizardProps) {
+export function Wizard({draft, validation, preview, previewLoading, onChange, onSave, saving, nameStatus = 'available'}: WizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('basic');
 
   const currentIndex = STEPS.findIndex((s) => s.id === currentStep);
@@ -145,7 +147,7 @@ export function Wizard({draft, validation, preview, previewLoading, onChange, on
 
       <div>
         {currentStep === 'basic' && (
-          <BasicInfoStep draft={draft} onChange={onChange} />
+          <BasicInfoStep draft={draft} onChange={onChange} nameStatus={nameStatus} />
         )}
         {currentStep === 'abilities' && (
           <AbilitiesStep draft={draft} onChange={onChange} />
@@ -175,9 +177,9 @@ export function Wizard({draft, validation, preview, previewLoading, onChange, on
 
         {isLastStep ? (
           <button
-            style={getPrimaryButtonStyles(saving || !validation?.is_valid)}
+            style={getPrimaryButtonStyles(saving || !validation?.is_valid || nameStatus !== 'available')}
             onClick={onSave}
-            disabled={saving || !validation?.is_valid}
+            disabled={saving || !validation?.is_valid || nameStatus !== 'available'}
           >
             {saving ? 'Saving...' : 'Create Role'}
           </button>

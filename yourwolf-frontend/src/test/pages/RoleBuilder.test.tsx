@@ -6,6 +6,8 @@ import {rolesApi} from '../../api/roles';
 import {adaptDraftToEngine} from '../../adapters/role_adapters';
 import {buildPreview} from '../../engine/narration';
 import {createMockDraft} from '../mocks';
+import {useRoles} from '../../hooks/useRoles';
+import {useRepositories} from '../../context/repository_context';
 
 vi.mock('../../api/roles', () => ({
   rolesApi: {
@@ -26,6 +28,14 @@ vi.mock('../../hooks/useAbilities', () => ({
   useAbilities: vi.fn(() => ({abilities: [], loading: false, error: null})),
 }));
 
+vi.mock('../../hooks/useRoles', () => ({
+  useRoles: vi.fn(),
+}));
+
+vi.mock('../../context/repository_context', () => ({
+  useRepositories: vi.fn(),
+}));
+
 // Mock navigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -41,6 +51,9 @@ const mockRolesApi = rolesApi as unknown as {
   checkName: ReturnType<typeof vi.fn>;
   create: ReturnType<typeof vi.fn>;
 };
+const mockUseRoles = useRoles as ReturnType<typeof vi.fn>;
+const mockUseRepositories = useRepositories as ReturnType<typeof vi.fn>;
+const mockRolesPut = vi.fn();
 
 function renderPage() {
   return render(
@@ -67,6 +80,13 @@ describe('RoleBuilderPage', () => {
     vi.useFakeTimers();
     mockRolesApi.validate.mockResolvedValue({is_valid: true, errors: [], warnings: []});
     mockRolesApi.checkName.mockResolvedValue({name: 'Test Role', is_available: true, message: 'Available'});
+    mockUseRoles.mockReturnValue({roles: [], loading: false, error: null, refetch: vi.fn()});
+    mockRolesPut.mockResolvedValue(undefined);
+    mockUseRepositories.mockReturnValue({
+      repositories: {roles: {list: vi.fn().mockResolvedValue([]), put: mockRolesPut}},
+      loading: false,
+      error: null,
+    });
   });
 
   afterEach(() => {
@@ -95,8 +115,6 @@ describe('RoleBuilderPage', () => {
 
   describe('create role', () => {
     it('navigates to roles listing after successful create', async () => {
-      const mockRole = {id: 'new-role-id', name: 'Test', team: 'village'};
-      mockRolesApi.create.mockResolvedValue(mockRole);
       renderPage();
       await navigateToReview();
       await act(async () => {
@@ -104,10 +122,17 @@ describe('RoleBuilderPage', () => {
       });
       await act(async () => {});
       expect(mockNavigate).toHaveBeenCalledWith('/roles');
+      expect(mockRolesPut).toHaveBeenCalledWith(expect.objectContaining({
+        name: 'Test Role',
+        visibility: 'private',
+        is_locked: false,
+        dependencies: [],
+      }));
+      expect(mockRolesApi.create).not.toHaveBeenCalled();
     });
 
-    it('shows error message when create fails', async () => {
-      mockRolesApi.create.mockRejectedValue(new Error('Server error'));
+    it('shows error message when local persistence fails and keeps the draft', async () => {
+      mockRolesPut.mockRejectedValue(new Error('Storage error'));
       renderPage();
       await navigateToReview();
       await act(async () => {
@@ -115,6 +140,28 @@ describe('RoleBuilderPage', () => {
       });
       await act(async () => {});
       expect(screen.getByText(/Error creating role/i)).toBeInTheDocument();
+      expect(screen.getByText('Test Role')).toBeInTheDocument();
+      expect(mockRolesApi.create).not.toHaveBeenCalled();
+    });
+
+    it('blocks local and server writes for a case-insensitive local name collision', async () => {
+      mockUseRoles.mockReturnValue({
+        roles: [{name: 'test role'}],
+        loading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
+      renderPage();
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Test Role'}});
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
+      expect(mockRolesApi.validate).not.toHaveBeenCalled();
+      expect(screen.getByText('Taken ✗')).toBeInTheDocument();
+      expect(mockRolesPut).not.toHaveBeenCalled();
+      expect(mockRolesApi.create).not.toHaveBeenCalled();
     });
   });
 

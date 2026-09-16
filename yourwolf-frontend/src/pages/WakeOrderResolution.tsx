@@ -144,7 +144,7 @@ export function WakeOrderResolutionPage() {
         wake_order_sequence: flatSequence,
         roles,
         dependencies,
-        id_generator: crypto.randomUUID,
+        id_generator: () => crypto.randomUUID(),
       });
       await repositories.games.put({session, roles});
       navigate(`/games/${session.id}`);

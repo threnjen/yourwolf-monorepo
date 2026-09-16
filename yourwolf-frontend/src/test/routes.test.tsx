@@ -68,6 +68,7 @@ describe('AppRoutes', () => {
     expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.post('/roles/preview-script')).toThrow('Forbidden local preview request');
+    expect(() => apiClient.post('/roles')).toThrow('Forbidden role creation request');
   });
 
   it('fails immediately if a test attempts a catalog read through HTTP', () => {

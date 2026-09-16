@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ValidationResult, NarratorPreviewResponse} from '../types/transport';
+import type {ValidationResult, NarratorPreviewResponse, RoleListItem} from '../types/transport';
 import {rolesApi} from '../api/roles';
 import {extractApiErrorMessages} from '../api/errors';
 import {createEmptyDraft, RoleDraft} from '../domain/roleDraft';
@@ -9,6 +9,17 @@ import {buildPreview} from '../engine/narration';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
+import {useRepositories} from '../context/repository_context';
+import {useRoles} from '../hooks/useRoles';
+import {useNameCheck, NameStatus} from '../hooks/useNameCheck';
+import {createCustomRole} from '../data/conversion';
+
+function hasRoleNameCollision(roles: ReadonlyArray<Pick<RoleListItem, 'name'>>, name: string): boolean {
+  const normalizedName = name.trim().toLocaleLowerCase();
+  return normalizedName.length > 0 && roles.some(
+    (role) => role.name.trim().toLocaleLowerCase() === normalizedName,
+  );
+}
 
 export function RoleBuilderPage() {
   const navigate = useNavigate();
@@ -20,6 +31,13 @@ export function RoleBuilderPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const validateIdRef = useRef(0);
+  const localRolesReadyRef = useRef(false);
+  const {repositories} = useRepositories();
+  const {roles, loading: rolesLoading, error: rolesError} = useRoles();
+  const isLocalNameTaken = hasRoleNameCollision(roles, draft.name);
+  const localRolesReady = !rolesLoading && rolesError === null;
+  const serverNameStatus = useNameCheck(draft.name, localRolesReady && !isLocalNameTaken);
+  const nameStatus: NameStatus = isLocalNameTaken ? 'taken' : serverNameStatus;
 
   const handleDraftChange = useCallback((updatedDraft: RoleDraft) => {
     setDraft(updatedDraft);
@@ -34,7 +52,6 @@ export function RoleBuilderPage() {
     setPreviewLoading(true);
 
     debounceRef.current = setTimeout(async () => {
-      const validationPromise = rolesApi.validate(updatedDraft);
       const localPreview: NarratorPreviewResponse = {
         actions: buildPreview(adaptDraftToEngine(updatedDraft)),
       };
@@ -43,6 +60,16 @@ export function RoleBuilderPage() {
         setPreview(localPreview);
         setPreviewLoading(false);
       }
+
+      const localCollision = hasRoleNameCollision(roles, updatedDraft.name);
+      if (!localRolesReady || localCollision) {
+        if (requestId === validateIdRef.current && localCollision) {
+          setValidation({is_valid: false, errors: ['Name is already taken'], warnings: []});
+        }
+        return;
+      }
+
+      const validationPromise = rolesApi.validate(updatedDraft);
 
       const [validationSettled] = await Promise.allSettled([validationPromise]);
 
@@ -62,7 +89,15 @@ export function RoleBuilderPage() {
         }
       }
     }, 1000);
-  }, []);
+  }, [localRolesReady, roles]);
+
+  useEffect(() => {
+    const becameReady = !localRolesReadyRef.current && localRolesReady;
+    localRolesReadyRef.current = localRolesReady;
+    if (becameReady && draft.name.trim().length >= 2 && !isLocalNameTaken) {
+      handleDraftChange(draft);
+    }
+  }, [draft, handleDraftChange, isLocalNameTaken, localRolesReady]);
 
   // Validate initial draft on mount
   useEffect(() => {
@@ -77,14 +112,28 @@ export function RoleBuilderPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      await rolesApi.create(draft);
+      if (repositories === null) {
+        throw new Error('Repositories are unavailable');
+      }
+      if (validation?.is_valid !== true || nameStatus !== 'available') {
+        setSaving(false);
+        return;
+      }
+      const currentRoles = await repositories.roles.list();
+      if (hasRoleNameCollision(currentRoles, draft.name)) {
+        setSaveError('Name is already taken');
+        setSaving(false);
+        return;
+      }
+      const role = createCustomRole({...draft, updated_at: new Date().toISOString()});
+      await repositories.roles.put(role);
       setSaving(false);
       navigate('/roles');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to create role');
       setSaving(false);
     }
-  }, [draft, navigate]);
+  }, [draft, nameStatus, navigate, repositories, validation]);
 
   return (
     <div style={pageContainerStyles}>
@@ -105,6 +154,7 @@ export function RoleBuilderPage() {
         onChange={handleDraftChange}
         onSave={handleSave}
         saving={saving}
+        nameStatus={nameStatus}
       />
     </div>
   );
