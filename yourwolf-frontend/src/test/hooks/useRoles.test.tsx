@@ -44,10 +44,17 @@ describe('useRoles', () => {
 
   it('returns the roles matching every requested visibility', async () => {
     const roles = createMockRoles(3);
-    const {result} = renderWithRepository(async () => roles, ['official', 'private']);
+    const {result, rerender, repositories} = renderWithRepository(async () => roles, ['official', 'private']);
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.roles).toEqual(roles.filter((role) => ['official', 'private'].includes(role.visibility)));
+    expect(result.current.error).toBeNull();
+    expect(repositories.roles.list).toHaveBeenCalledWith();
+    await act(async () => {
+      rerender({value: ['official', 'private']});
+      await Promise.resolve();
+    });
+    expect(repositories.roles.list).toHaveBeenCalledTimes(1);
   });
 
   it('returns the complete unfiltered catalog without arguments', async () => {
@@ -75,17 +82,44 @@ describe('useRoles', () => {
     expect(result.current.roles).toHaveLength(3);
   });
 
+  it('sets loading during a pending refetch and clears the previous error after success', async () => {
+    const roles = createMockRoles(3);
+    let resolveSecond: ((value: RoleListItem[]) => void) | undefined;
+    const list = vi.fn()
+      .mockRejectedValueOnce(new Error('IndexedDB read failed'))
+      .mockImplementationOnce(() => new Promise<RoleListItem[]>((resolve) => {
+        resolveSecond = resolve;
+      }));
+    const {result} = renderWithRepository(list, ['official', 'private']);
+
+    await waitFor(() => expect(result.current.error).toBe('IndexedDB read failed'));
+    act(() => {
+      void result.current.refetch();
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.error).toBeNull();
+
+    await act(async () => {
+      resolveSecond?.(roles);
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.error).toBeNull();
+    expect(result.current.roles).toHaveLength(2);
+  });
+
   it('propagates Error and non-Error repository failures', async () => {
     const first = renderWithRepository(async () => {
       throw new Error('IndexedDB read failed');
     }, ['official']);
     await waitFor(() => expect(first.result.current.loading).toBe(false));
     expect(first.result.current.error).toBe('IndexedDB read failed');
+    expect(first.result.current.roles).toEqual([]);
 
     const second = renderWithRepository(async () => {
       throw 'bad read';
     }, ['official']);
     await waitFor(() => expect(second.result.current.loading).toBe(false));
     expect(second.result.current.error).toBe('Failed to fetch roles');
+    expect(second.result.current.roles).toEqual([]);
   });
 });

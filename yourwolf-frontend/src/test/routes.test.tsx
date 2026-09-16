@@ -75,6 +75,7 @@ describe('AppRoutes', () => {
     expect(() => apiClient.get('/roles/official')).toThrow('Forbidden catalog request');
     expect(() => apiClient.get('/abilities')).toThrow('Forbidden catalog request');
     expect(() => apiClient.post('/roles/validate')).not.toThrow('Forbidden catalog request');
+    expect(() => apiClient.get('/roles/check-name')).not.toThrow('Forbidden catalog request');
   });
 
   describe('home route', () => {

@@ -36,8 +36,11 @@ function renderWithState(state: unknown) {
   mockGetById.mockImplementation(async (roleId: string) => {
     const role = roles.find((candidate) => candidate.id === roleId);
     const configuredValue = configuredGet === undefined ? null : await configuredGet(roleId);
-    if (configuredValue === null || configuredValue === undefined) {
+    if (configuredValue === undefined) {
       return role === undefined ? null : toLocalRole(role);
+    }
+    if (configuredValue === null) {
+      return null;
     }
     if (role === undefined || typeof configuredValue !== 'object') {
       return configuredValue;
@@ -82,6 +85,7 @@ function makeState(roles: RoleListItem[], selectedRoleCounts?: Record<string, nu
 describe('WakeOrderResolutionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetById.mockReset();
     mockNavigate.mockClear();
     sessionStorage.clear();
     vi.stubGlobal('crypto', {randomUUID: () => 'game-local'});
@@ -463,6 +467,20 @@ describe('WakeOrderResolutionPage', () => {
         expect(screen.getByText('Network error')).toBeInTheDocument();
         expect(screen.getByText('Start Game')).not.toBeDisabled();
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(loadGameSnapshot('game-local')).toBeNull();
+    });
+
+    it('shows a missing-role error and prevents navigation when a repository read returns null', async () => {
+      mockGetById.mockResolvedValue(null);
+      const werewolf = createMockOfficialRole('Werewolf', 'werewolf', 1);
+      werewolf.max_count = 8;
+      werewolf.is_primary_team_role = true;
+      renderWithState(makeState([werewolf], {[werewolf.id]: 8}));
+
+      await userEvent.setup().click(screen.getByText('Start Game'));
+
+      await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(`Role not found: ${werewolf.id}`));
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(loadGameSnapshot('game-local')).toBeNull();
     });

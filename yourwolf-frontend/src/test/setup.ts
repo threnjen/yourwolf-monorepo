@@ -14,8 +14,9 @@ vi.mock('axios', () => {
   };
   const rejectCatalogRead = (url: unknown) => {
     if (typeof url !== 'string') return;
-    if (url === '/roles' || /^\/roles\/[^/]+$/.test(url) || url === '/abilities') {
-      throw new Error(`Forbidden catalog request: ${url}`);
+    const path = url.split('?')[0];
+    if (path === '/roles' || (path !== '/roles/check-name' && /^\/roles\/[^/]+$/.test(path)) || path === '/abilities') {
+      throw new Error(`Forbidden catalog request: ${path}`);
     }
   };
   return {

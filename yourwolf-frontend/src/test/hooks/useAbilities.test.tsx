@@ -50,11 +50,13 @@ describe('useAbilities', () => {
     });
     await waitFor(() => expect(first.result.current.loading).toBe(false));
     expect(first.result.current.error).toBe('catalog read failed');
+    expect(first.result.current.abilities).toEqual([]);
 
     const second = renderWithRepository(async () => {
       throw 'bad read';
     });
     await waitFor(() => expect(second.result.current.loading).toBe(false));
     expect(second.result.current.error).toBe('Failed to fetch abilities');
+    expect(second.result.current.abilities).toEqual([]);
   });
 });

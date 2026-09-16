@@ -15,14 +15,19 @@ export interface RepositoryTestContext {
 
 export async function createRepositoryTestContext(): Promise<RepositoryTestContext> {
   const databaseName = `yourwolf-test-${crypto.randomUUID()}`;
-  const repositories = await createIndexedDbRepositories({databaseName});
+  let openedRepositories: IndexedDbRepositories | null = null;
   try {
-    await repositories.bootstrap();
+    openedRepositories = await createIndexedDbRepositories({databaseName});
+    await openedRepositories.bootstrap();
   } catch (error) {
-    repositories.close();
+    openedRepositories?.close();
     await deleteDatabase(databaseName);
     throw error;
   }
+  if (openedRepositories === null) {
+    throw new Error('Repository initialization failed');
+  }
+  const repositories = openedRepositories;
 
   let cleaned = false;
   return {

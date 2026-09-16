@@ -32,7 +32,15 @@ export function RepositoryProvider({
   useEffect(() => {
     let isMounted = true;
     let activeRepositories: IndexedDbRepositories | null = null;
+    let hasClosedRepositories = false;
     const ownsRepositories = providedRepositories === undefined;
+
+    function closeOwnedRepositories(nextRepositories: IndexedDbRepositories | null): void {
+      if (ownsRepositories && nextRepositories !== null && !hasClosedRepositories) {
+        hasClosedRepositories = true;
+        nextRepositories.close();
+      }
+    }
 
     async function bootstrapRepositories() {
       try {
@@ -44,15 +52,13 @@ export function RepositoryProvider({
         }
         await nextRepositories.bootstrap();
         if (!isMounted) {
-          if (ownsRepositories) nextRepositories.close();
+          closeOwnedRepositories(nextRepositories);
           return;
         }
         setRepositories(nextRepositories);
         setError(null);
       } catch (reason) {
-        if (ownsRepositories) {
-          activeRepositories?.close();
-        }
+        closeOwnedRepositories(activeRepositories);
         if (isMounted) {
           setRepositories(null);
           setError(reason instanceof Error ? reason.message : String(reason));
@@ -68,7 +74,7 @@ export function RepositoryProvider({
 
     return () => {
       isMounted = false;
-      if (ownsRepositories) activeRepositories?.close();
+      closeOwnedRepositories(activeRepositories);
     };
   }, [databaseName, providedRepositories]);
 
