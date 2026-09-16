@@ -1,152 +1,108 @@
-import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {renderHook, waitFor} from '@testing-library/react';
+import {describe, it, expect, beforeEach} from 'vitest';
+import {renderHook, waitFor, act} from '@testing-library/react';
 import {useGame, useNightScript} from '../../hooks/useGame';
-import {gamesApi} from '../../api/games';
-import {createMockGameSession, createMockNightScript} from '../mocks';
+import {saveGameSnapshot} from '../../storage/game_session_storage';
+import type {GameSession} from '../../engine/gameSession';
+import type {EngineRoleInput} from '../../engine/types';
 
-// Mock the games API
-vi.mock('../../api/games', () => ({
-  gamesApi: {
-    create: vi.fn(),
-    list: vi.fn(),
-    getById: vi.fn(),
-    start: vi.fn(),
-    advancePhase: vi.fn(),
-    getNightScript: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+const role: EngineRoleInput = {
+  id: 'role-1', name: 'Werewolf', team: 'werewolf', wake_order: 1,
+  wake_target: null, min_count: 1, max_count: 2,
+  is_primary_team_role: true, ability_steps: [],
+};
 
-const mockGamesApi = gamesApi as {
-  create: ReturnType<typeof vi.fn>;
-  list: ReturnType<typeof vi.fn>;
-  getById: ReturnType<typeof vi.fn>;
-  start: ReturnType<typeof vi.fn>;
-  advancePhase: ReturnType<typeof vi.fn>;
-  getNightScript: ReturnType<typeof vi.fn>;
-  delete: ReturnType<typeof vi.fn>;
+const session: GameSession = {
+  id: 'game-123', player_count: 3, center_card_count: 1,
+  discussion_timer_seconds: 300, role_ids: ['role-1', 'role-1', 'role-1', 'role-1'],
+  wake_order_sequence: ['role-1'], phase: 'setup', current_wake_order: null, warnings: [],
 };
 
 describe('useGame', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(() => sessionStorage.clear());
+
+  it('starts loading and returns the stored session', async () => {
+    saveGameSnapshot({session, roles: [role]});
+    const {result} = renderHook(() => useGame('game-123'));
+    expect(result.current.loading).toBe(true);
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.game).toEqual(session);
+    expect(result.current.error).toBeNull();
   });
 
-  describe('initial state', () => {
-    it('starts with loading true', () => {
-      mockGamesApi.getById.mockReturnValue(new Promise(() => {}));
-      const {result} = renderHook(() => useGame('game-123'));
-
-      expect(result.current.loading).toBe(true);
-      expect(result.current.game).toBeNull();
-      expect(result.current.error).toBeNull();
-    });
+  it('returns an absent game without an error', async () => {
+    const {result} = renderHook(() => useGame('missing'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.game).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
-  describe('successful fetch', () => {
-    it('fetches game on mount', async () => {
-      const mockGame = createMockGameSession({id: 'game-123'});
-      mockGamesApi.getById.mockResolvedValue(mockGame);
-
-      const {result} = renderHook(() => useGame('game-123'));
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.game).toEqual(mockGame);
-      expect(result.current.error).toBeNull();
-      expect(mockGamesApi.getById).toHaveBeenCalledWith('game-123');
-    });
-
-    it('refetches when called', async () => {
-      const initialGame = createMockGameSession({phase: 'setup'});
-      const updatedGame = createMockGameSession({phase: 'night'});
-      mockGamesApi.getById
-        .mockResolvedValueOnce(initialGame)
-        .mockResolvedValueOnce(updatedGame);
-
-      const {result} = renderHook(() => useGame('game-123'));
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.game?.phase).toBe('setup');
-
+  it('refetches a changed snapshot', async () => {
+    saveGameSnapshot({session, roles: [role]});
+    const {result} = renderHook(() => useGame('game-123'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const nextSession = {...session, phase: 'night' as const, current_wake_order: 0};
+    saveGameSnapshot({session: nextSession, roles: [role]});
+    await act(async () => {
       await result.current.refetch();
-
-      await waitFor(() => {
-        expect(result.current.game?.phase).toBe('night');
-      });
     });
-  });
-
-  describe('error handling', () => {
-    it('sets error on fetch failure', async () => {
-      mockGamesApi.getById.mockRejectedValue(new Error('Network error'));
-
-      const {result} = renderHook(() => useGame('game-123'));
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.game).toBeNull();
-      expect(result.current.error).toBe('Network error');
-    });
-
-    it('handles non-Error rejection', async () => {
-      mockGamesApi.getById.mockRejectedValue('unexpected');
-
-      const {result} = renderHook(() => useGame('game-123'));
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.error).toBe('Failed to load game');
-    });
+    await waitFor(() => expect(result.current.game?.phase).toBe('night'));
   });
 });
 
 describe('useNightScript', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => sessionStorage.clear());
 
-  it('fetches script when enabled', async () => {
-    const mockScript = createMockNightScript();
-    mockGamesApi.getNightScript.mockResolvedValue(mockScript);
-
-    const {result} = renderHook(() => useNightScript('game-123', true));
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.script).toEqual(mockScript);
+  it('builds a script from the stored roles and wake sequence', async () => {
+    saveGameSnapshot({session: {...session, phase: 'night'}, roles: [role]});
+    const {result} = renderHook(() => useNightScript('game-123'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.script?.game_session_id).toBe('game-123');
+    expect(result.current.script?.actions[1]?.role_name).toBe('Werewolf');
+    expect(result.current.script?.total_duration_seconds).toBe(14);
     expect(result.current.error).toBeNull();
   });
 
-  it('does not fetch when disabled', () => {
-    const {result} = renderHook(() => useNightScript('game-123', false));
+  it('rebuilds the same ordered script from the stored custom sequence', async () => {
+    const zeta: EngineRoleInput = {...role, id: 'role-zeta', name: 'Zeta'};
+    const alpha: EngineRoleInput = {...role, id: 'role-alpha', name: 'Alpha'};
+    const customSession: GameSession = {
+      ...session,
+      role_ids: ['role-zeta', 'role-zeta', 'role-alpha', 'role-alpha'],
+      wake_order_sequence: ['role-zeta', 'role-alpha'],
+      phase: 'night',
+      current_wake_order: 0,
+    };
+    saveGameSnapshot({session: customSession, roles: [zeta, alpha]});
 
-    expect(result.current.script).toBeNull();
-    expect(result.current.loading).toBe(false);
-    expect(mockGamesApi.getNightScript).not.toHaveBeenCalled();
+    const first = renderHook(() => useNightScript('game-123'));
+    await waitFor(() => expect(first.result.current.loading).toBe(false));
+    expect(first.result.current.script?.actions.map(({role_name}) => role_name)).toEqual([
+      'Narrator',
+      'Zeta',
+      'Zeta',
+      'Alpha',
+      'Alpha',
+      'Narrator',
+    ]);
+    expect(first.result.current.script?.total_duration_seconds).toBe(20);
+
+    const firstScript = first.result.current.script;
+    first.unmount();
+    const second = renderHook(() => useNightScript('game-123'));
+    await waitFor(() => expect(second.result.current.loading).toBe(false));
+    expect(second.result.current.script).toEqual(firstScript);
   });
 
-  it('sets error on fetch failure', async () => {
-    mockGamesApi.getNightScript.mockRejectedValue(new Error('Script error'));
-
-    const {result} = renderHook(() => useNightScript('game-123', true));
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+  it('does not read a script when disabled', () => {
+    const {result} = renderHook(() => useNightScript('game-123', false));
     expect(result.current.script).toBeNull();
-    expect(result.current.error).toBe('Script error');
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('returns no script when the snapshot is missing', async () => {
+    const {result} = renderHook(() => useNightScript('missing'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.script).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 });

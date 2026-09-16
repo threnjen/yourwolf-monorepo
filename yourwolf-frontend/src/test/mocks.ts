@@ -2,9 +2,6 @@ import {RoleListItem, Visibility, Ability, NarratorPreviewAction, NarratorPrevie
 import {AbilityStepDraft, WinConditionDraft, RoleDraft} from '../domain/roleDraft';
 import {Team} from '../domain/teams';
 import type {
-  GameSession,
-  GamePhase,
-  GameRole,
   NarratorAction,
   NightScript,
 } from '../types/game';
@@ -95,45 +92,6 @@ export const sampleOfficialRoles: RoleListItem[] = [
   createMockOfficialRole('Tanner', 'neutral'),
   createMockOfficialRole('Minion', 'werewolf', 2),
 ];
-
-/**
- * Creates a mock GameRole for testing.
- */
-export function createMockGameRole(
-  overrides: Partial<GameRole> = {},
-): GameRole {
-  return {
-    id: 'game-role-uuid-1',
-    role_id: 'role-uuid-1',
-    role_name: 'Werewolf',
-    role_team: 'werewolf',
-    position: 0,
-    is_center: false,
-    is_flipped: false,
-    ...overrides,
-  };
-}
-
-/**
- * Creates a mock GameSession for testing.
- */
-export function createMockGameSession(
-  overrides: Partial<GameSession> = {},
-): GameSession {
-  return {
-    id: 'game-uuid-1234',
-    player_count: 5,
-    center_card_count: 3,
-    discussion_timer_seconds: 300,
-    phase: 'setup' as GamePhase,
-    current_wake_order: null,
-    created_at: '2025-01-01T00:00:00Z',
-    started_at: null,
-    ended_at: null,
-    game_roles: [],
-    ...overrides,
-  };
-}
 
 /**
  * Creates a mock NightScript for testing.

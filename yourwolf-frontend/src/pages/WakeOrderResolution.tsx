@@ -17,11 +17,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import {gamesApi} from '../api/games';
+import {rolesApi} from '../api/roles';
+import {adaptDependenciesToEngine, adaptRoleToEngine} from '../adapters/role_adapters';
+import {createGameSession} from '../engine/gameSession';
+import {saveGameSnapshot} from '../storage/game_session_storage';
 import {theme, TEAM_COLORS} from '../styles/theme';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
-import type {WakeOrderRouterState} from '../types/routerState';
+import {isWakeOrderRouterState} from '../types/routerState';
 import {
   collectWakingRoles,
   getWakeGroupKeys,
@@ -63,7 +66,7 @@ function SortableTile({role, disabled}: {role: WakingRole; disabled?: boolean}) 
 export function WakeOrderResolutionPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as WakeOrderRouterState | null;
+  const state = isWakeOrderRouterState(location.state) ? location.state : null;
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -119,14 +122,32 @@ export function WakeOrderResolutionPage() {
     const flatSequence = flattenWakeOrder(sortedGroupKeys, groupOrders);
 
     try {
-      const game = await gamesApi.create({
+      const distinctRoleIds = [...new Set(selectedRoleIds)];
+      const details = await Promise.all(
+        distinctRoleIds.map((roleId) => rolesApi.getById(roleId)),
+      );
+      const roles = distinctRoleIds.map((roleId, index) => {
+        const listItem = state.roles.find((role) => role.id === roleId);
+        if (!listItem) {
+          throw new Error(`Role not found: ${roleId}`);
+        }
+        return adaptRoleToEngine(listItem, details[index]);
+      });
+      const dependencies = state.roles
+        .filter((role) => distinctRoleIds.includes(role.id))
+        .flatMap(adaptDependenciesToEngine);
+      const session = createGameSession({
         player_count: state.playerCount,
         center_card_count: state.centerCount,
         discussion_timer_seconds: state.timerSeconds,
         role_ids: selectedRoleIds,
-        wake_order_sequence: flatSequence.length > 0 ? flatSequence : undefined,
+        wake_order_sequence: flatSequence,
+        roles,
+        dependencies,
+        id_generator: crypto.randomUUID,
       });
-      navigate(`/games/${game.id}`);
+      saveGameSnapshot({session, roles});
+      navigate(`/games/${session.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create game');
       setSubmitting(false);

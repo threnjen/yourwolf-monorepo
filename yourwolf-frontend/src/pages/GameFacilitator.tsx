@@ -1,13 +1,15 @@
 import React from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useParams, useNavigate, Link} from 'react-router-dom';
 import {useGame, useNightScript} from '../hooks/useGame';
-import {gamesApi} from '../api/games';
+import {startGame, advancePhase} from '../engine/gameSession';
+import {loadGameSnapshot, saveGameSnapshot} from '../storage/game_session_storage';
 import {Timer} from '../components/Timer';
 import {ScriptReader} from '../components/ScriptReader';
 import {theme} from '../styles/theme';
 import {loadingStyles, errorStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
-import type {GameSession, NightScript} from '../types/game';
+import type {GameSession} from '../engine/gameSession';
+import type {NightScript} from '../types/game';
 
 const containerStyles: React.CSSProperties = {
   width: '100%',
@@ -70,6 +72,17 @@ function SetupPhaseView({
         <br />
         Place {game.center_card_count} cards in the center.
       </p>
+      {game.warnings.length > 0 && (
+        <div
+          data-testid="setup-warnings"
+          style={{color: theme.colors.secondary, marginBottom: theme.spacing.lg}}
+        >
+          <p>Setup warnings</p>
+          <ul>
+            {game.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+        </div>
+      )}
       <button onClick={onStart} style={primaryButtonStyle}>
         Begin Night Phase
       </button>
@@ -178,7 +191,12 @@ export function GameFacilitatorPage() {
   const navigate = useNavigate();
 
   if (!gameId) {
-    return <ErrorBanner message="Game not found" />;
+    return (
+      <div style={errorStyles}>
+        <ErrorBanner message="Game not found" />
+        <Link to="/games/new">New Game Setup</Link>
+      </div>
+    );
   }
 
   return <GameFacilitatorContent gameId={gameId} navigate={navigate} />;
@@ -201,14 +219,22 @@ function GameFacilitatorContent({
 
   if (error || !game) {
     return (
-      <div style={errorStyles}>{error || 'Game not found'}</div>
+      <div style={errorStyles}>
+        <p>{error || 'Game not found'}</p>
+        <Link to="/games/new">New Game Setup</Link>
+      </div>
     );
   }
 
   const handleAdvancePhase = async () => {
     setActionError(null);
     try {
-      await gamesApi.advancePhase(gameId);
+      const snapshot = loadGameSnapshot(gameId);
+      if (snapshot === null) {
+        throw new Error('Game not found');
+      }
+      const nextGame = advancePhase(game);
+      saveGameSnapshot({session: nextGame, roles: snapshot.roles});
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to advance phase';
@@ -219,7 +245,12 @@ function GameFacilitatorContent({
   const handleStartGame = async () => {
     setActionError(null);
     try {
-      await gamesApi.start(gameId);
+      const snapshot = loadGameSnapshot(gameId);
+      if (snapshot === null) {
+        throw new Error('Game not found');
+      }
+      const nextGame = startGame(game);
+      saveGameSnapshot({session: nextGame, roles: snapshot.roles});
       await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game';

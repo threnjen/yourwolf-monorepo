@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react';
 import {MemoryRouter} from 'react-router-dom';
 import {AppRoutes} from '../routes';
 import {useRoles} from '../hooks/useRoles';
+import {apiClient} from '../api/client';
 
 // Mock useRoles to avoid actual API calls
 vi.mock('../hooks/useRoles', () => ({
@@ -16,18 +17,6 @@ vi.mock('../api/roles', () => ({
     validate: vi.fn().mockResolvedValue({is_valid: true, errors: [], warnings: []}),
     checkName: vi.fn(),
     create: vi.fn(),
-  },
-}));
-
-// Mock gamesApi to avoid actual API calls
-vi.mock('../api/games', () => ({
-  gamesApi: {
-    create: vi.fn(),
-    getById: vi.fn(),
-    start: vi.fn(),
-    advancePhase: vi.fn(),
-    getNightScript: vi.fn(),
-    delete: vi.fn(),
   },
 }));
 
@@ -50,6 +39,15 @@ describe('AppRoutes', () => {
       error: null,
       refetch: vi.fn(),
     });
+  });
+
+  it('fails immediately if a test attempts a games request through any HTTP method', () => {
+    expect(() => apiClient.get('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.post('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.put('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.post('/roles/preview-script')).toThrow('Forbidden local preview request');
   });
 
   describe('home route', () => {

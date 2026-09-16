@@ -2,6 +2,10 @@
 
 Decisions made during one feature that constrain or inform later phases. Append-only.
 
+## Phase 04b Storage Boundary
+
+- **Feature 01 stores game snapshots through `saveGameSnapshot` and `loadGameSnapshot` under the `yourwolf:game:` session-storage prefix.** The signal is a later phase replacing browser persistence with SQLite. Preserve the `GameSnapshot` shape and caller-facing absence semantics when that replacement lands.
+
 ## Shared API Contracts
 
 - **Backend config and database access is via cached accessors, not module-level globals.** `app.config.settings`, `app.database.engine`, and `app.database.SessionLocal` no longer exist. Use `get_settings()`, `get_engine()`, and `get_session_factory()`. `from app.database import Base` still works as a compatibility re-export, though `from app.models.base import Base` is the canonical source. Any backend feature touching `app/services/*`, `app/routers/*`, or `app/seed/*` must use the accessors — a missed call site fails loudly at import.
@@ -137,3 +141,4 @@ Decisions made during one feature that constrain or inform later phases. Append-
 - **The roles list endpoint deliberately omits `ability_steps` and `wake_target`, so any local consumer of role logic must fetch `GET /roles/{id}` per role.** Phase 04b fetches per distinct selected role at Start Game. `Must-do before Phase 05`: the local catalog must store full roles, including steps and wake target, or the engine cannot script from it.
 - **The transport `Role` type under-declares `RoleRead`.** The backend returns `min_count`, `max_count`, `is_primary_team_role`, and `dependencies` on the single-role endpoint; the frontend type omits them. Phase 04b adds them. Any later consumer of `GET /roles/{id}` should trust the backend schema over the older frontend type.
 - **The frontend games API client is deleted in Phase 04b.** Backend `/games` routes remain for cloud use. A later cloud phase that wants server-side games reintroduces a client deliberately rather than reviving the old one.
+- **Phase 04b does not extend the transport `Role` type.** The earlier bullet saying 04b adds counts, primary flag, and dependencies is superseded: `RoleListItem` already carries them, and the adapter merges list item plus detail response. Signal: a plan that adds fields to a full-detail DTO when the list DTO already declares them.

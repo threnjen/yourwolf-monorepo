@@ -1,7 +1,8 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {rolesApi} from '../../api/roles';
-import {createMockRoles, createMockRole, createMockDraft, createMockPreviewResponse} from '../mocks';
+import {createMockRoles, createMockRole, createMockDraft} from '../mocks';
 import {RoleListItem} from '../../types/transport';
+import type {RoleDetailAdapterInput} from '../../adapters/role_adapters';
 
 // Mock the API client module
 vi.mock('../../api/client', () => ({
@@ -104,6 +105,29 @@ describe('rolesApi', () => {
     });
   });
 
+  describe('getById', () => {
+    it('fetches and returns the role detail projection', async () => {
+      const detail: RoleDetailAdapterInput = {
+        wake_target: 'player.self',
+        ability_steps: [
+          {
+            ability_type: 'view_card',
+            order: 1,
+            modifier: 'none',
+            is_required: true,
+            parameters: {target: 'player.other'},
+          },
+        ],
+      };
+      mockApiClient.get.mockResolvedValue({data: detail});
+
+      const result = await rolesApi.getById('role-seer');
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/roles/role-seer');
+      expect(result).toEqual(detail);
+    });
+  });
+
   describe('validate', () => {
     it('posts draft to /roles/validate', async () => {
       const draft = createMockDraft({name: 'My Role'});
@@ -167,38 +191,4 @@ describe('rolesApi', () => {
     });
   });
 
-  describe('previewScript', () => {
-    it('posts only preview-relevant fields to /roles/preview-script', async () => {
-      const draft = createMockDraft({name: 'Seer', wake_order: 4, wake_target: 'player.self'});
-      const previewResponse = createMockPreviewResponse();
-      mockApiClient.post.mockResolvedValue({data: previewResponse});
-
-      const result = await rolesApi.previewScript(draft);
-
-      const [url, payload] = mockApiClient.post.mock.calls[0];
-      expect(url).toBe('/roles/preview-script');
-      // Should only send preview-relevant fields, not description/team/votes etc.
-      expect(payload).toEqual({
-        name: 'Seer',
-        wake_order: 4,
-        wake_target: 'player.self',
-        ability_steps: [],
-      });
-      expect(payload).not.toHaveProperty('description');
-      expect(payload).not.toHaveProperty('team');
-      expect(payload).not.toHaveProperty('votes');
-      expect(payload).not.toHaveProperty('win_conditions');
-      expect(result).toEqual(previewResponse);
-    });
-
-    it('returns empty actions for non-waking role', async () => {
-      const draft = createMockDraft({name: 'Villager', wake_order: null});
-      const emptyPreview = createMockPreviewResponse({actions: []});
-      mockApiClient.post.mockResolvedValue({data: emptyPreview});
-
-      const result = await rolesApi.previewScript(draft);
-
-      expect(result.actions).toEqual([]);
-    });
-  });
 });
