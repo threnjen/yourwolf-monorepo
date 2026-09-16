@@ -2,18 +2,17 @@
 
 ## System Overview
 
-YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The frontend runs game sessions and narrator previews locally. It still uses the backend for the role catalog, selected-role details, draft validation, role persistence, and abilities.
+YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The frontend runs game sessions, catalog reads, narrator previews, and custom-role persistence locally. It still uses the backend for draft validation and name availability checks.
 
-**Current state (Phase 04b):** `src/engine/` creates and advances games, validates setup, generates night scripts, and builds narrator previews. A validated `sessionStorage` snapshot preserves each in-progress game within its browser tab. Phase 04b remains in progress while manual browser QA is pending.
+**Current state (Phase 05a):** `src/engine/` creates and advances games, validates setup, generates night scripts, and builds narrator previews. IndexedDB stores the bundled catalog, custom roles, and validated game snapshots across browser sessions. Phase 05a implementation is complete. Browser manual QA remains pending, and the packaged-runtime origin check belongs to Phase 06.
 
 ```mermaid
-%% Current Phase 04b runtime boundaries.
+%% Current Phase 05a runtime boundaries.
 flowchart LR
     FE[React Frontend<br>Port 3000] -->|Local game and preview calls| ENG[Game Engine<br>Pure TypeScript]
-    FE -->|Read and write snapshots| STORE[(Browser sessionStorage)]
-    FE -->|Role, validation, and ability APIs| BE[FastAPI Backend<br>Port 8000]
+    FE -->|Read and write local data| STORE[(Browser IndexedDB Repositories)]
+    FE -->|Validation and name-check APIs| BE[FastAPI Backend<br>Port 8000]
     BE --> DB[(PostgreSQL<br>Port 5432)]
-    STORE -.->|Phase 05 replacement| SQLite[(Local SQLite)]
     FE -.->|Phase 06 shell| TAURI[Tauri v2]
 ```
 
@@ -29,7 +28,8 @@ flowchart LR
         Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useNameCheck, useFetch"]
         API["API Clients<br>client.ts, roles.ts,<br>abilities.ts, errors.ts"]
         Adapters["Adapters<br>role_adapters.ts"]
-        Storage["Storage<br>game_session_storage.ts"]
+        Storage["Data<br>repositories, records,<br>seed, IndexedDB"]
+        Context["Repository Context<br>bootstrap and route gate"]
         Types["Types<br>game.ts, transport.ts,<br>routerState.ts plus guard"]
         Domain["Domain (pure TS)<br>teams, constants, roleDraft,<br>roleSelection, abilitySteps,<br>wakeOrder"]
         Engine["Engine (pure TS)<br>types, templates, narration,<br>setup validation, game session"]
@@ -44,6 +44,9 @@ flowchart LR
         Pages --> Storage
         Hooks --> Engine
         Hooks --> Storage
+        Context --> Storage
+        Pages --> Context
+        Hooks --> Context
         Pages --> Types
         Components --> Types
         API --> Types
@@ -68,7 +71,7 @@ flowchart LR
         Exceptions["Exceptions<br>NotFoundError<br>DomainValidationError<br>LockedError"]
         Models["Models<br>base.Base, Role, Ability, AbilityStep,<br>GameSession, GameRole,<br>RoleDependency, WinCondition, User"]
         Schemas["Schemas<br>role.py, game.py,<br>ability.py, base.py"]
-        Seed["Seed<br>abilities.py, roles.py loader<br>data/roles.json"]
+        Seed["Seed<br>abilities.py, roles.py loaders<br>data/abilities.json, roles.json"]
 
         Routers --> Services
         Services --> Validators
@@ -98,7 +101,7 @@ flowchart LR
 | Exceptions | `app/exceptions.py` | Domain error vocabulary; no framework imports |
 | Models | `app/models/` | SQLAlchemy ORM models, enums (`Team`, `Visibility`, `GamePhase`, `StepModifier`); `base.py` holds `Base` |
 | Schemas | `app/schemas/` | Pydantic models for request/response serialization |
-| Seed | `app/seed/` | Idempotent seed loader (15 abilities inline, 30 roles from `data/roles.json`) |
+| Seed | `app/seed/` | Idempotent loaders for 15 abilities and 30 roles from `data/abilities.json` and `data/roles.json` |
 
 ### Configuration and Database Access
 
@@ -174,7 +177,7 @@ Purity is enforced by ESLint, not convention — see Import Boundaries below.
 
 | Layer | Must not import |
 |-------|-----------------|
-| `src/domain/**`, `src/engine/**` | `react`, `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` |
+| `src/data/**`, `src/domain/**`, `src/engine/**` | `react`, `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` |
 | `src/components/**` | `src/api` — data arrives through hooks |
 
 Dependencies point inward: transport types may depend on domain types, never the reverse. The engine imports only domain types and other engine modules. The `react-hooks` plugin is also wired, with `exhaustive-deps` promoted to `error`.
@@ -191,20 +194,23 @@ Dependencies point inward: transport types may depend on domain types, never the
 
 The narration port reproduces the Python templates and fixture-covered output. It deliberately differs where Python depends on incidental database order: equal wake orders sort by role name. The session engine also rejects `advancePhase()` during setup, while the backend permits that transition.
 
-`src/adapters/role_adapters.ts` isolates wire and draft shapes from engine inputs. The wake-order page merges role-list metadata with per-role details before creating a session. RoleBuilder converts its draft through the same boundary before building a preview.
+`src/adapters/role_adapters.ts` isolates stored-role and draft shapes from engine inputs. The wake-order page passes each full local role record through that boundary before creating a session. RoleBuilder converts its draft through the same boundary before building a preview.
 
-`src/storage/game_session_storage.ts` stores each engine session with its adapted role snapshot under `yourwolf:game:{id}`. Reads validate the parsed session, roles, and key match. Missing or malformed data produces the facilitator's missing-game state.
+`src/data/` defines repository contracts and local record types without React or transport DTO dependencies. `RepositoryProvider` bootstraps the bundled catalogs before routes render. The IndexedDB implementation stores roles, abilities, metadata, and game snapshots in `yourwolf-local`.
+
+`GameRepository` stores each engine session with its adapted role snapshot, keyed by the game id. Reads validate the stored row, snapshot, roles, and key match. Missing or malformed data produces the facilitator's missing-game state.
 
 ### Data Flow
 
-1. **Resource clients** (`api/roles.ts`, `api/abilities.ts`) fetch role metadata, selected-role details, validation, save results, and abilities.
-2. **Adapters** (`adapters/role_adapters.ts`) convert role transport data and editable drafts into engine inputs.
-3. **Engine** (`engine/`) validates setup, creates sessions, builds scripts and previews, and advances phases.
-4. **Snapshot store** (`storage/game_session_storage.ts`) persists the session and adapted roles together in `sessionStorage`.
-5. **Hooks** (`hooks/useGame.ts`) read snapshots and rebuild night scripts locally.
-6. **Pages** render the local session and write each successful start or advance before re-rendering.
+1. **Repository provider** bootstraps bundled seed data and exposes role, ability, game, and metadata repositories.
+2. **Resource clients** (`api/roles.ts`) send draft validation and name-check requests that remain server-backed.
+3. **Adapters** (`adapters/role_adapters.ts`) convert local role records and editable drafts into engine inputs.
+4. **Engine** (`engine/`) validates setup, creates sessions, builds scripts and previews, and advances phases.
+5. **Snapshot store** (`data/indexeddb.ts`) persists the session and adapted roles together in the local IndexedDB repository.
+6. **Hooks** (`hooks/useGame.ts`) read snapshots and rebuild night scripts locally.
+7. **Pages** render the local session and write each successful start or advance before re-rendering.
 
-The role catalog and role editor remain server-backed. RoleBuilder builds its preview locally but continues to call `/roles/validate` and `/roles` for validation and save.
+The role catalog uses the local repository. RoleBuilder builds its preview locally, calls `/roles/validate` and `/roles/check-name` for non-colliding drafts, and saves custom roles through the local role repository.
 
 ### Styling
 
@@ -216,7 +222,7 @@ Inline styles with a centralized theme object (`styles/theme.ts`). Dark theme wi
 %% Current local game flow through all persisted phases.
 flowchart TD
     A[Select Roles<br>GameSetup] --> B[Review Wake Order<br>WakeOrderResolution]
-    B --> C[Fetch selected role details<br>rolesApi.getById]
+    B --> C[Read selected role details<br>local RoleRepository]
     C --> D[Create engine session<br>and save snapshot]
     D --> E[Setup Phase<br>Distribute cards]
     E --> F[Night Phase<br>Local ScriptReader]
@@ -255,12 +261,12 @@ Frontend tests use **jsdom** with `@testing-library/react` and mock Axios via `v
 
 ## Key Design Decisions
 
-- **Offline-first target**: A stored game runs without internet. Role discovery and selected-role detail loading remain server-dependent until the local data layer arrives in Phase 05.
+- **Offline-first data**: Bundled catalog reads, custom-role persistence, and stored games use IndexedDB. Draft validation and name availability remain server-backed until Phase 05b.
 - **Ability composition**: Roles are built from 15 atomic ability primitives with AND/OR/IF sequencing, not hardcoded behaviors.
 - **Purity at the engine boundary**: `app/services/narration/`, `src/domain/`, and `src/engine/` stay free of framework, ORM, and transport dependencies. Python uses dataclass-only narration inputs. TypeScript uses ESLint import boundaries.
 - **Lazy configuration**: Settings, engine, and session factory are cached accessors rather than import-time globals, so importing a module has no side effects and tests need no import-order choreography.
 - **Typed domain errors**: Services raise a small exception vocabulary; HTTP mapping is registered once in `app/main.py`. Status codes are a property of the error type, not of message wording.
-- **Seed data as data**: Role definitions live in `app/seed/data/roles.json`, not in Python, so the same file can ship with non-server distributions.
+- **Seed data as data**: Role and ability definitions live under `app/seed/data/`. The frontend carries parity-tested copies under `src/data/seed/` because each package has its own build context.
 - **Monorepo**: Backend and frontend in one repo with shared docs. Docker Compose for local orchestration.
 - **Tauri v2** (planned): Single codebase produces desktop (macOS/Windows) and mobile (iOS/Android) apps.
-- **Dual data path** (planned): SQLite for local/offline, PostgreSQL via FastAPI for cloud/online.
+- **Local repository path**: One IndexedDB implementation serves the browser and future Tauri webviews. PostgreSQL remains behind FastAPI for later cloud features.

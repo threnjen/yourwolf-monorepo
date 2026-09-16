@@ -1,9 +1,9 @@
 # PHASE_05A Manual QA Checklist
 
-**Status:** Pending manual execution
+**Status:** 31 browser checks pending; packaged-runtime check deferred to Phase 06
 **Scope:** Seed bootstrap, offline game flow, local custom-role persistence, IndexedDB reopen behavior, and origin separation.
 **Environment:** Start the frontend independently with `npm run dev` from `yourwolf-frontend/`. Use `http://localhost:3000`. Use DevTools Network with Preserve log enabled.
-**Rule:** Every row remains `Pending` until a human or browser-capable runner records evidence. Automated tests do not mark manual rows passed.
+**Rule:** Every runnable browser row remains `Pending` until a human or browser-capable runner records evidence. Automated tests do not mark manual rows passed. Row 7.2 remains `Deferred to Phase 06` until a packaged Tauri runtime exists.
 
 ## 1. First launch and seeded catalog
 
@@ -99,7 +99,7 @@ Confirm that the metadata record now has a different `seed_version`, then reload
 | # | Action | Expected | Status | Evidence |
 |---|---|---|---|---|
 | 7.1 | Run the development app at `http://localhost:3000` and inspect its local data. | Development origin data is available in its own browser store. | Pending | — |
-| 7.2 | Launch the packaged Tauri app when Phase 06 supplies that runtime and inspect its local data. | Packaged Tauri origin data uses a separate store by design. Do not expect development data to appear. | Pending | — |
+| 7.2 | Launch the packaged Tauri app when Phase 06 supplies that runtime and inspect its local data. | Packaged Tauri origin data uses a separate store by design. Do not expect development data to appear. | Deferred to Phase 06 | Phase 05a does not provide a packaged runtime. |
 
 ## Completion record
 

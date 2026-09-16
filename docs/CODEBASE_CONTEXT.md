@@ -1,6 +1,6 @@
 # Codebase Context
 
-> Dense reference for AI agents. Current phase: 04b implementation complete; manual QA pending.
+> Dense reference for AI agents. Current phase: 05a implementation complete; browser manual QA pending.
 
 ## Project
 
@@ -136,6 +136,15 @@ yourwolf-frontend/
 │   │   └── abilities.ts     # abilitiesApi: list
 │   ├── adapters/
 │   │   └── role_adapters.ts # Role list/detail and draft shapes → engine inputs
+│   ├── context/
+│   │   └── repository_context.tsx # Repository provider, bootstrap state, consumer hook
+│   ├── data/
+│   │   ├── repositories.ts # Role, ability, game, and metadata contracts
+│   │   ├── records.ts      # Local persisted record types
+│   │   ├── indexeddb.ts    # yourwolf-local stores, bootstrap, versioned reseed
+│   │   ├── conversion.ts   # Seed and custom-draft conversion
+│   │   ├── ids.ts          # Deterministic official ids
+│   │   └── seed/           # Parity-tested role and ability JSON copies
 │   ├── hooks/
 │   │   ├── useFetch.ts      # Generic fetch hook (callers MUST wrap fetcher in useCallback)
 │   │   ├── useGame.ts       # useGame(gameId), useNightScript(gameId, enabled)
@@ -148,7 +157,7 @@ yourwolf-frontend/
 │   │   ├── RolesPage.tsx
 │   │   ├── RoleBuilder.tsx          # Wizard-based role creation, live validation + preview
 │   │   ├── GameSetup.tsx            # Role selection grid, player/center count config
-│   │   ├── WakeOrderResolution.tsx  # Drag-to-reorder, fetch details, create/store local session
+│   │   ├── WakeOrderResolution.tsx  # Drag-to-reorder, read details, create/store local session
 │   │   └── GameFacilitator.tsx      # Local phase runner backed by stored snapshots
 │   ├── components/
 │   │   ├── Layout.tsx, Header.tsx, Sidebar.tsx
@@ -178,8 +187,6 @@ yourwolf-frontend/
 │   │   ├── game.ts          # NarratorAction and NightScript UI contracts
 │   │   ├── transport.ts     # Wire DTOs: Role, AbilityStep, Visibility, ValidationResult, NameCheckResult, NarratorPreviewAction/Response
 │   │   └── routerState.ts   # Typed router-state contract plus runtime guard
-│   ├── storage/
-│   │   └── game_session_storage.ts # Validated sessionStorage snapshots keyed by game id
 │   ├── styles/
 │   │   ├── theme.ts         # Dark theme object (colors, spacing, borderRadius, shadows)
 │   │   └── shared.ts        # Reusable style functions
@@ -198,7 +205,7 @@ yourwolf-frontend/
 
 | Layer | Must NOT import |
 |-------|-----------------|
-| `src/domain/**`, `src/engine/**` | `react` / `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` (transport DTOs) |
+| `src/data/**`, `src/domain/**`, `src/engine/**` | `react` / `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` (transport DTOs) |
 | `src/components/**` | `src/api` — go through a hook in `src/hooks` |
 
 - Dependencies point inward. Transport types may depend on domain types, never the reverse — if the domain needs a shape, declare it in `src/domain`.
@@ -217,14 +224,14 @@ yourwolf-frontend/
 - `gameSession.ts` creates immutable in-memory sessions with an injected ID generator.
 - `startGame()` is the only setup-to-night transition. `advancePhase()` rejects setup, unlike the Python backend.
 - Narration templates and fixture-covered outputs match Python. Do not claim complete behavioral identity because wake-order ties and setup advancement differ.
-- `src/adapters/role_adapters.ts` is the transport boundary. It merges role-list metadata with `GET /roles/{id}` details and converts drafts for local preview.
-- `src/storage/game_session_storage.ts` stores a `GameSnapshot` under `yourwolf:game:{id}`. It validates parsed values and returns `null` for missing, malformed, or key-mismatched data.
+- `src/adapters/role_adapters.ts` is the data boundary. It adapts local full role records and editable drafts into engine inputs.
+- `src/data/indexeddb.ts` stores validated `GameSnapshot` records through `GameRepository` under the game id. Reads return `null` for missing, malformed, or key-mismatched data.
 
 ## Frontend Key Patterns
 
 - Styling: inline styles with centralized `theme` object, no CSS-in-JS library
 - State: React useState/useCallback hooks, no global state library
-- API calls: Axios with typed wrappers for roles and abilities; game flow and narrator previews do not use HTTP
+- API calls: Axios sends only role validation and name-check requests; catalog, role save, and game flow use local repositories
 - Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`; the shared mock rejects `/games` and `/roles/preview-script` requests
 - Named exports only (no `export default` — enforced since Phase 2.5)
 - `useFetch` generic hook: wraps fetcher in loading/error/data/refetch pattern
@@ -236,14 +243,14 @@ yourwolf-frontend/
 |------|---------------|------------------|
 | `/` | HomePage | — |
 | `/roles` | RolesPage | useRoles |
-| `/roles/new` | RoleBuilderPage | local `buildPreview`, rolesApi.validate/create, useAbilities, useNameCheck |
+| `/roles/new` | RoleBuilderPage | local `buildPreview`, local role repository save, rolesApi.validate/checkName, useAbilities, useNameCheck |
 | `/games/new` | GameSetupPage | useGameSetup, useRoles |
-| `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, rolesApi.getById, engine adapters, session store |
-| `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, engine phase functions, session store |
+| `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, GameRepository, engine adapters |
+| `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, GameRepository, engine phase functions |
 
 ## Seed Data
 
-- 15 ability primitives seeded via `app/seed/abilities.py` (data still inline as `ABILITIES_DATA`)
+- 15 ability primitives seeded via `app/seed/data/abilities.json` (loaded by `app/seed/abilities.py`)
 - 30 base roles: definitions live in `app/seed/data/roles.json`; `app/seed/roles.py` is the loader+validator that exposes `ROLES_DATA` / `ROLE_DEPENDENCIES_DATA`. Edit the JSON, not the module, to change role data.
 - Loader validates required keys and ability types up front and raises `SeedDataError` before any DB work — a bad data file can never produce a partial seed.
 - JSON is separate from code so the same file can ship with non-server distributions (Phase 04+).
@@ -261,19 +268,18 @@ yourwolf-frontend/
 
 ## Current Status
 
-- Phases 01–3.6 are complete.
-- Phase 04a is complete. Test health and mutation-tested guards verify coverage, output shape, injected identity, and deep input immutability.
-- Phase 04b is in progress. Its implementation is complete, and every manual browser-QA row remains pending.
-- The live frontend runs game creation, phase transitions, night scripts, and narrator previews locally. It uses the backend for role lists, selected-role details, draft validation, role save, and abilities.
-- After Phase 04b: local SQLite (05), Tauri desktop (06), TTS narration (07), mobile (08), then cloud features (09–13).
+- Phases 01–04b are complete.
+- Phase 05a implementation is complete. Five feature reviews are approved with no unresolved findings.
+- Phase 05a browser manual QA has 31 pending rows. The packaged-Tauri origin check is deferred to Phase 06 because Phase 05a provides no packaged runtime.
+- The live frontend runs catalog reads, role save, game creation, phase transitions, night scripts, and narrator previews locally. It uses the backend for draft validation and name checks.
+- Next: local role authoring (05b), backup import/export (05c), Tauri desktop (06), narration (07), mobile (08), then cloud features (09–13).
 
 ## Do Not
 
 - Do NOT add `export default` — project uses named exports exclusively
 - Do NOT import from `@` alias in test files — use relative paths
 - Do NOT use CSS modules or styled-components — project uses inline styles with `theme` object
-- Do NOT add React context or global state stores without explicit approval — hooks manage local state
-- Do NOT modify the Python backend for Phase 04 work — it stays as-is for future cloud use
+- Do NOT add a second repository context or global data store — use `RepositoryProvider` and `useRepositories`
 - Do NOT add DOM/Node/React dependencies to `src/engine/` (Phase 04) — must be pure TypeScript
 - Do NOT import transport DTOs from `src/engine/` — Phase 04b adapters belong outside the engine.
 - Do NOT add a frontend games API client or call `/api/v1/games` from the application flow — use the engine and game snapshot store.
@@ -287,7 +293,7 @@ yourwolf-frontend/
 - Do NOT raise bare `ValueError` / `PermissionError` from services for client-facing failures — raise from `app/exceptions.py`. Routers no longer parse message prose.
 - Do NOT add status-code branching to routers for domain errors — register the mapping in `app/main.py`.
 - Do NOT edit role seed data in `app/seed/roles.py` — the definitions are in `app/seed/data/roles.json`.
-- Do NOT import React or `src/types` from `src/domain` — ESLint blocks it; the domain owns its own shapes.
+- Do NOT import React or `src/types` from `src/data`, `src/domain`, or `src/engine` — ESLint blocks it; each pure layer owns its shapes.
 - Do NOT put narrator copy in `ScriptService` — templates live in `app/services/narration/templates.py`. `ScriptService` only adapts ORM → `RoleScriptInput`.
 - Do NOT add ORM/session imports to `app/services/narration/` — its purity is what makes the Phase 04 port a transcription.
 - Do NOT "fix" the `Werewolfs` pluralization in `_thumbs_up_instruction` (`templates.py`) — narrator copy is frozen. `thumbs_up` renders `team.werewolf` as "Werewolfs" while `build_wake_instruction` says "Werewolves"; the inconsistency is the shipped pre-refactor output, pinned at source and in `test_narration_templates.py`. The Phase 04 TS port must reproduce it. A copy fix belongs in its own feature that changes source, pinned test, and port together.

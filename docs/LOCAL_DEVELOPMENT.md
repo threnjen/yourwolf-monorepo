@@ -82,6 +82,16 @@ docker compose exec backend python -m app.seed
 
 The seed script is idempotent — running it multiple times will not create duplicate records.
 
+Canonical role and ability files live in `yourwolf-backend/app/seed/data/`. After changing either file, refresh the frontend copies and run the parity test:
+
+```bash
+cd yourwolf-frontend
+npm run seed:refresh
+npm exec vitest -- run src/test/data/seed_parity.test.ts
+```
+
+The frontend bootstraps its IndexedDB catalog from those copies. A matching seed version is a no-op. A newer version replaces official records and leaves custom roles intact.
+
 ---
 
 ## Running the Frontend Standalone (Without Docker)
@@ -92,7 +102,7 @@ npm install
 npm run dev
 ```
 
-The dev server starts at http://localhost:3000. Ensure `VITE_API_URL` in `yourwolf-frontend/.env` points to a running backend instance.
+The dev server starts at http://localhost:3000. Catalog browsing, game flow, and local role persistence use IndexedDB. A running backend remains required for draft validation and role-name availability checks. Ensure `VITE_API_URL` in `yourwolf-frontend/.env` points to that backend.
 
 ---
 

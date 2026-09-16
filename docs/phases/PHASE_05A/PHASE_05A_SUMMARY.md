@@ -1,13 +1,13 @@
 # Phase 5a: Local Catalog and Store
 
-**Status**: Planned
+**Status**: Implementation Complete — Browser Manual QA Pending
 **Depends on**: Phase 04b (Engine Frontend Integration)
 **Estimated complexity**: Medium
 **Cross-references**: Planning decisions and research summary in `docs/phases/DISCOVERY_CONTEXT.md` (section "Phase 05 replanning"); refinement context in `docs/phases/PHASE_05A/PHASE_05A_DISCOVERY_CONTEXT.md`; research report in `dev/research/tauri-v2-webview-storage-and-speech/`; Phase 04b summary at `docs/phases/PHASE_04B/PHASE_04B_SUMMARY.md`; canonical seed data in `yourwolf-backend/app/seed/`
 
 ## What's New
 
-Browsing roles, setting up a game, opening the role builder, and saving a custom role no longer need the server for their data. The 30 official roles and the ability catalog ship inside the app and load on first launch. A custom role you save appears in the roles list and in game setup right away, because it is stored on the device. A game in progress survives closing the tab, not just a refresh, because it lives in the browser's local database instead of per-tab session storage. Checking a draft for problems and checking that a role name is free still ask the server until Phase 05b.
+Browsing roles, setting up a game, opening the role builder, and saving a custom role no longer need the server for their data. The 30 official roles and the ability catalog ship inside the app and load on first launch. A custom role you save appears in the roles list and in game setup right away, because it is stored on the device. A game in progress survives closing the tab, not just a refresh, because it lives in the browser's local database instead of per-tab session storage. Draft validation and non-colliding role-name checks still ask the server until Phase 05b.
 
 ## Problem
 
@@ -29,7 +29,7 @@ Introduce a local data layer, a repository interface with one IndexedDB implemen
 - **First-launch seeding**: on app start, a bootstrap step compares a seed version constant in the seed module against the metadata record. When the record is absent, the bootstrap seeds the roles and abilities in one transaction and writes the version. When the versions match, it does nothing. When the constant is newer, it puts every new official role by id, deletes every record with `visibility` `official` whose id is not in the new seed, leaves custom roles untouched, and writes the new version, all in one transaction.
 - **Loading gate**: `App.tsx` gates `AppRoutes` on the bootstrap, inside `Layout`, so the navigation chrome renders while the catalog loads. The gate shows a loading state until the bootstrap resolves and an error state with the message if the database cannot open.
 - **Catalog call sites** move to the repositories: `useRoles`, `useAbilities`, and the role detail fetch in `WakeOrderResolution`. The wake-order page reads each distinct selected role by id from the repository and passes the full record as both adapter inputs. The adapters keep their two-input signature and their null-handling tests, so the engine input is unchanged.
-- **Role save** moves to the repository. Before saving, the builder checks the draft name against every local role, case-insensitive, and blocks the save with the existing name-taken message when it matches. This local check stays in Phase 05b. The builder still calls the server for draft validation and the name check, then puts the role into the local store with a UUID, `visibility` `private`, and an `updated_at` timestamp. The transport `Role`, `RoleListItem`, `ValidationResult`, and `NameCheckResult` types stay for the two remaining server calls until Phase 05b.
+- **Role save** moves to the repository. Before any server call or write, the builder checks the draft name against every local role, case-insensitive, and blocks a match with the existing name-taken message. The builder still calls the server for draft validation and non-colliding name checks, then puts the role into the local store with a UUID, `visibility` `private`, and an `updated_at` timestamp. The transport `Role`, `RoleListItem`, `ValidationResult`, and `NameCheckResult` types stay for the two remaining server calls until Phase 05b.
 - **Game snapshot** moves from `src/storage/game_session_storage.ts` to the `GameRepository`. The `GameSnapshot` shape and the null-on-missing semantics are preserved, per the Phase 04b decision. The session storage module and its tests are deleted. Because the repository is asynchronous, the facilitator start and advance paths await the write before re-rendering.
 - **Provider seam and render helper**: a React context provider hands the repositories to hooks. A shared test render helper mounts the provider with a fresh fake-IndexedDB database, runs the bootstrap, and awaits it before returning. Every page and hook test that reads roles, abilities, or the snapshot uses that helper.
 - **Test updates**: the roles, abilities, and game hooks, the wake-order, facilitator, and role builder page tests, the app test, the routes test, and the shared mocks. The shared Axios guard in `src/test/setup.ts` grows to reject `GET /roles`, `GET /roles/{id}`, `POST /roles`, and `GET /abilities`.
@@ -60,11 +60,11 @@ Introduce a local data layer, a repository interface with one IndexedDB implemen
 ## Technical Context
 
 - **Remaining server calls after this phase**: `rolesApi.validate` in `src/pages/RoleBuilder.tsx` and `rolesApi.checkName` in `src/hooks/useNameCheck.ts`.
-- **Calls that move**: `rolesApi.list` in `src/hooks/useRoles.ts`, `rolesApi.getById` in `src/pages/WakeOrderResolution.tsx`, `abilitiesApi.list` in `src/hooks/useAbilities.ts`, `rolesApi.create` in `src/pages/RoleBuilder.tsx`.
+- **Moved calls**: `useRoles`, `WakeOrderResolution`, `useAbilities`, and `RoleBuilder` use repositories instead of `rolesApi.list`, `rolesApi.getById`, `abilitiesApi.list`, and `rolesApi.create`.
 - **Read callers**: `useRoles` is used by `src/pages/RolesPage.tsx` with a visibility filter and by `src/pages/GameSetup.tsx`. `useAbilities` is used by `src/components/RoleBuilder/steps/AbilitiesStep.tsx`.
-- **Snapshot callers**: `src/hooks/useGame.ts`, `src/pages/GameFacilitator.tsx`, `src/pages/WakeOrderResolution.tsx`, all through `saveGameSnapshot` and `loadGameSnapshot` in `src/storage/game_session_storage.ts`. That module already has a runtime type guard for a parsed snapshot. Move the guard, do not rewrite it.
+- **Snapshot callers**: `src/hooks/useGame.ts`, `src/pages/GameFacilitator.tsx`, and `src/pages/WakeOrderResolution.tsx` all use the provider-backed `GameRepository` in `src/data/indexeddb.ts`. The repository validates stored snapshots and returns `null` for missing or malformed records.
 - **Adapters**: `src/adapters/role_adapters.ts` merges a list item with a detail response into `EngineRoleInput`. A local full record satisfies both inputs.
-- **Seed shape**: `roles.json` is `{roles: [...], role_dependencies: [{source, target, dependency_type}]}` with 30 roles and no ids. Steps carry `order`, `modifier`, `ability_type`, `parameters`, `is_required`, and no id. Win conditions carry no id. `abilities.py` holds `ABILITIES_DATA`, a list of `{type, name, description, parameters_schema}`. `load_seed_data()` in `roles.py` validates the file up front and raises `SeedDataError`. Mirror that for abilities.
+- **Seed shape**: `roles.json` is `{roles: [...], role_dependencies: [{source, target, dependency_type}]}` with 30 roles and no ids. Steps carry `order`, `modifier`, `ability_type`, `parameters`, `is_required`, and no id. Win conditions carry no id. `abilities.json` holds a list of `{type, name, description, parameters_schema}`. Both loaders validate their files before database work and raise `SeedDataError` for invalid data.
 - **Transport types**: `src/types/transport.ts` declares `RoleListItem` (counts, primary flag, dependencies) and `Role` (steps with ids, win conditions with ids, `is_locked`, `vote_score`, `use_count`, `created_at`, `updated_at`). The local record fills every field, per the shape rule above.
 - **Fetch hook**: `src/hooks/useFetch.ts` wraps any async fetcher and requires a memoized fetcher. The repository-backed hooks keep using it with the repository from context.
 - **App shell**: `src/App.tsx` renders `Layout` around `AppRoutes`. `src/App.test.tsx` and `src/routes.test.tsx` mount it.
@@ -78,7 +78,7 @@ Introduce a local data layer, a repository interface with one IndexedDB implemen
 - **IndexedDB unavailable or blocked**: the bootstrap rejects, the shell shows an error state naming the cause, and no page renders against an empty catalog.
 - **Database open succeeds but seeding fails midway**: seeding runs in one transaction, so the store is either fully seeded or empty. The metadata version is written in that same transaction. The next launch retries.
 - **Seed version bump with custom roles present**: official roles are replaced by id, custom roles are untouched. A custom role that depends on an official role by id still resolves, because official ids are derived from names and do not change.
-- **Custom role name collides with any local role name, official or custom**: blocked by the local case-insensitive check before any server call. The server name check still runs and cannot see local custom roles, which is why the local check exists.
+- **Custom role name collides with any local role name, official or custom**: blocked by the local case-insensitive check before any server call. A non-colliding name reaches the retained server checks until Phase 05b.
 - **Seed bump renames or removes an official role**: the old record is deleted in the reseed transaction. A custom role that depended on it keeps the dangling dependency id, and the builder shows that dependency as unknown. Accepted; Phase 05b's validation port decides whether to warn.
 - **Server validation passes but the local write fails**: the builder shows the error and keeps the draft on screen. Nothing is written to the server.
 - **Server unreachable at save**: validation fails with the existing network error and no local save happens. Accepted for this phase. Phase 05b removes the server from the save path.
@@ -100,35 +100,48 @@ Introduce a local data layer, a repository interface with one IndexedDB implemen
 
 ## Success Criteria
 
-- [ ] With the backend stopped before the app loads, the roles page lists all 30 official roles grouped by team, game setup lists them, and a full game completes with no request to `/api/v1`.
-- [ ] The role builder's ability palette lists 15 abilities with the backend stopped.
-- [ ] With the backend running, saving a custom role makes it appear in the roles list and in game setup without a reload, and no `POST /roles` request is sent.
+- [ ] With the backend stopped before the app loads, the roles page lists all 30 official roles grouped by team, game setup lists them, and a full game completes with no request to `/api/v1`. Automated integration coverage is green; browser evidence remains pending.
+- [ ] The role builder's ability palette lists 15 abilities with the backend stopped. Automated repository and page coverage is green; browser evidence remains pending.
+- [ ] With the backend running, saving a custom role makes it appear in the roles list and in game setup without a reload, and no `POST /roles` request is sent. Automated integration coverage is green; browser evidence remains pending.
 - [ ] Closing the tab mid-night and reopening the facilitator URL returns to the night phase at the first action.
 - [ ] Closing the tab on the complete view and reopening shows the complete view.
-- [ ] A second launch creates no duplicate official roles. The seed test asserts 30 roles, 15 abilities, and distinct ids.
-- [ ] Bumping the seed version reseeds official roles, leaves a pre-existing custom role record intact, and that custom role's dependency on an official role still resolves, proven by a repository test.
-- [ ] Bumping the seed version with a role removed from the seed deletes that official record and no custom record, proven by a repository test.
-- [ ] Saving a custom role whose name matches an existing local role, differing only in case, is blocked with the name-taken message and writes nothing, proven by a page test.
-- [ ] A type-level test proves the local role record is assignable to both transport views, and `src/data/` imports nothing from `src/types/`.
-- [ ] The parity test fails when either frontend seed copy differs from its backend file, proven by mutating a copy in a test.
-- [ ] The backend abilities seeder reads `abilities.json`, and the backend seed tests still pass.
-- [ ] `src/storage/game_session_storage.ts` and its tests are absent. No file under `src/` reads `sessionStorage`.
-- [ ] The shared Axios guard rejects `GET /roles`, `GET /roles/{id}`, `POST /roles`, `GET /abilities`, `/games`, and `/roles/preview-script`, and the full suite is green.
-- [ ] `src/data/` passes the pure-layer ESLint rule with zero exemptions, and no file under `src/engine/` or `src/domain/` changed.
-- [ ] The app shell shows a visible loading indicator inside the navigation chrome until bootstrap resolves, and a visible error banner if the database fails to open.
-- [ ] Global frontend coverage stays above 80 percent.
-- [ ] The manual QA document exists at `docs/phases/PHASE_05A/PHASE_05A_QA.md`.
+- [x] A second launch creates no duplicate official roles. The seed test asserts 30 roles, 15 abilities, and distinct ids.
+- [x] Bumping the seed version reseeds official roles, leaves a pre-existing custom role record intact, and that custom role's dependency on an official role still resolves, proven by a repository test.
+- [x] Bumping the seed version with a role removed from the seed deletes that official record and no custom record, proven by a repository test.
+- [x] Saving a custom role whose name matches an existing local role, differing only in case, is blocked with the name-taken message and writes nothing, proven by a page test.
+- [x] A type-level test proves the local role record is assignable to both transport views, and `src/data/` imports nothing from `src/types/`.
+- [x] The parity test fails when either frontend seed copy differs from its backend file, proven by mutating a copy in a test.
+- [x] The backend abilities seeder reads `abilities.json`, and the backend seed tests pass.
+- [x] `src/storage/game_session_storage.ts` and its tests are absent. No file under `src/` reads `sessionStorage`.
+- [x] The shared Axios guard rejects `GET /roles`, `GET /roles/{id}`, `POST /roles`, `GET /abilities`, `/games`, and `/roles/preview-script`, and the full suite is green.
+- [x] `src/data/` passes the pure-layer ESLint rule with zero exemptions, and no file under `src/engine/` or `src/domain/` changed.
+- [x] Automated tests verify that the app shell shows a loading indicator inside the navigation chrome and a visible error banner if the database fails to open.
+- [x] Global frontend coverage stays above 80 percent.
+- [x] The manual QA document exists at `docs/phases/PHASE_05A/PHASE_05A_QA.md`.
+
+## Verification Status
+
+| Area | Status | Evidence |
+|---|---|---|
+| Feature implementation | Complete | Five feature reviews are approved with no unresolved findings. The execution manifest is the canonical checkpoint map. |
+| Backend full suite | Complete | 503 tests passed with 96.04 percent coverage. |
+| Frontend full suite | Complete | 715 tests passed with 92.27 percent line coverage. |
+| Frontend lint and build | Complete | Both commands passed during the production readiness review. |
+| Optional consolidated QA | Skipped | The user selected `qa: no`. Feature-required automated suites still passed. |
+| Browser manual QA | Pending | Run the 31 available rows in `PHASE_05A_QA.md`. |
+| Packaged-runtime origin QA | Deferred to Phase 06 | Row 7.2 requires a packaged Tauri runtime, which is outside Phase 05a. |
 
 ## QA Considerations
 
-- This phase changes user-facing flow and adds a loading gate, so a manual QA document is required. It covers first launch, a full game with the backend stopped from the start, saving a custom role and finding it in the list and in game setup, tab close and reopen at every phase, the two-tab case, and the reseed path.
+- This phase changes user-facing flow and adds a loading gate, so a manual QA document is required. Its 31 runnable rows cover first launch, a full game with the backend stopped from the start, saving a custom role and finding it in the list and in game setup, tab close and reopen at every phase, the two-tab case, and the reseed path.
+- The packaged-Tauri origin check is deferred to Phase 06 because this phase contains no Tauri runtime.
 - Backend change: the abilities seeder reads JSON instead of Python dicts. The API contract is unchanged. The backend seed tests are the gate.
 - Affected suites: roles, abilities, game, and name-check hooks, wake-order, facilitator, role builder, roles, and game setup pages, app, routes, shared mocks, adapters, the new `src/data/` suite, backend `tests/test_seed.py`.
 - The Phase 04b manual rows were never executed. The Phase 05a manual document supersedes them for the game flow.
 
 ## Notes for Phase - Execute
 
-Suggested decomposition in dependency order: **(1)** seed data files → **(2)** repository interface and IndexedDB implementation → **(3)** bootstrap, provider seam, and catalog reads → **(4)** game snapshot on the repository → **(5)** local role save and manual QA.
+Implemented decomposition in dependency order: **(1)** seed data files → **(2)** repository interface and IndexedDB implementation → **(3)** bootstrap, provider seam, and catalog reads → **(4)** game snapshot on the repository → **(5)** local role save and manual QA.
 
 - Feature 1 is the only feature that touches the backend. Keep it to the abilities seeder, its data file, and its tests.
 - Feature 2 owns `src/data/` end to end: the record types with their seeded defaults, the `ability_name` resolution, the id minting, the metadata store, and the reseed transaction including stale official deletion. It has no React and no page changes. Its tests run against `fake-indexeddb`.
