@@ -297,3 +297,13 @@ Durable, reusable review rules distilled from past feature reviews. No dates, no
 **Impact:** The fixture stops proving that its input represents the contract consumed by the runtime. A later implementation may accidentally depend on leaked transport or domain metadata, and the mismatch remains invisible because output assertions never inspect input shape.
 
 **Watch for:** For committed fixtures that stand in for production inputs, assert the exact runtime keys and strip fields owned by the source system. Keep provenance checks independent by regenerating expected output from the reference implementation, then compare the cleaned fixture to the same reference.
+
+## Boundary-shape tests must reach the intended validator
+
+**A malformed fixture must satisfy earlier guards before asserting rejection.** The signal is a storage-test key that differs from the embedded record identifier, which lets a key-match check return `null` before shape validation runs.
+
+**Runtime record guards must distinguish plain objects from arrays.** The signal is a predicate that checks only `typeof value === 'object'`, allowing array values to pass a `Record<string, unknown>` contract.
+
+## Manual acceptance steps must follow runtime defaults and controls
+
+**A manual checklist is executable only when its scenario reaches the asserted state using the shipped defaults.** The signal is a step that combines named seed roles without totaling their default card counts, expects a warning before the session is created, or names a button that belongs to a later route. Reproduce the flow from the actual page controls and seeded data, then state the route, exact action, visible result, and relevant network path. Keep every row pending until a human or browser-capable runner records the observation.

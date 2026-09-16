@@ -7,7 +7,7 @@
 
 ## What's New
 
-Facilitating a game no longer needs the server. Creating a game, reading the night script, and stepping through the phases all happen on the device, and a refresh in the middle of a game returns to the same phase instead of a blank page. The narrator preview in the role builder updates instantly from local logic. Browsing roles, validating a draft, and saving a role still use the server until Phase 05.
+After the role list and selected role details load, creating and facilitating a game no longer need the server. The local engine reads the night script and steps through every phase on the device, and a refresh in the middle of a game returns to the same phase instead of a blank page. The narrator preview in the role builder updates instantly from local logic. Browsing roles, validating a draft, and saving a role still use the server until Phase 05.
 
 ## Problem
 
