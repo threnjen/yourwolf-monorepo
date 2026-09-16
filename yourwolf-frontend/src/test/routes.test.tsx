@@ -47,6 +47,7 @@ describe('AppRoutes', () => {
     expect(() => apiClient.put('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.patch('/games')).toThrow('Forbidden games request');
     expect(() => apiClient.delete('/games')).toThrow('Forbidden games request');
+    expect(() => apiClient.post('/roles/preview-script')).toThrow('Forbidden local preview request');
   });
 
   describe('home route', () => {

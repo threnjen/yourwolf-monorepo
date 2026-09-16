@@ -3,6 +3,9 @@ import {render, screen, fireEvent, act} from '@testing-library/react';
 import {MemoryRouter} from 'react-router-dom';
 import {RoleBuilderPage} from '../../pages/RoleBuilder';
 import {rolesApi} from '../../api/roles';
+import {adaptDraftToEngine} from '../../adapters/role_adapters';
+import {buildPreview} from '../../engine/narration';
+import {createMockDraft} from '../mocks';
 
 vi.mock('../../api/roles', () => ({
   rolesApi: {
@@ -10,7 +13,6 @@ vi.mock('../../api/roles', () => ({
     validate: vi.fn(),
     checkName: vi.fn(),
     create: vi.fn(),
-    previewScript: vi.fn(),
   },
 }));
 
@@ -34,7 +36,6 @@ const mockRolesApi = rolesApi as unknown as {
   validate: ReturnType<typeof vi.fn>;
   checkName: ReturnType<typeof vi.fn>;
   create: ReturnType<typeof vi.fn>;
-  previewScript: ReturnType<typeof vi.fn>;
 };
 
 function renderPage() {
@@ -62,7 +63,6 @@ describe('RoleBuilderPage', () => {
     vi.useFakeTimers();
     mockRolesApi.validate.mockResolvedValue({is_valid: true, errors: [], warnings: []});
     mockRolesApi.checkName.mockResolvedValue({name: 'Test Role', is_available: true, message: 'Available'});
-    mockRolesApi.previewScript.mockResolvedValue({actions: []});
   });
 
   afterEach(() => {
@@ -170,56 +170,100 @@ describe('RoleBuilderPage', () => {
     });
   });
 
-  describe('preview (AC3, AC7)', () => {
-    it('calls previewScript after debounce on draft change', async () => {
-      mockRolesApi.previewScript.mockResolvedValue({actions: []});
+  describe('local preview', () => {
+    it('renders the engine preview after debounce while validation remains server-backed', async () => {
       renderPage();
 
       fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
 
       // Before debounce fires
-      expect(mockRolesApi.previewScript).not.toHaveBeenCalled();
+      expect(screen.getByText(/Generating preview/i)).toBeInTheDocument();
+      expect(mockRolesApi.validate).not.toHaveBeenCalled();
 
       await act(async () => {
         vi.advanceTimersByTime(1000);
       });
       await act(async () => {});
 
-      expect(mockRolesApi.previewScript).toHaveBeenCalledTimes(1);
+      const expected = buildPreview(adaptDraftToEngine(createMockDraft({name: 'Seer', wake_order: 4})));
+      for (const action of expected) {
+        expect(screen.getByText(action.instruction)).toBeInTheDocument();
+      }
+      expect(mockRolesApi.validate).toHaveBeenCalledTimes(1);
+      expect(mockRolesApi.validate).toHaveBeenCalledWith(expect.objectContaining({name: 'Seer', wake_order: 4}));
     });
 
-    it('only fires one preview call within debounce window', async () => {
-      mockRolesApi.previewScript.mockResolvedValue({actions: []});
+    it('renders only the newest draft after rapid edits within one debounce window', async () => {
       renderPage();
 
       // Rapid changes
       fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'S'}});
       fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Se'}});
       fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '4'}});
 
       await act(async () => {
         vi.advanceTimersByTime(1000);
       });
       await act(async () => {});
 
-      // Only the last debounced call should fire
-      expect(mockRolesApi.previewScript).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Seer, wake up.')).toBeInTheDocument();
+      expect(screen.queryByText('S, wake up.')).not.toBeInTheDocument();
+      expect(mockRolesApi.validate).toHaveBeenCalledTimes(1);
+      expect(mockRolesApi.validate).toHaveBeenCalledWith(expect.objectContaining({name: 'Seer'}));
     });
 
-    it('gracefully handles preview API failure', async () => {
-      mockRolesApi.previewScript.mockRejectedValue(new Error('Network error'));
+    it('keeps the newest validation when an older validation resolves late', async () => {
+      let resolveFirst: ((value: {is_valid: boolean; errors: string[]; warnings: string[]}) => void) | undefined;
+      let resolveSecond: ((value: {is_valid: boolean; errors: string[]; warnings: string[]}) => void) | undefined;
+      mockRolesApi.validate
+        .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+        .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve; }));
       renderPage();
 
-      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Seer'}});
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'First'}});
 
       await act(async () => {
         vi.advanceTimersByTime(1000);
       });
       await act(async () => {});
 
-      // Preview should degrade gracefully — panel still present, no crash
-      expect(screen.getByTestId('narrator-preview')).toBeInTheDocument();
-      expect(screen.getByText(/no narrator instructions/i)).toBeInTheDocument();
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Newest'}});
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+
+      await act(async () => {
+        resolveFirst?.({is_valid: false, errors: ['stale'], warnings: []});
+      });
+      expect(screen.queryByText(/stale/)).not.toBeInTheDocument();
+
+      await act(async () => {
+        resolveSecond?.({is_valid: false, errors: ['newest'], warnings: []});
+      });
+
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByText(/newest/)).toBeInTheDocument();
+      expect(screen.queryByText(/stale/)).not.toBeInTheDocument();
+      expect(mockRolesApi.validate).toHaveBeenCalledTimes(2);
+    });
+
+    it('renders an empty preview for a non-waking draft without a preview error state', async () => {
+      renderPage();
+
+      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Villager'}});
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      await act(async () => {});
+
+      expect(screen.getByText(/does not wake up — no narrator instructions/i)).toBeInTheDocument();
+      expect(screen.queryByText(/preview service unavailable|preview failed/i)).not.toBeInTheDocument();
     });
   });
 });

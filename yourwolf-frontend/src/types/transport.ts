@@ -2,8 +2,8 @@
  * Transport DTOs — the shapes the roles API sends and receives over the wire.
  *
  * These mirror the server's contract and nothing else. The UI/editing model lives
- * in `src/domain` (see `domain/roleDraft.ts`), and the two meet in exactly one
- * place: `draftToPayload`/`draftToPreviewPayload` in `src/api/roles.ts`.
+ * in `src/domain` (see `domain/roleDraft.ts`), and they meet at the API
+ * payload adapter in `src/api/roles.ts`.
  *
  * Dependencies point inward: this module may import domain types (`Team`,
  * `StepModifier`), never the reverse.

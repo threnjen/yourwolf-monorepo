@@ -4,6 +4,8 @@ import {ValidationResult, NarratorPreviewResponse} from '../types/transport';
 import {rolesApi} from '../api/roles';
 import {extractApiErrorMessages} from '../api/errors';
 import {createEmptyDraft, RoleDraft} from '../domain/roleDraft';
+import {adaptDraftToEngine} from '../adapters/role_adapters';
+import {buildPreview} from '../engine/narration';
 import {Wizard} from '../components/RoleBuilder/Wizard';
 import {pageContainerStyles, pageHeaderStyles, pageTitleStyles, pageSubtitleStyles} from '../styles/shared';
 import {ErrorBanner} from '../components/ErrorBanner';
@@ -18,7 +20,6 @@ export function RoleBuilderPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const validateIdRef = useRef(0);
-  const previewIdRef = useRef(0);
 
   const handleDraftChange = useCallback((updatedDraft: RoleDraft) => {
     setDraft(updatedDraft);
@@ -29,15 +30,21 @@ export function RoleBuilderPage() {
     }
 
     const requestId = ++validateIdRef.current;
-    const previewRequestId = ++previewIdRef.current;
 
     setPreviewLoading(true);
 
     debounceRef.current = setTimeout(async () => {
-      const [validationSettled, previewSettled] = await Promise.allSettled([
-        rolesApi.validate(updatedDraft),
-        rolesApi.previewScript(updatedDraft),
-      ]);
+      const validationPromise = rolesApi.validate(updatedDraft);
+      const localPreview: NarratorPreviewResponse = {
+        actions: buildPreview(adaptDraftToEngine(updatedDraft)),
+      };
+
+      if (requestId === validateIdRef.current) {
+        setPreview(localPreview);
+        setPreviewLoading(false);
+      }
+
+      const [validationSettled] = await Promise.allSettled([validationPromise]);
 
       if (requestId === validateIdRef.current) {
         if (validationSettled.status === 'fulfilled') {
@@ -53,15 +60,6 @@ export function RoleBuilderPage() {
             warnings: [],
           });
         }
-      }
-
-      if (previewRequestId === previewIdRef.current) {
-        if (previewSettled.status === 'fulfilled') {
-          setPreview(previewSettled.value);
-        } else {
-          setPreview(null);
-        }
-        setPreviewLoading(false);
       }
     }, 1000);
   }, []);

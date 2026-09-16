@@ -7,6 +7,9 @@ vi.mock('axios', () => {
     if (typeof url === 'string' && url.includes('/games')) {
       throw new Error(`Forbidden games request: ${url}`);
     }
+    if (typeof url === 'string' && url.includes('/roles/preview-script')) {
+      throw new Error(`Forbidden local preview request: ${url}`);
+    }
   };
   return {
     default: {
