@@ -4,7 +4,7 @@
 
 ## What is YourWolf?
 
-YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. The current web app supports custom roles and guided game sessions through a FastAPI backend. A pure TypeScript game engine exists for offline play, but the frontend does not use it until Phase 04b. Native apps, voice narration, and cloud features remain planned.
+YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. The current web app uses a pure TypeScript engine for game sessions, night scripts, phase transitions, and narrator previews. Role browsing, draft validation, and role persistence still use the FastAPI backend. Native apps, voice narration, and cloud features remain planned.
 
 ### The Problem
 
@@ -17,7 +17,8 @@ YourWolf handles the complexity so you can focus on playing:
 - **Game Facilitation**: Automated night scripts, role wake-order management, and discussion timers
 - **Role Builder**: Create custom roles by composing abilities from a library of 15 primitives
 - **Wake Order Review**: Drag-to-reorder roles within wake groups before starting a game
-- **Client Engine**: Verified pure TypeScript narration, setup validation, and phase-state logic, pending Phase 04b integration
+- **Client Engine**: Pure TypeScript narration, setup validation, phase-state logic, and narrator previews
+- **Refresh Recovery**: Per-tab game snapshots in `sessionStorage` preserve the current phase across navigation and reloads
 
 ### Planned (Future Phases)
 
@@ -66,11 +67,13 @@ yourwolf-monorepo/
 │   └── tests/            Pytest suite (SQLite in-memory, 80% coverage threshold)
 ├── yourwolf-frontend/    React 18, TypeScript, Vite
 │   ├── src/api/          Axios API clients
+│   ├── src/adapters/     Transport and draft adapters for the engine
 │   ├── src/components/   Reusable UI components
 │   ├── src/domain/       Pure game rules — no React, no API (Phase 04 engine contract)
 │   ├── src/engine/       Pure narration, setup validation, and session state machine
 │   ├── src/hooks/        Custom React hooks
 │   ├── src/pages/        Route-level page components
+│   ├── src/storage/      Per-tab game snapshot persistence
 │   ├── src/types/        Transport DTOs and router state types
 │   ├── src/utils/        Formatting and sorting helpers
 │   └── src/test/         Vitest suite (jsdom, 80% coverage threshold; mirrors src/)
@@ -103,7 +106,7 @@ yourwolf-monorepo/
 | [3.5](docs/phases/PHASE_3.5/) | Narrator Preview Fixes | Complete |
 | [3.6](docs/phases/PHASE_3.6/) | Wake Order Resolution | Complete |
 | [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | Complete |
-| 04b | Engine Frontend Integration | Planned |
+| [04b](docs/phases/PHASE_04B/) | Engine Frontend Integration | In Progress |
 | [05](docs/phases/PHASE_05/) | Local Data Layer (SQLite) | Planned |
 | [06](docs/phases/PHASE_06/) | Desktop App (Tauri v2) | Planned |
 | [07](docs/phases/PHASE_07/) | Narration Engine (TTS) | Planned |

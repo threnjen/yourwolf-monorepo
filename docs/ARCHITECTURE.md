@@ -2,29 +2,19 @@
 
 ## System Overview
 
-YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The project is transitioning from a server-dependent web app to an offline-first desktop/mobile app.
+YourWolf is a monorepo containing a React frontend and a FastAPI backend, connected via Docker Compose for local development. The frontend runs game sessions and narrator previews locally. It still uses the backend for the role catalog, selected-role details, draft validation, role persistence, and abilities.
 
-**Current state (Phase 04a):** The frontend calls the backend for creating games, generating night scripts, managing phases, and previewing role scripts. A pure TypeScript engine implements those core rules under `src/engine/`, but it has no application callers.
-
-**Phase 04b target:** The frontend calls the TypeScript engine for game flow and narrator preview. Role and ability data remain backend-dependent until the local data layer arrives in Phase 05.
+**Current state (Phase 04b):** `src/engine/` creates and advances games, validates setup, generates night scripts, and builds narrator previews. A validated `sessionStorage` snapshot preserves each in-progress game within its browser tab. Phase 04b remains in progress while manual browser QA is pending.
 
 ```mermaid
-%% Current Phase 04a boundaries and the planned integration path.
-flowchart TD
-    subgraph Current["Current Architecture (Phase 04a)"]
-        FE1[React Frontend<br>Port 3000] -->|REST API| BE1[FastAPI Backend<br>Port 8000]
-        BE1 --> DB1[(PostgreSQL<br>Port 5432)]
-        FE1 -.->|No callers yet| ENG1[Game Engine<br>Pure TypeScript]
-    end
-
-    subgraph Target["Integration Target (Phase 04b)"]
-        FE2[React Frontend<br>+ TS Game Engine] -->|Local calls| ENG[Game Engine<br>Pure TypeScript]
-        FE2 -.->|Role and ability APIs<br>until Phase 05| BE2[FastAPI Backend]
-        BE2 --> DB2[(PostgreSQL)]
-        ENG --> MEM[In-Memory State]
-        MEM -.->|Phase 05| SQLite[(Local SQLite)]
-        FE2 -.->|Phase 06| TAURI[Tauri v2 Shell]
-    end
+%% Current Phase 04b runtime boundaries.
+flowchart LR
+    FE[React Frontend<br>Port 3000] -->|Local game and preview calls| ENG[Game Engine<br>Pure TypeScript]
+    FE -->|Read and write snapshots| STORE[(Browser sessionStorage)]
+    FE -->|Role, validation, and ability APIs| BE[FastAPI Backend<br>Port 8000]
+    BE --> DB[(PostgreSQL<br>Port 5432)]
+    STORE -.->|Phase 05 replacement| SQLite[(Local SQLite)]
+    FE -.->|Phase 06 shell| TAURI[Tauri v2]
 ```
 
 ## Component Diagram
@@ -37,8 +27,10 @@ flowchart LR
         Pages["Pages<br>HomePage, RolesPage, GameSetup,<br>WakeOrderResolution,<br>GameFacilitator, RoleBuilder"]
         Components["Components<br>Layout, Header, Sidebar,<br>ScriptReader, Timer, RoleCard,<br>ErrorBanner, RoleBuilder/"]
         Hooks["Hooks<br>useGame, useNightScript,<br>useGameSetup, useRoles,<br>useAbilities, useNameCheck, useFetch"]
-        API["API Clients<br>client.ts, games.ts,<br>roles.ts, abilities.ts,<br>errors.ts"]
-        Types["Types<br>game.ts, transport.ts,<br>routerState.ts"]
+        API["API Clients<br>client.ts, roles.ts,<br>abilities.ts, errors.ts"]
+        Adapters["Adapters<br>role_adapters.ts"]
+        Storage["Storage<br>game_session_storage.ts"]
+        Types["Types<br>game.ts, transport.ts,<br>routerState.ts plus guard"]
         Domain["Domain (pure TS)<br>teams, constants, roleDraft,<br>roleSelection, abilitySteps,<br>wakeOrder"]
         Engine["Engine (pure TS)<br>types, templates, narration,<br>setup validation, game session"]
         Styles["Styles<br>theme.ts, shared.ts"]
@@ -46,9 +38,19 @@ flowchart LR
         Pages --> Components
         Pages --> Hooks
         Hooks --> API
+        Pages --> API
+        Pages --> Adapters
+        Pages --> Engine
+        Pages --> Storage
+        Hooks --> Engine
+        Hooks --> Storage
         Pages --> Types
         Components --> Types
         API --> Types
+        Adapters --> Engine
+        Adapters --> Domain
+        Storage --> Engine
+        Storage --> Domain
         Pages --> Domain
         Components --> Domain
         Types --> Domain
@@ -179,7 +181,7 @@ Dependencies point inward: transport types may depend on domain types, never the
 
 ### Client Engine
 
-`src/engine/` contains framework-free game logic with no application callers:
+`src/engine/` contains framework-free game logic used by the application:
 
 - `types.ts` defines immutable role, ability-step, narration, and preview contracts.
 - `templates.ts` implements the 15 ability instructions, wake instructions, and step durations.
@@ -187,18 +189,22 @@ Dependencies point inward: transport types may depend on domain types, never the
 - `gameSetupValidation.ts` validates card counts, primary teams, dependencies, and custom wake sequences.
 - `gameSession.ts` creates immutable sessions and applies `startGame()` and `advancePhase()` transitions.
 
-The narration port reproduces the Python templates and fixture-covered output. It deliberately differs where Python depends on incidental database order: equal wake orders sort by role name. The session engine also rejects `advancePhase()` during setup, while the backend permits that transition. Phase 04b owns transport adapters and application call-site integration.
+The narration port reproduces the Python templates and fixture-covered output. It deliberately differs where Python depends on incidental database order: equal wake orders sort by role name. The session engine also rejects `advancePhase()` during setup, while the backend permits that transition.
+
+`src/adapters/role_adapters.ts` isolates wire and draft shapes from engine inputs. The wake-order page merges role-list metadata with per-role details before creating a session. RoleBuilder converts its draft through the same boundary before building a preview.
+
+`src/storage/game_session_storage.ts` stores each engine session with its adapted role snapshot under `yourwolf:game:{id}`. Reads validate the parsed session, roles, and key match. Missing or malformed data produces the facilitator's missing-game state.
 
 ### Data Flow
 
-1. **API Client** (`api/client.ts`): Axios instance pointing at `VITE_API_URL/api/v1`
-2. **Resource Clients** (`api/games.ts`, `api/roles.ts`, `api/abilities.ts`): Typed wrappers around API endpoints
-3. **Error Adapter** (`api/errors.ts`): Reads FastAPI 422 detail arrays and domain-error string details into displayable messages
-4. **Hooks** (`hooks/`): React hooks that call API clients and manage loading/error state via `useFetch`
-5. **Domain** (`domain/`): Pure rule functions consumed by pages and components
-6. **Pages**: Consume hooks and domain rules, render components, handle user actions
+1. **Resource clients** (`api/roles.ts`, `api/abilities.ts`) fetch role metadata, selected-role details, validation, save results, and abilities.
+2. **Adapters** (`adapters/role_adapters.ts`) convert role transport data and editable drafts into engine inputs.
+3. **Engine** (`engine/`) validates setup, creates sessions, builds scripts and previews, and advances phases.
+4. **Snapshot store** (`storage/game_session_storage.ts`) persists the session and adapted roles together in `sessionStorage`.
+5. **Hooks** (`hooks/useGame.ts`) read snapshots and rebuild night scripts locally.
+6. **Pages** render the local session and write each successful start or advance before re-rendering.
 
-`engine/` is outside the active application flow until Phase 04b replaces the backend-dependent game and preview calls.
+The role catalog and role editor remain server-backed. RoleBuilder builds its preview locally but continues to call `/roles/validate` and `/roles` for validation and save.
 
 ### Styling
 
@@ -207,34 +213,32 @@ Inline styles with a centralized theme object (`styles/theme.ts`). Dark theme wi
 ## Game Flow
 
 ```mermaid
-%% Current backend-dependent game flow through all game phases.
+%% Current local game flow through all persisted phases.
 flowchart TD
     A[Select Roles<br>GameSetup] --> B[Review Wake Order<br>WakeOrderResolution]
-    B --> C[Create Game<br>gamesApi.create]
-    C --> D[Setup Phase<br>Distribute cards]
-    D --> E[Night Phase<br>ScriptReader narrates]
-    E --> F[Discussion Phase<br>Timer countdown]
-    F --> G[Voting Phase<br>Point and count]
-    G --> H[Resolution Phase<br>Flip cards]
-    H --> I[Complete<br>Game over]
-    I --> A
+    B --> C[Fetch selected role details<br>rolesApi.getById]
+    C --> D[Create engine session<br>and save snapshot]
+    D --> E[Setup Phase<br>Distribute cards]
+    E --> F[Night Phase<br>Local ScriptReader]
+    F --> G[Discussion Phase<br>Timer countdown]
+    G --> H[Voting Phase<br>Point and count]
+    H --> I[Resolution Phase<br>Flip cards]
+    I --> J[Complete<br>Game over]
+    J --> A
 ```
 
 ### Night Script Generation
 
-The active application path remains split across two backend layers:
+The active application path uses `src/engine/narration.ts`:
 
-`ScriptService` (impure — DB and adaptation):
-1. Filters game roles to those with `wake_order > 0`
-2. Sorts by wake order (custom sequence overrides default)
-3. Adapts each ORM `Role` into a `RoleScriptInput`
+1. `WakeOrderResolution` stores adapted roles and the chosen custom wake sequence with the session.
+2. `useNightScript` loads that snapshot and calls `buildNightScript()`.
+3. The engine emits each waking role's wake instruction, ordered ability steps, and close-eyes instruction.
+4. The engine wraps the role actions with opening and closing narration and assigns durations.
 
-`app/services/narration/` (pure — no DB):
-4. For each role: wake instruction → ability step instructions → close eyes
-5. Wraps with opening ("close your eyes") and closing ("open your eyes") narration
-6. Assigns each action a duration from `STEP_DURATIONS` by ability type
+RoleBuilder calls `buildPreview()` over an adapted draft after the same one-second debounce used for server validation. The frontend never calls `/api/v1/roles/preview-script`.
 
-The TypeScript engine implements the same narration pipeline independently under `src/engine/narration.ts`. Its committed fixtures cover the 30 seed roles and previews. Default wake-order ties use deterministic role-name ordering instead of Python's incidental database row order.
+The backend narration package remains the reference implementation and supports backend `/games` routes for future cloud use. Committed TypeScript fixtures cover the 30 seed roles and previews. Default wake-order ties use deterministic role-name ordering instead of Python's incidental database row order.
 
 **Narrator copy is frozen.** Both implementations retain the known pluralization inconsistency where `thumbs_up` renders `team.werewolf` as "Werewolfs" while the wake instruction says "Werewolves". Changing copy requires one deliberate update across both implementations and their tests.
 
@@ -251,7 +255,7 @@ Frontend tests use **jsdom** with `@testing-library/react` and mock Axios via `v
 
 ## Key Design Decisions
 
-- **Offline-first target**: The core game will run without internet after engine integration and the local data layer. The backend remains for cloud features starting in Phase 09.
+- **Offline-first target**: A stored game runs without internet. Role discovery and selected-role detail loading remain server-dependent until the local data layer arrives in Phase 05.
 - **Ability composition**: Roles are built from 15 atomic ability primitives with AND/OR/IF sequencing, not hardcoded behaviors.
 - **Purity at the engine boundary**: `app/services/narration/`, `src/domain/`, and `src/engine/` stay free of framework, ORM, and transport dependencies. Python uses dataclass-only narration inputs. TypeScript uses ESLint import boundaries.
 - **Lazy configuration**: Settings, engine, and session factory are cached accessors rather than import-time globals, so importing a module has no side effects and tests need no import-order choreography.

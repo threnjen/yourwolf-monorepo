@@ -11,11 +11,11 @@ After the role list and selected role details load, creating and facilitating a 
 
 ## Problem
 
-The app cannot run a game without a network connection. Six places in the frontend still call the Python backend: game creation, loading a game, loading its night script, starting it, advancing its phase, and the narrator preview. Phase 04a delivered the local logic, but a facilitator with no connection still gets an error at "Start Game". A separate sharp edge: refreshing the facilitator page today reloads the game from the server, and with an in-memory engine that path would lose the game entirely.
+The six game-flow and preview operations run locally in the frontend. The remaining phase gap is manual browser evidence that a stored game completes with the backend stopped and no `/games` request. Every row in `PHASE_04B_QA.md` remains pending.
 
 ## Objective
 
-Route those six call sites through the engine, persist the in-progress game in session storage so navigation and refresh both work, and prove the full game flow end to end without a game request leaving the browser.
+Run those six call sites through the engine. Persist the in-progress game in session storage so navigation and refresh both work. Record end-to-end browser proof that no game request leaves the browser.
 
 ## Scope
 
@@ -52,13 +52,13 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 ## Technical Context
 
-- **Call sites**: `src/pages/WakeOrderResolution.tsx:122` (create), `src/hooks/useGame.ts:14` (load) and `:43` (script), `src/pages/GameFacilitator.tsx:211` (advance) and `:222` (start), `src/pages/RoleBuilder.tsx:39` (preview).
+- **Call sites**: `src/pages/WakeOrderResolution.tsx` creates and stores the session. `src/hooks/useGame.ts` loads sessions and builds scripts. `src/pages/GameFacilitator.tsx` starts and advances sessions. `src/pages/RoleBuilder.tsx` builds previews.
 - **Engine surface**: `createGameSession`, `startGame`, `advancePhase` in `src/engine/gameSession.ts`; `buildNightScript`, `buildPreview`, `totalDurationSeconds` in `src/engine/narration.ts`; input types in `src/engine/types.ts`. `createGameSession` takes an injected id generator, so the adapter layer supplies `crypto.randomUUID`.
 - **Data gap**: `RoleListItem` in `src/types/transport.ts` omits `ability_steps` and `wake_target` by backend design but carries `min_count`, `max_count`, `is_primary_team_role`, and `dependencies`. `GET /roles/{id}` returns the steps and wake target. The adapter merges the two per role.
 - **Import boundary**: `eslint.config.js` forbids `src/engine` and `src/domain` from importing `types`, `api`, `hooks`, `components`, or `pages`. Adapters live outside both and may import from all of them.
-- **Existing handoff**: `useGameSetup` builds a `WakeOrderRouterState` and `GameSetup.tsx:108` navigates with it. The consumer casts `location.state` with no runtime check.
+- **Router handoff**: `useGameSetup` builds a `WakeOrderRouterState`. `isWakeOrderRouterState()` validates the untrusted route value before `WakeOrderResolution` reads it.
 - **Facilitator consumption**: the facilitator reads `phase`, `player_count`, `center_card_count`, `discussion_timer_seconds`, all present on the engine session. `ScriptReader` reads only `script.actions`.
-- **Tests**: page and hook tests mock `../../api/games` with `vi.mock`. Those mocks go away with the client. `src/test/mocks.ts` holds `createMockGameSession` and `createMockNightScript` built on the server shapes.
+- **Tests**: page and hook tests exercise the engine and storage boundaries. The shared Axios replacement rejects every `/games` and `/roles/preview-script` request.
 - **Learnings to honor**: an optional TypeScript property does not model a runtime null, so the adapters need null-input tests. Keep the Phase 3.6 shuffle at page level and never expect the engine default to shuffle.
 
 ## Edge Cases & Failure Modes
@@ -124,12 +124,11 @@ Automated evidence is recorded in `dev/test-results/04-offline-flow-integration/
 
 ## Notes for Phase - Execute
 
-Suggested decomposition: **(1)** adapters, store, and role detail fetch → **(2)** local game flow and games client deletion → **(3)** local narrator preview.
+Implemented decomposition: **(1)** adapters, store, and role detail fetch → **(2)** local game flow and games client deletion → **(3)** local narrator preview → **(4)** combined-flow verification and manual checklist.
 
-- Feature 1 lands first and is pure enough to test without React. It owns the null-handling tests.
-- No-games-request guard. Suggested implementation shape, to be verified by Phase - Execute against current code and tests: the app uses axios, not `fetch`, and `src/test/setup.ts` already replaces axios with stub methods. Make those stub `get` and `post` methods throw on any `/games` path, so every page and hook test enforces the criterion without a dedicated test.
-- Feature 2 owns the router state guard, the parallel detail fetch on Start Game, the store reads in the hooks, and the deletion. Keep the facilitator's phase views unchanged and swap only the data source.
-- Feature 3 is independent of feature 2 and small. Keep `rolesApi.validate` as is.
-- Feature 4 verifies the combined route graph, records automated evidence, and keeps manual checks pending until a browser-capable runner executes them.
+- Feature 1 owns the pure adapters, validated store, detail client, and null-handling tests.
+- `src/test/setup.ts` rejects all Axios methods for `/games` and `/roles/preview-script` paths.
+- Feature 2 owns the router state guard, parallel detail fetch, local hooks, facilitator transitions, and games-client deletion.
+- Feature 3 keeps `rolesApi.validate` server-backed and builds previews locally.
+- Feature 4 records the combined automated evidence and keeps manual checks pending until a browser-capable runner executes them.
 - Do not touch `src/engine/` or `src/domain/`. Where an adapter needs a guard the engine lacks, put it in the adapter and test it there.
-- Land as one pull request.

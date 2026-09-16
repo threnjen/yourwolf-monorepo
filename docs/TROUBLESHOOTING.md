@@ -134,7 +134,7 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 
 **Fix**: Wrap the fetcher in `useCallback`:
 ```tsx
-const fetcher = useCallback(() => gamesApi.getById(gameId), [gameId]);
+const fetcher = useCallback(() => rolesApi.list({limit: 100}), []);
 const {data, loading, error, refetch} = useFetch(fetcher);
 ```
 
@@ -242,11 +242,13 @@ raise DomainValidationError("Role must have at least one win condition.")
 
 **Cause**: The global Axios mock in `src/test/setup.ts` mocks `axios.create()` but tests may import the already-created `apiClient` instance.
 
-**Fix**: Mock the specific API module, not axios directly. Note that `src/test/` mirrors the source tree, so the relative depth depends on where the test file sits — from `src/test/pages/GameSetup.test.tsx` the path is `../../api/games`, not `../api/games`:
+**Fix**: Mock the specific API module, not axios directly. Note that `src/test/` mirrors the source tree, so the relative depth depends on where the test file sits. From `src/test/pages/GameSetup.test.tsx`, the roles client path is `../../api/roles`, not `../api/roles`:
 ```tsx
-vi.mock('../../api/games');
-const mockCreate = gamesApi.create as ReturnType<typeof vi.fn>;
+vi.mock('../../api/roles');
+const mockList = rolesApi.list as ReturnType<typeof vi.fn>;
 ```
+
+Game creation and phase transitions use the TypeScript engine and `src/storage/game_session_storage.ts`. Tests for those paths mock `sessionStorage` or the storage module, not an API client.
 
 ---
 

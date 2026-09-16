@@ -1,6 +1,6 @@
 # Codebase Context
 
-> Dense reference for AI agents. Current phase: 04a complete; 04b planned.
+> Dense reference for AI agents. Current phase: 04b implementation complete; manual QA pending.
 
 ## Project
 
@@ -131,10 +131,11 @@ yourwolf-frontend/
 │   ├── routes.tsx           # React Router v6 route definitions
 │   ├── api/                 # Axios clients
 │   │   ├── client.ts        # Axios instance (baseURL: VITE_API_URL/api/v1)
-│   │   ├── games.ts         # gamesApi: create, getById, start, advancePhase, getNightScript, delete
-│   │   ├── roles.ts         # rolesApi: list, create, validate, previewScript, checkName
+│   │   ├── roles.ts         # rolesApi: list, getById, create, validate, checkName
 │   │   ├── errors.ts        # Reads FastAPI 422 detail arrays and domain-error string details
 │   │   └── abilities.ts     # abilitiesApi: list
+│   ├── adapters/
+│   │   └── role_adapters.ts # Role list/detail and draft shapes → engine inputs
 │   ├── hooks/
 │   │   ├── useFetch.ts      # Generic fetch hook (callers MUST wrap fetcher in useCallback)
 │   │   ├── useGame.ts       # useGame(gameId), useNightScript(gameId, enabled)
@@ -147,8 +148,8 @@ yourwolf-frontend/
 │   │   ├── RolesPage.tsx
 │   │   ├── RoleBuilder.tsx          # Wizard-based role creation, live validation + preview
 │   │   ├── GameSetup.tsx            # Role selection grid, player/center count config
-│   │   ├── WakeOrderResolution.tsx  # Drag-to-reorder (@dnd-kit), calls gamesApi.create()
-│   │   └── GameFacilitator.tsx      # Phase-based game runner, sub-components per phase
+│   │   ├── WakeOrderResolution.tsx  # Drag-to-reorder, fetch details, create/store local session
+│   │   └── GameFacilitator.tsx      # Local phase runner backed by stored snapshots
 │   ├── components/
 │   │   ├── Layout.tsx, Header.tsx, Sidebar.tsx
 │   │   ├── ScriptReader.tsx         # Step-through night script with progress bar
@@ -167,16 +168,18 @@ yourwolf-frontend/
 │   │   ├── abilitySteps.ts  # append/remove/move/renumber steps, parameter coercion
 │   │   └── wakeOrder.ts     # collectWakingRoles, buildGroupOrders, flattenWakeOrder,
 │   │                        # expandRoleIds, shuffleArray(rng injectable)
-│   ├── engine/              # Pure TypeScript engine; no application callers until Phase 04b
+│   ├── engine/              # Pure TypeScript engine used by game flow and role preview
 │   │   ├── types.ts         # Immutable engine input/output contracts
 │   │   ├── templates.ts     # 15 ability templates, wake instructions, durations
 │   │   ├── narration.ts     # Script/preview builders and deterministic wake sorting
 │   │   ├── gameSetupValidation.ts # Setup rules and dependency warnings
 │   │   └── gameSession.ts   # Immutable create/start/advance phase state machine
 │   ├── types/
-│   │   ├── game.ts          # GameSession, GamePhase, NarratorAction, NightScript, GameSessionCreate
+│   │   ├── game.ts          # NarratorAction and NightScript UI contracts
 │   │   ├── transport.ts     # Wire DTOs: Role, AbilityStep, Visibility, ValidationResult, NameCheckResult, NarratorPreviewAction/Response
-│   │   └── routerState.ts   # Typed router-state contracts
+│   │   └── routerState.ts   # Typed router-state contract plus runtime guard
+│   ├── storage/
+│   │   └── game_session_storage.ts # Validated sessionStorage snapshots keyed by game id
 │   ├── styles/
 │   │   ├── theme.ts         # Dark theme object (colors, spacing, borderRadius, shadows)
 │   │   └── shared.ts        # Reusable style functions
@@ -204,7 +207,7 @@ yourwolf-frontend/
 
 ## Client Engine
 
-- `src/engine/` is implemented but has no application callers. Phase 04b owns adapters and replacement of backend API calls.
+- `src/engine/` drives game creation, setup validation, night scripts, narrator previews, and phase transitions.
 - `types.ts` defines `EngineRoleInput`, `EngineAbilityStepInput`, `NarratorAction`, and `NarratorPreviewAction`.
 - `templates.ts` implements all 15 instruction types, wake-target handling, and duration lookup.
 - `narration.ts` exports `sortWakingRoles()`, `buildRoleScript()`, `buildNightScript()`, `buildPreview()`, and `totalDurationSeconds()`.
@@ -214,13 +217,15 @@ yourwolf-frontend/
 - `gameSession.ts` creates immutable in-memory sessions with an injected ID generator.
 - `startGame()` is the only setup-to-night transition. `advancePhase()` rejects setup, unlike the Python backend.
 - Narration templates and fixture-covered outputs match Python. Do not claim complete behavioral identity because wake-order ties and setup advancement differ.
+- `src/adapters/role_adapters.ts` is the transport boundary. It merges role-list metadata with `GET /roles/{id}` details and converts drafts for local preview.
+- `src/storage/game_session_storage.ts` stores a `GameSnapshot` under `yourwolf:game:{id}`. It validates parsed values and returns `null` for missing, malformed, or key-mismatched data.
 
 ## Frontend Key Patterns
 
 - Styling: inline styles with centralized `theme` object, no CSS-in-JS library
 - State: React useState/useCallback hooks, no global state library
-- API calls: Axios with typed wrappers, error interceptor logs in dev
-- Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`; `src/test/` mirrors the source tree (`api/`, `hooks/`, `domain/`, `components/`, `pages/`, `utils/`)
+- API calls: Axios with typed wrappers for roles and abilities; game flow and narrator previews do not use HTTP
+- Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`; the shared mock rejects `/games` and `/roles/preview-script` requests
 - Named exports only (no `export default` — enforced since Phase 2.5)
 - `useFetch` generic hook: wraps fetcher in loading/error/data/refetch pattern
 - Coverage threshold: 80% lines/branches/functions/statements
@@ -231,10 +236,10 @@ yourwolf-frontend/
 |------|---------------|------------------|
 | `/` | HomePage | — |
 | `/roles` | RolesPage | useRoles |
-| `/roles/new` | RoleBuilderPage | rolesApi.validate, rolesApi.previewScript, useAbilities, useNameCheck |
+| `/roles/new` | RoleBuilderPage | local `buildPreview`, rolesApi.validate/create, useAbilities, useNameCheck |
 | `/games/new` | GameSetupPage | useGameSetup, useRoles |
-| `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, gamesApi.create |
-| `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, gamesApi.start/advancePhase |
+| `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, rolesApi.getById, engine adapters, session store |
+| `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, engine phase functions, session store |
 
 ## Seed Data
 
@@ -258,8 +263,8 @@ yourwolf-frontend/
 
 - Phases 01–3.6 are complete.
 - Phase 04a is complete. Test health and mutation-tested guards verify coverage, output shape, injected identity, and deep input immutability.
-- Phase 04b is planned. It owns transport adapters, six game/preview call-site replacements, refresh behavior, and end-to-end manual QA.
-- The live frontend still calls the backend for game creation, phase transitions, night scripts, and narrator previews.
+- Phase 04b is in progress. Its implementation is complete, and every manual browser-QA row remains pending.
+- The live frontend runs game creation, phase transitions, night scripts, and narrator previews locally. It uses the backend for role lists, selected-role details, draft validation, role save, and abilities.
 - After Phase 04b: local SQLite (05), Tauri desktop (06), TTS narration (07), mobile (08), then cloud features (09–13).
 
 ## Do Not
@@ -271,6 +276,8 @@ yourwolf-frontend/
 - Do NOT modify the Python backend for Phase 04 work — it stays as-is for future cloud use
 - Do NOT add DOM/Node/React dependencies to `src/engine/` (Phase 04) — must be pure TypeScript
 - Do NOT import transport DTOs from `src/engine/` — Phase 04b adapters belong outside the engine.
+- Do NOT add a frontend games API client or call `/api/v1/games` from the application flow — use the engine and game snapshot store.
+- Do NOT call `/api/v1/roles/preview-script` from RoleBuilder — build previews locally and keep `/roles/validate` server-backed.
 - Do NOT describe the TypeScript engine as fully identical to Python — deterministic wake-order ties and setup-advance rejection are deliberate differences.
 - Do NOT skip `_ensure_abilities()` in backend tests that need ability data — tests use fresh SQLite per function
 - Do NOT hardcode `localhost` URLs — use `VITE_API_URL` env var via `import.meta.env`

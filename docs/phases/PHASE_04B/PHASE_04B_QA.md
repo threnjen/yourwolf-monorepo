@@ -1,8 +1,8 @@
 # QA Plan: PHASE_04B
 
-**Status:** Pending manual execution  
-**Scope:** Local game creation, session refresh, offline phase transitions, deterministic night narration, setup warnings, missing-game recovery, and local narrator preview.  
-**Environment:** Frontend at `http://localhost:3000` and backend at `http://localhost:8000` unless a check explicitly stops the backend.  
+**Status:** Pending manual execution
+**Scope:** Local game creation, session refresh, offline phase transitions, deterministic night narration, setup warnings, missing-game recovery, and local narrator preview.
+**Environment:** Frontend at `http://localhost:3000` and backend at `http://localhost:8000` unless a check explicitly stops the backend.
 **Prerequisites:** Seed roles loaded. Use the browser's DevTools Network panel with **Preserve log** enabled. Do not copy credentials or private data into evidence.
 
 ## Automated Evidence
