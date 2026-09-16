@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="1" failures="0" errors="0" time="1.089">
+    <testsuite name="src/test/integration/phase_05a_smoke.test.tsx" timestamp="2026-09-16T18:53:07.915Z" hostname="Jennys-MacBook-Air.local" tests="1" failures="0" errors="0" skipped="0" time="0.204011167">
+        <testcase classname="src/test/integration/phase_05a_smoke.test.tsx" name="Phase 05A application smoke flow &gt; completes a seeded game through one repository provider without API traffic" time="0.203393833">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+    </testsuite>
+</testsuites>

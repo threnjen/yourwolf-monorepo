@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="5" failures="3" errors="0" time="1.623">
+    <testsuite name="src/test/context/repository_context.test.tsx" timestamp="2026-09-16T17:38:38.601Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="3" errors="0" skipped="0" time="0.051250125">
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; bootstraps repositories before exposing them to children" time="0.031073125">
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; surfaces the original bootstrap failure" time="0.005839583">
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; closes an owned repository once after bootstrap failure and unmount" time="0.00610175">
+            <failure message="expected &quot;spy&quot; to be called 1 times, but got 2 times" type="AssertionError">
+AssertionError: expected &quot;spy&quot; to be called 1 times, but got 2 times
+ ❯ src/test/context/repository_context.test.tsx:86:32
+            </failure>
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; closes an owned repository once when unmounted during bootstrap" time="0.005821292">
+            <failure message="expected &quot;spy&quot; to be called 1 times, but got 2 times" type="AssertionError">
+AssertionError: expected &quot;spy&quot; to be called 1 times, but got 2 times
+ ❯ src/test/context/repository_context.test.tsx:116:32
+            </failure>
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; deletes an isolated test database when opening the repository fails" time="0.001729875">
+            <failure message="expected &quot;deleteDatabase&quot; to be called with arguments: [ StringMatching /^yourwolf-test-/ ]
+
+Received: 
+
+
+
+Number of calls: 0
+" type="AssertionError">
+AssertionError: expected &quot;deleteDatabase&quot; to be called with arguments: [ StringMatching /^yourwolf-test-/ ]
+
+Received: 
+
+
+
+Number of calls: 0
+
+ ❯ src/test/context/repository_context.test.tsx:124:28
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

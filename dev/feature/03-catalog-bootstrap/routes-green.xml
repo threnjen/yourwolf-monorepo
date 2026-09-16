@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.599">
+    <testsuite name="src/test/routes.test.tsx" timestamp="2026-09-16T17:22:46.725Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.054638542">
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a games request through any HTTP method" time="0.000891792">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a catalog read through HTTP" time="0.000315667">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; home route &gt; renders Home page at &quot;/&quot; path" time="0.025314083">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; roles route &gt; renders Roles page at &quot;/roles&quot; path" time="0.0140135">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; role builder route &gt; renders RoleBuilder page at &quot;/roles/new&quot; path" time="0.007200875">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; renders WakeOrderResolution page at &quot;/games/new/wake-order&quot; path with state" time="0.001431292">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; redirects to /games/new when accessed without state" time="0.0049015">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="9" failures="0" errors="0" time="1.972">
+    <testsuite name="src/test/hooks/useAbilities.test.tsx" timestamp="2026-09-16T17:39:56.425Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.172972083">
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; starts with loading true while the repository read is pending" time="0.007322625">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; returns the complete offline ability catalog" time="0.054841">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; preserves repository errors and the existing fallback for non-Error failures" time="0.110243791">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useRoles.test.tsx" timestamp="2026-09-16T17:39:56.426Z" hostname="Jennys-MacBook-Air.local" tests="6" failures="0" errors="0" skipped="0" time="0.345653541">
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; starts with loading true while the repository read is pending" time="0.008120792">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the roles matching every requested visibility" time="0.054906042">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the complete unfiltered catalog without arguments" time="0.054328875">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; refetches when visibility changes and when explicitly requested" time="0.055955417">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; sets loading during a pending refetch and clears the previous error after success" time="0.060164916">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; propagates Error and non-Error repository failures" time="0.11103">
+        </testcase>
+    </testsuite>
+</testsuites>

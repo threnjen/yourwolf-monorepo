@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="46" failures="2" errors="0" time="1.09">
+    <testsuite name="src/test/App.test.tsx" timestamp="2026-09-16T17:22:12.724Z" hostname="Jennys-MacBook-Air.local" tests="1" failures="0" errors="0" skipped="0" time="0.036781459">
+        <testcase classname="src/test/App.test.tsx" name="App &gt; rendering &gt; renders without crashing" time="0.03587575">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/routes.test.tsx" timestamp="2026-09-16T17:22:12.724Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="2" errors="0" skipped="0" time="0.08160825">
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a games request through any HTTP method" time="0.001048208">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a catalog read through HTTP" time="0.000329667">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; home route &gt; renders Home page at &quot;/&quot; path" time="0.038776042">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; roles route &gt; renders Roles page at &quot;/roles&quot; path" time="0.021091625">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; role builder route &gt; renders RoleBuilder page at &quot;/roles/new&quot; path" time="0.00935675">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; renders WakeOrderResolution page at &quot;/games/new/wake-order&quot; path with state" time="0.009032125">
+            <system-err>
+Error: Uncaught [Error: useRepositories must be used within RepositoryProvider]
+    at reportException (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/helpers/runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:353:9)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4213:16)
+    at invokeGuardedCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4277:31)
+    at beginWork$1 (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:27490:7)
+    at performUnitOfWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12) Error: useRepositories must be used within RepositoryProvider
+    at Module.useRepositories (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/context/repository_context.tsx:83:11)
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:26)
+    at renderWithHooks (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventListener.js:26:30)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:350:25)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useRepositories must be used within RepositoryProvider]
+    at reportException (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/helpers/runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:353:9)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4213:16)
+    at invokeGuardedCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4277:31)
+    at beginWork$1 (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:27490:7)
+    at performUnitOfWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12) Error: useRepositories must be used within RepositoryProvider
+    at Module.useRepositories (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/context/repository_context.tsx:83:11)
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:26)
+    at renderWithHooks (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventListener.js:26:30)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:350:25)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+The above error occurred in the &lt;WakeOrderResolutionPage&gt; component:
+
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:42)
+    at RenderedRoute (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:539:7)
+    at Routes (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1273:7)
+    at AppRoutes
+    at Router (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+            </system-err>
+            <failure message="useRepositories must be used within RepositoryProvider" type="Error">
+Error: useRepositories must be used within RepositoryProvider
+ ❯ Module.useRepositories src/context/repository_context.tsx:83:11
+ ❯ WakeOrderResolutionPage src/pages/WakeOrderResolution.tsx:69:26
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:15486:18
+ ❯ mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:20103:13
+ ❯ beginWork node_modules/react-dom/cjs/react-dom.development.js:21626:16
+ ❯ beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:27465:14
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:26599:12
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom.development.js:26505:5
+ ❯ renderRootSync node_modules/react-dom/cjs/react-dom.development.js:26473:7
+ ❯ recoverFromConcurrentError node_modules/react-dom/cjs/react-dom.development.js:25889:20
+            </failure>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; redirects to /games/new when accessed without state" time="0.00132125">
+            <system-err>
+Error: Uncaught [Error: useRepositories must be used within RepositoryProvider]
+    at reportException (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/helpers/runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:353:9)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4213:16)
+    at invokeGuardedCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4277:31)
+    at beginWork$1 (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:27490:7)
+    at performUnitOfWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12) Error: useRepositories must be used within RepositoryProvider
+    at Module.useRepositories (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/context/repository_context.tsx:83:11)
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:26)
+    at renderWithHooks (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventListener.js:26:30)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:350:25)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useRepositories must be used within RepositoryProvider]
+    at reportException (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/helpers/runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:353:9)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4213:16)
+    at invokeGuardedCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4277:31)
+    at beginWork$1 (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:27490:7)
+    at performUnitOfWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:26599:12) Error: useRepositories must be used within RepositoryProvider
+    at Module.useRepositories (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/context/repository_context.tsx:83:11)
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:26)
+    at renderWithHooks (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/generated/EventListener.js:26:30)
+    at innerInvokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:350:25)
+    at invokeEventListeners (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:233:9)
+The above error occurred in the &lt;WakeOrderResolutionPage&gt; component:
+
+    at WakeOrderResolutionPage (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/src/pages/WakeOrderResolution.tsx:69:42)
+    at RenderedRoute (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:539:7)
+    at Routes (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1273:7)
+    at AppRoutes
+    at Router (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1207:17)
+    at MemoryRouter (/Users/jennywadkins/github_repos/personal/yourwolf-monorepo/yourwolf-frontend/node_modules/react-router/dist/umd/react-router.development.js:1101:7)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+            </system-err>
+            <failure message="useRepositories must be used within RepositoryProvider" type="Error">
+Error: useRepositories must be used within RepositoryProvider
+ ❯ Module.useRepositories src/context/repository_context.tsx:83:11
+ ❯ WakeOrderResolutionPage src/pages/WakeOrderResolution.tsx:69:26
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:15486:18
+ ❯ mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:20103:13
+ ❯ beginWork node_modules/react-dom/cjs/react-dom.development.js:21626:16
+ ❯ beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:27465:14
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:26599:12
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom.development.js:26505:5
+ ❯ renderRootSync node_modules/react-dom/cjs/react-dom.development.js:26473:7
+ ❯ recoverFromConcurrentError node_modules/react-dom/cjs/react-dom.development.js:25889:20
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/context/repository_context.test.tsx" timestamp="2026-09-16T17:22:12.727Z" hostname="Jennys-MacBook-Air.local" tests="2" failures="0" errors="0" skipped="0" time="0.03151275">
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; bootstraps repositories before exposing them to children" time="0.026065791">
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; surfaces the original bootstrap failure" time="0.004824334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/WakeOrderResolution.test.tsx" timestamp="2026-09-16T17:22:12.727Z" hostname="Jennys-MacBook-Air.local" tests="28" failures="0" errors="0" skipped="0" time="0.219650625">
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects to /games/new when Router state is missing" time="0.0084085">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects malformed router state before reading its fields" time="0.0010735">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects when nested role state is malformed" time="0.00076875">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; accepts a null wake_order from the role-list response" time="0.020238458">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; only shows waking roles (wake_order &gt; 0) as tiles" time="0.01200025">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; deduplicates copies of the same role into one tile" time="0.002845666">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; displays tile with role name and team-colored border" time="0.002139417">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; renders group headers with correct labels for each unique wake_order" time="0.003055458">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; tiles appear within their respective wake order groups" time="0.003407916">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; single-role groups display one tile under their header" time="0.002472583">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; multi-role groups contain all roles with that wake_order" time="0.002330042">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; random shuffle within groups &gt; tiles within a multi-role group are not always in the same order across renders" time="0.040652083">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; &quot;Start Game&quot; is always enabled on page load" time="0.001480125">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; &quot;Start Game&quot; is enabled even when multiple roles share the same wake_order" time="0.001201041">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; does not show conflict warning message" time="0.001195917">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; no waking roles &gt; &quot;Start Game&quot; is enabled immediately when no waking roles selected" time="0.000533708">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; no waking roles &gt; shows message about no waking roles" time="0.000498375">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; page text &gt; shows &quot;Review Wake Order&quot; as page title" time="0.001129791">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; page text &gt; shows correct subtitle text" time="0.001175084">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; starts all distinct detail requests before awaiting their results" time="0.0260375">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; fetches one detail per distinct role, stores the engine session, and navigates" time="0.011010709">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; preserves the page custom sequence within a shared wake group" time="0.010905542">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; retains one waking role in the custom sequence" time="0.009627542">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; retains repeated card ids and flattened custom wake ordering" time="0.010585292">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows one error and re-enables after a detail fetch fails" time="0.010525625">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; passes an empty custom sequence when no waking roles" time="0.009409166">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows an engine validation error and prevents navigation" time="0.012664209">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows a storage write failure and prevents navigation" time="0.0112715">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useAbilities.test.tsx" timestamp="2026-09-16T17:22:12.729Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.171855833">
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; starts with loading true while the repository read is pending" time="0.008181625">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; returns the complete offline ability catalog" time="0.054178458">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; preserves repository errors and the existing fallback for non-Error failures" time="0.108155625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useRoles.test.tsx" timestamp="2026-09-16T17:22:12.729Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.2778225">
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; starts with loading true while the repository read is pending" time="0.008360375">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the roles matching every requested visibility" time="0.053334125">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the complete unfiltered catalog without arguments" time="0.053229291">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; refetches when visibility changes and when explicitly requested" time="0.056665708">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; propagates Error and non-Error repository failures" time="0.105578792">
+        </testcase>
+    </testsuite>
+</testsuites>

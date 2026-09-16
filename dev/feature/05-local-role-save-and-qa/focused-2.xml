@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="48" failures="0" errors="0" time="1.49">
+    <testsuite name="src/test/routes.test.tsx" timestamp="2026-09-16T18:51:00.904Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.078657875">
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a games request through any HTTP method" time="0.0013395">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a catalog read through HTTP" time="0.0004035">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; home route &gt; renders Home page at &quot;/&quot; path" time="0.035241292">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; roles route &gt; renders Roles page at &quot;/roles&quot; path" time="0.018408">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; role builder route &gt; renders RoleBuilder page at &quot;/roles/new&quot; path" time="0.01166275">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; renders WakeOrderResolution page at &quot;/games/new/wake-order&quot; path with state" time="0.006050334">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; redirects to /games/new when accessed without state" time="0.004692042">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/RoleBuilder.test.tsx" timestamp="2026-09-16T18:51:00.905Z" hostname="Jennys-MacBook-Air.local" tests="12" failures="0" errors="0" skipped="0" time="0.336953333">
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the page heading" time="0.043673417">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the Wizard component" time="0.010140209">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders step indicator with all steps" time="0.061293291">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; navigates to roles listing after successful create" time="0.047987875">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; shows error message when local persistence fails and keeps the draft" time="0.035553917">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; blocks local and server writes for a case-insensitive local name collision" time="0.009495083">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; sets fallback validation when validate call fails" time="0.028357584">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; surfaces the server field message when validate rejects with a 422" time="0.027770542">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders the engine preview after debounce while validation remains server-backed" time="0.01154275">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders only the newest draft after rapid edits within one debounce window" time="0.014079833">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; keeps the newest validation when an older validation resolves late" time="0.03559175">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders an empty preview for a non-waking draft without a preview error state" time="0.010568917">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/Wizard.test.tsx" timestamp="2026-09-16T18:51:00.905Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.424567584">
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows Basic Info step first" time="0.042435917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows step indicator with all 4 steps" time="0.033631292">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; Back button is disabled on step 1" time="0.019363">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is empty" time="0.012579583">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is only whitespace" time="0.025052959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is enabled when name has at least 2 chars" time="0.012738209">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; advances to Abilities step on Next" time="0.019412167">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; navigates through all 4 steps" time="0.029474833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; Back navigation returns to previous step" time="0.0288">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; shows Create Role button on review step instead of Next" time="0.0290685">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking Create Role calls onSave" time="0.027141125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking step indicator navigates to that step (for completed steps)" time="0.024261125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; saving state &gt; Create Role button is disabled while saving" time="0.026619667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is invalid" time="0.026763041">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is null" time="0.024924958">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Basic Info tab" time="0.00496525">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Abilities tab" time="0.014811959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on all 4 tabs when navigated" time="0.021549458">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useNameCheck.test.ts" timestamp="2026-09-16T18:51:00.906Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.019856833">
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for an empty name and does not call the API" time="0.008277584">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a whitespace-only name and does not call the API" time="0.00075675">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a single-character name and does not call the API" time="0.000591917">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; reports checking immediately without calling the API" time="0.001273208">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; calls the API once 500ms have elapsed" time="0.002417708">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; trims the name before sending it to the API" time="0.00085575">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; only issues one request when the name changes rapidly" time="0.001309917">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports available when the name is free" time="0.0010155">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports taken when the name is in use" time="0.000865208">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; falls back to idle when the request fails" time="0.000851375">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; stale-response handling &gt; ignores a resolved response once the name has moved on" time="0.00083475">
+        </testcase>
+    </testsuite>
+</testsuites>

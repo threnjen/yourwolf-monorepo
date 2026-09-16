@@ -1,0 +1,1562 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="700" failures="0" errors="0" time="6.515">
+    <testsuite name="src/test/App.test.tsx" timestamp="2026-09-16T17:25:39.911Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.101962125">
+        <testcase classname="src/test/App.test.tsx" name="App &gt; rendering &gt; renders without crashing" time="0.0466135">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/App.test.tsx" name="App &gt; rendering &gt; keeps the navigation shell visible while bootstrap is pending" time="0.032602083">
+        </testcase>
+        <testcase classname="src/test/App.test.tsx" name="App &gt; rendering &gt; shows the bootstrap failure without rendering catalog routes" time="0.021431833">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/routes.test.tsx" timestamp="2026-09-16T17:25:39.912Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.09488775">
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a games request through any HTTP method" time="0.001192333">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; fails immediately if a test attempts a catalog read through HTTP" time="0.000352416">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; home route &gt; renders Home page at &quot;/&quot; path" time="0.043722542">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; roles route &gt; renders Roles page at &quot;/roles&quot; path" time="0.018414375">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; role builder route &gt; renders RoleBuilder page at &quot;/roles/new&quot; path" time="0.015585875">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; renders WakeOrderResolution page at &quot;/games/new/wake-order&quot; path with state" time="0.002070917">
+        </testcase>
+        <testcase classname="src/test/routes.test.tsx" name="AppRoutes &gt; wake order route &gt; redirects to /games/new when accessed without state" time="0.012796709">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/adapters/role_adapters.test.ts" timestamp="2026-09-16T17:25:39.912Z" hostname="Jennys-MacBook-Air.local" tests="4" failures="0" errors="0" skipped="0" time="0.003041333">
+        <testcase classname="src/test/adapters/role_adapters.test.ts" name="role adapters &gt; merges list metadata and detail fields into engine input" time="0.001798416">
+        </testcase>
+        <testcase classname="src/test/adapters/role_adapters.test.ts" name="role adapters &gt; normalizes absent and runtime-null fields and preserves empty steps" time="0.000161125">
+        </testcase>
+        <testcase classname="src/test/adapters/role_adapters.test.ts" name="role adapters &gt; converts dependencies with the owning role id" time="0.000089125">
+        </testcase>
+        <testcase classname="src/test/adapters/role_adapters.test.ts" name="role adapters &gt; converts drafts for local preview with preview-inert count metadata" time="0.000099167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/api/abilities.api.test.ts" timestamp="2026-09-16T17:25:39.913Z" hostname="Jennys-MacBook-Air.local" tests="2" failures="0" errors="0" skipped="0" time="0.002006417">
+        <testcase classname="src/test/api/abilities.api.test.ts" name="abilitiesApi &gt; list &gt; fetches all abilities" time="0.001358208">
+        </testcase>
+        <testcase classname="src/test/api/abilities.api.test.ts" name="abilitiesApi &gt; list &gt; returns empty array when no abilities" time="0.000103959">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/api/errors.api.test.ts" timestamp="2026-09-16T17:25:39.913Z" hostname="Jennys-MacBook-Air.local" tests="15" failures="0" errors="0" skipped="0" time="0.002531792">
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; reads the message out of a single-item detail array" time="0.000877375">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; reads the message for an over-long name" time="0.000111833">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; reports every entry when several fields fail" time="0.000082292">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; joins nested locations into a dotted path" time="0.000071667">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; falls back to the bare message when loc carries no field" time="0.000065083">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; skips entries that carry no message" time="0.000067542">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; pydantic 422 detail arrays &gt; returns null when the detail array yields no usable message" time="0.000069625">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; domain-error string details &gt; reads a 400 string detail" time="0.00006725">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; domain-error string details &gt; reads a 403 string detail" time="0.000074375">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; domain-error string details &gt; reads a 404 string detail" time="0.0000655">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; domain-error string details &gt; ignores a blank string detail" time="0.0000545">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; errors the caller must handle itself &gt; returns null for a network error with no response" time="0.000060125">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; errors the caller must handle itself &gt; returns null for a 500 with no detail" time="0.000060917">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; errors the caller must handle itself &gt; returns null for an HTML error body" time="0.000055417">
+        </testcase>
+        <testcase classname="src/test/api/errors.api.test.ts" name="extractApiErrorMessages &gt; errors the caller must handle itself &gt; returns null for a non-error value" time="0.000074333">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/api/roles.api.test.ts" timestamp="2026-09-16T17:25:39.913Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.010183125">
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; list &gt; fetches roles without parameters" time="0.00298975">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; list &gt; passes team filter" time="0.000389709">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; list &gt; passes visibility filter as array" time="0.000276667">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; list &gt; passes combined parameters" time="0.000360792">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; list &gt; propagates API errors" time="0.001602959">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; getById &gt; fetches and returns the role detail projection" time="0.000312208">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; validate &gt; posts draft to /roles/validate" time="0.00154025">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; validate &gt; returns validation errors from backend" time="0.00056475">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; checkName &gt; gets /roles/check-name with name param" time="0.00028425">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; checkName &gt; returns available for unique name" time="0.000186584">
+        </testcase>
+        <testcase classname="src/test/api/roles.api.test.ts" name="rolesApi &gt; create &gt; posts draft to /roles" time="0.000231833">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/ErrorBanner.test.tsx" timestamp="2026-09-16T17:25:39.914Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.096318833">
+        <testcase classname="src/test/components/ErrorBanner.test.tsx" name="ErrorBanner &gt; renders the error message" time="0.055214417">
+        </testcase>
+        <testcase classname="src/test/components/ErrorBanner.test.tsx" name="ErrorBanner &gt; has role=&quot;alert&quot;" time="0.022470459">
+        </testcase>
+        <testcase classname="src/test/components/ErrorBanner.test.tsx" name="ErrorBanner &gt; renders dismiss button when onDismiss is provided" time="0.008291083">
+        </testcase>
+        <testcase classname="src/test/components/ErrorBanner.test.tsx" name="ErrorBanner &gt; does not render dismiss button when onDismiss is not provided" time="0.0032705">
+        </testcase>
+        <testcase classname="src/test/components/ErrorBanner.test.tsx" name="ErrorBanner &gt; renders help text when provided" time="0.004896583">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/Header.test.tsx" timestamp="2026-09-16T17:25:39.914Z" hostname="Jennys-MacBook-Air.local" tests="6" failures="0" errors="0" skipped="0" time="0.107726625">
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; rendering &gt; renders header element" time="0.063371208">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; rendering &gt; displays YourWolf branding" time="0.002359208">
+        </testcase>
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; navigation &gt; has link to home page" time="0.005181458">
+        </testcase>
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; hamburger button &gt; renders hamburger button when onToggleSidebar is provided" time="0.007910083">
+        </testcase>
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; hamburger button &gt; does not render hamburger button when onToggleSidebar is not provided" time="0.001415166">
+        </testcase>
+        <testcase classname="src/test/components/Header.test.tsx" name="Header &gt; hamburger button &gt; calls onToggleSidebar when hamburger button is clicked" time="0.026104833">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/Layout.test.tsx" timestamp="2026-09-16T17:25:39.915Z" hostname="Jennys-MacBook-Air.local" tests="8" failures="0" errors="0" skipped="0" time="0.128310791">
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; structure &gt; renders Header component" time="0.0351205">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; structure &gt; renders Sidebar component" time="0.001913833">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; structure &gt; renders main content area" time="0.026779083">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; children rendering &gt; renders children content" time="0.002032959">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; sidebar toggle &gt; passes onToggleSidebar to Header" time="0.00113175">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; sidebar toggle &gt; sidebar starts closed" time="0.00110075">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; sidebar toggle &gt; toggles sidebar open when Header toggle is clicked" time="0.030785709">
+        </testcase>
+        <testcase classname="src/test/components/Layout.test.tsx" name="Layout &gt; sidebar toggle &gt; closes sidebar when Sidebar onClose is called" time="0.027944167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleCard.test.tsx" timestamp="2026-09-16T17:25:39.915Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.142125917">
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; renders role name" time="0.047171041">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; renders role description" time="0.002217">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; shows default description when none provided" time="0.005127">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; renders team badge" time="0.002283041">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; renders wake order when present" time="0.001605542">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; does not render wake order when null" time="0.001439917">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; shows official badge for official roles" time="0.005464916">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; does not show official badge for private roles" time="0.00163475">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; rendering &gt; does not show official badge for public roles" time="0.001566083">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; team colors &gt; renders village team with correct label" time="0.001586208">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; team colors &gt; renders werewolf team with correct label" time="0.003670208">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; team colors &gt; renders vampire team with correct label" time="0.012495042">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; team colors &gt; renders alien team with correct label" time="0.008339542">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; team colors &gt; renders neutral team with correct label" time="0.0019525">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; accessibility &gt; has role name as heading" time="0.024874875">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; copy count badge &gt; renders range badge for multi-copy role with different min/max" time="0.0112135">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; copy count badge &gt; renders fixed badge for multi-copy role with same min/max" time="0.004735875">
+        </testcase>
+        <testcase classname="src/test/components/RoleCard.test.tsx" name="RoleCard &gt; copy count badge &gt; does not render badge for single-copy role" time="0.003005208">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/ScriptReader.test.tsx" timestamp="2026-09-16T17:25:39.916Z" hostname="Jennys-MacBook-Air.local" tests="10" failures="0" errors="0" skipped="0" time="0.10637775">
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; shows first action initially" time="0.060085208">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; shows role name for current action" time="0.007180125">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; advances to next action on Next click" time="0.009197458">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; goes back on Previous click" time="0.004554917">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; disables Previous button on first action" time="0.004058792">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; shows Start Discussion on last action" time="0.003879">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; calls onComplete on last action click" time="0.007572292">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; shows progress indicator" time="0.002744916">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; updates progress indicator on navigation" time="0.003639875">
+        </testcase>
+        <testcase classname="src/test/components/ScriptReader.test.tsx" name="ScriptReader &gt; shows upcoming roles in preview" time="0.001920125">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/Sidebar.test.tsx" timestamp="2026-09-16T17:25:39.916Z" hostname="Jennys-MacBook-Air.local" tests="15" failures="0" errors="0" skipped="0" time="0.280669542">
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; rendering &gt; renders aside element" time="0.076597166">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; rendering &gt; renders navigation" time="0.023552166">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; rendering &gt; has sidebar CSS class" time="0.009948625">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; navigation links &gt; has Home link" time="0.023449375">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; navigation links &gt; has Roles link" time="0.016279916">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; navigation links &gt; has New Role link" time="0.01558025">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; navigation links &gt; displays Home icon" time="0.006441166">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; navigation links &gt; displays Roles icon" time="0.002706625">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; adds sidebar-open class when isOpen is true" time="0.002861292">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; does not add sidebar-open class when isOpen is false" time="0.00558775">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; renders backdrop when isOpen is true" time="0.015503583">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; does not render backdrop when isOpen is false" time="0.009653958">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; calls onClose when backdrop is clicked" time="0.023913375">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; calls onClose when a nav link is clicked" time="0.0255135">
+        </testcase>
+        <testcase classname="src/test/components/Sidebar.test.tsx" name="Sidebar &gt; mobile open/close behavior &gt; does not call onClose on nav click when onClose is not provided" time="0.021406917">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/Timer.test.tsx" timestamp="2026-09-16T17:25:39.917Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.0627555">
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; displays initial time correctly" time="0.042982458">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; displays single-digit seconds with leading zero" time="0.002133334">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; counts down each second" time="0.003301083">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; calls onComplete when timer reaches zero" time="0.002959416">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; can be paused and resumed" time="0.007010041">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; calls onComplete when Skip to Voting is clicked" time="0.001797291">
+        </testcase>
+        <testcase classname="src/test/components/Timer.test.tsx" name="Timer &gt; does not auto-start when autoStart is false" time="0.001433">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/context/repository_context.test.tsx" timestamp="2026-09-16T17:25:39.918Z" hostname="Jennys-MacBook-Air.local" tests="2" failures="0" errors="0" skipped="0" time="0.068919042">
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; bootstraps repositories before exposing them to children" time="0.05690925">
+        </testcase>
+        <testcase classname="src/test/context/repository_context.test.tsx" name="RepositoryProvider &gt; surfaces the original bootstrap failure" time="0.01086975">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/data/conversion.test.ts" timestamp="2026-09-16T17:25:39.918Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.01878325">
+        <testcase classname="src/test/data/conversion.test.ts" name="seed conversion &gt; converts the shipped catalog with defaults and stable nested ids" time="0.016131792">
+        </testcase>
+        <testcase classname="src/test/data/conversion.test.ts" name="seed conversion &gt; resolves dependencies by name and rejects unknown ability types" time="0.000837667">
+        </testcase>
+        <testcase classname="src/test/data/conversion.test.ts" name="seed conversion &gt; rejects generated id collisions in roles, abilities, steps, and dependencies" time="0.000304875">
+        </testcase>
+        <testcase classname="src/test/data/conversion.test.ts" name="seed conversion &gt; creates private custom roles with a UUID and local defaults" time="0.000523458">
+        </testcase>
+        <testcase classname="src/test/data/conversion.test.ts" name="seed conversion &gt; exports a positive seed version" time="0.000075583">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/data/repositories.test.ts" timestamp="2026-09-16T17:25:39.918Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.081207708">
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; bootstraps 30 official roles, 15 abilities, and metadata" time="0.0181455">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; does nothing for a matching seed version" time="0.006750125">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; lists by team and visibility, gets, puts, deletes, and returns null when missing" time="0.006939708">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; stores and loads a game snapshot with null-on-missing semantics" time="0.001882459">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; treats malformed game rows as missing" time="0.001545541">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; reseeds official records while preserving custom records and removing stale officials" time="0.017345667">
+        </testcase>
+        <testcase classname="src/test/data/repositories.test.ts" name="IndexedDB repositories &gt; rolls back every store after a partial seed transaction failure" time="0.027431167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/data/seed_parity.test.ts" timestamp="2026-09-16T17:25:39.918Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.0053375">
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; matches the canonical roles file" time="0.002739292">
+        </testcase>
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; matches the canonical abilities file" time="0.000633917">
+        </testcase>
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; fails when a copied seed is mutated" time="0.001375416">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/data/type_compatibility.test.ts" timestamp="2026-09-16T17:25:39.919Z" hostname="Jennys-MacBook-Air.local" tests="1" failures="0" errors="0" skipped="0" time="0.001021917">
+        <testcase classname="src/test/data/type_compatibility.test.ts" name="local role records are structurally compatible with transport role views" time="0.000522334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/abilitySteps.test.ts" timestamp="2026-09-16T17:25:39.919Z" hostname="Jennys-MacBook-Air.local" tests="49" failures="0" errors="0" skipped="0" time="0.013007125">
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; returns an empty list unchanged" time="0.002028208">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; assigns 1-based sequential order" time="0.000400208">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; forces the first step modifier to none" time="0.000286417">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; promotes a non-first none modifier to and" time="0.000158916">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; preserves or/if modifiers on non-first steps" time="0.000193958">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; renumberSteps &gt; does not mutate the input steps" time="0.000175958">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; buildInitialParameters &gt; returns an empty object when the schema is undefined" time="0.000181708">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; buildInitialParameters &gt; returns an empty object when the schema has no properties" time="0.000116667">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; buildInitialParameters &gt; seeds integer parameters with the schema default" time="0.000171166">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; buildInitialParameters &gt; seeds integer parameters with 1 when no default is declared" time="0.000127084">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; buildInitialParameters &gt; does not seed non-integer parameters" time="0.000126709">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; getParameterType &gt; returns undefined when the schema is undefined" time="0.000155666">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; getParameterType &gt; returns undefined for an unknown key" time="0.000136583">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; getParameterType &gt; returns the declared property type" time="0.000114208">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; passes through values with no declared type" time="0.000142958">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; passes through string values" time="0.000094334">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; parses an integer input" time="0.000120417">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; falls back to 1 for unparseable integer input" time="0.000098791">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; falls back to 1 for an empty integer input" time="0.000100708">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; clamps integers below 1 up to 1" time="0.000124458">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; parses a comma-separated array input" time="0.00016825">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; drops non-numeric array entries" time="0.00012125">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; coerceParameterValue &gt; returns an empty array for empty array input" time="0.000118625">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; appendAbilityStep &gt; adds the first step with modifier none and order 1" time="0.000244875">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; appendAbilityStep &gt; adds a subsequent step with modifier and, numbered after the last" time="0.001027">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; appendAbilityStep &gt; seeds parameters from the ability schema" time="0.000174334">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; appendAbilityStep &gt; leaves existing steps untouched" time="0.0002055">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; appendAbilityStep &gt; does not mutate the input steps" time="0.0001915">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; removeStepAt &gt; removes the step at the index and renumbers the rest" time="0.000272625">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; removeStepAt &gt; promotes the new first step to modifier none" time="0.000116708">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; removeStepAt &gt; does not mutate the input steps" time="0.000140042">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepUp &gt; swaps the step with the one above it and renumbers" time="0.000222125">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepUp &gt; normalizes modifiers after the move" time="0.0001275">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepUp &gt; returns the steps unchanged when already first" time="0.000962584">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepUp &gt; does not mutate the input steps" time="0.000123833">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepDown &gt; swaps the step with the one below it and renumbers" time="0.000192959">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepDown &gt; returns the steps unchanged when already last" time="0.000076375">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepDown &gt; preserves an or modifier carried by the moved step" time="0.000154958">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; moveStepDown &gt; does not mutate the input steps" time="0.0001105">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepModifier &gt; sets the modifier on the targeted step only" time="0.000137875">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepModifier &gt; does not renumber or otherwise normalize" time="0.000123334">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepModifier &gt; does not mutate the input steps" time="0.000103167">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; coerces and sets an integer parameter" time="0.000158542">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; coerces and sets an array parameter" time="0.000124">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; stores a string parameter verbatim" time="0.000133625">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; merges into existing parameters rather than replacing them" time="0.000167292">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; leaves other steps untouched" time="0.000112333">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; passes the value through when the schema is undefined" time="0.000089667">
+        </testcase>
+        <testcase classname="src/test/domain/abilitySteps.test.ts" name="abilitySteps &gt; setStepParameter &gt; does not mutate the input steps" time="0.000081041">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/constants.test.ts" timestamp="2026-09-16T17:25:39.921Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.004125541">
+        <testcase classname="src/test/domain/constants.test.ts" name="domain/constants MODIFIER_LABELS &gt; labels every step modifier exactly as the components previously did" time="0.001562667">
+        </testcase>
+        <testcase classname="src/test/domain/constants.test.ts" name="domain/constants MODIFIER_LABELS &gt; covers every modifier in MODIFIERS with a non-empty label" time="0.0003235">
+        </testcase>
+        <testcase classname="src/test/domain/constants.test.ts" name="domain/constants ABILITY_CATEGORIES &gt; preserves the five categories, their labels, and their ability types" time="0.0003485">
+        </testcase>
+        <testcase classname="src/test/domain/constants.test.ts" name="domain/constants ABILITY_CATEGORIES &gt; gives every category a unique id" time="0.000232833">
+        </testcase>
+        <testcase classname="src/test/domain/constants.test.ts" name="domain/constants STRING_TARGET_OPTIONS &gt; preserves the target options exactly, in order" time="0.000232791">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/roleDraft.test.ts" timestamp="2026-09-16T17:25:39.921Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.002204625">
+        <testcase classname="src/test/domain/roleDraft.test.ts" name="domain/roleDraft createEmptyDraft &gt; creates a draft with the documented empty defaults" time="0.001357417">
+        </testcase>
+        <testcase classname="src/test/domain/roleDraft.test.ts" name="domain/roleDraft createEmptyDraft &gt; assigns a fresh id on every call" time="0.000237375">
+        </testcase>
+        <testcase classname="src/test/domain/roleDraft.test.ts" name="domain/roleDraft createEmptyDraft &gt; stamps created_at and updated_at with the same ISO timestamp" time="0.000072625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/roleSelection.test.ts" timestamp="2026-09-16T17:25:39.921Z" hostname="Jennys-MacBook-Air.local" tests="26" failures="0" errors="0" skipped="0" time="0.007775625">
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; buildRoleMap &gt; returns an empty map for an empty role list" time="0.0014705">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; buildRoleMap &gt; indexes roles by id" time="0.000296875">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; countSelectedCards &gt; returns 0 for an empty selection" time="0.000245167">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; countSelectedCards &gt; sums every selected count" time="0.000176833">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; selects an unselected role at its default_count" time="0.000313334">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; deselects an already-selected role" time="0.000235167">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; returns the selection unchanged when the role is unknown" time="0.000134542">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; auto-selects a REQUIRES dependency at the required role default_count" time="0.000235667">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; auto-selects a multi-copy dependency at its default_count" time="0.000224375">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; silently skips a dependency whose required role is absent from the list" time="0.000148584">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; does not auto-select RECOMMENDS dependencies" time="0.000183667">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; leaves an already-selected dependency at its current count" time="0.000288166">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; toggleRoleSelection &gt; does not mutate the input selection" time="0.000175208">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; removes the role itself" time="0.00015825">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; cascade-removes selected roles that REQUIRE the removed role" time="0.000148042">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; does not remove the required role when the dependent is removed (one-way)" time="0.000134916">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; cascades one level only, leaving a transitive dependent orphaned" time="0.000198875">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; leaves unrelated roles selected" time="0.000146">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; removeRoleWithCascade &gt; does not mutate the input selection" time="0.000154542">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; increments the count" time="0.000224375">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; decrements the count" time="0.000140791">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; returns the selection unchanged when the increment would exceed max_count" time="0.000171958">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; removes the role entirely when decremented below min_count" time="0.000164875">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; cascade-removes dependents when decremented below min_count" time="0.000132208">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; returns the selection unchanged when the role is unknown" time="0.000147875">
+        </testcase>
+        <testcase classname="src/test/domain/roleSelection.test.ts" name="roleSelection &gt; adjustRoleCount &gt; treats an unselected role as count 0" time="0.000160583">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/teams.test.ts" timestamp="2026-09-16T17:25:39.922Z" hostname="Jennys-MacBook-Air.local" tests="4" failures="0" errors="0" skipped="0" time="0.002335375">
+        <testcase classname="src/test/domain/teams.test.ts" name="domain/teams single source &gt; states the five teams exactly once, in canonical sort-significant order" time="0.000984667">
+        </testcase>
+        <testcase classname="src/test/domain/teams.test.ts" name="domain/teams single source &gt; derives TEAM_ORDER to cover exactly the TEAMS array, in the same order" time="0.000100167">
+        </testcase>
+        <testcase classname="src/test/domain/teams.test.ts" name="domain/teams single source &gt; derives TEAM_COLORS keys to cover exactly the TEAMS array" time="0.000072375">
+        </testcase>
+        <testcase classname="src/test/domain/teams.test.ts" name="domain/teams single source &gt; maps every team to a hex color token" time="0.000177167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/domain/wakeOrder.test.ts" timestamp="2026-09-16T17:25:39.922Z" hostname="Jennys-MacBook-Air.local" tests="28" failures="0" errors="0" skipped="0" time="0.006943583">
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; returns an empty array unchanged" time="0.001496042">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; returns a single-element array unchanged" time="0.000224583">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; preserves the multiset of elements" time="0.0001835">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; is deterministic for a given RNG (Fisher-Yates, rng always 0)" time="0.0001455">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; does not mutate the input array" time="0.000139125">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; shuffleArray &gt; defaults to Math.random when no RNG is injected" time="0.000222291">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; returns an empty list when nothing is selected" time="0.000461584">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; includes only roles with a positive wake_order" time="0.000324875">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; excludes roles with a zero wake_order" time="0.000093083">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; excludes roles whose selected count is zero or negative" time="0.000063625">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; collapses multiple copies of a role into a single waking entry" time="0.000501709">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; ignores selected ids that are absent from the role list" time="0.000201167">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; sorts by wake_order ascending" time="0.000333333">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; collectWakingRoles &gt; projects id, name, team and wake_order" time="0.00011075">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; getWakeGroupKeys &gt; returns an empty list for no waking roles" time="0.000072416">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; getWakeGroupKeys &gt; returns unique wake_order values sorted ascending" time="0.000080958">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; buildGroupOrders &gt; returns an empty map for no waking roles" time="0.000087084">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; buildGroupOrders &gt; groups role ids by wake_order" time="0.000114792">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; buildGroupOrders &gt; shuffles only within a group — never across groups" time="0.000078708">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; buildGroupOrders &gt; is deterministic for a given RNG" time="0.000064542">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; buildGroupOrders &gt; defaults to Math.random when no RNG is injected" time="0.000052833">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; flattenWakeOrder &gt; returns an empty sequence when there are no groups" time="0.000059375">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; flattenWakeOrder &gt; concatenates groups in ascending group order" time="0.00005825">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; flattenWakeOrder &gt; preserves the within-group order it is given" time="0.000046041">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; flattenWakeOrder &gt; skips group keys that have no entry" time="0.000067458">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; expandRoleIds &gt; returns an empty list for an empty selection" time="0.000075666">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; expandRoleIds &gt; repeats each role id by its selected count" time="0.000062625">
+        </testcase>
+        <testcase classname="src/test/domain/wakeOrder.test.ts" name="wakeOrder &gt; expandRoleIds &gt; omits roles selected zero times" time="0.000050875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useAbilities.test.tsx" timestamp="2026-09-16T17:25:39.924Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.176624625">
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; starts with loading true while the repository read is pending" time="0.00837825">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; returns the complete offline ability catalog" time="0.05464125">
+        </testcase>
+        <testcase classname="src/test/hooks/useAbilities.test.tsx" name="useAbilities &gt; preserves repository errors and the existing fallback for non-Error failures" time="0.112910167">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useFetch.test.ts" timestamp="2026-09-16T17:25:39.924Z" hostname="Jennys-MacBook-Air.local" tests="6" failures="0" errors="0" skipped="0" time="0.276648584">
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; initial state &gt; starts with loading true" time="0.007517375">
+        </testcase>
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; successful fetch &gt; fetches data on mount" time="0.053357792">
+        </testcase>
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; successful fetch &gt; refetch updates data" time="0.054995959">
+        </testcase>
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; error handling &gt; sets error on failure" time="0.052852041">
+        </testcase>
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; error handling &gt; sets generic error for non-Error throws" time="0.053600834">
+        </testcase>
+        <testcase classname="src/test/hooks/useFetch.test.ts" name="useFetch &gt; with initialData &gt; uses initialData as default" time="0.053142458">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useGame.test.ts" timestamp="2026-09-16T17:25:39.924Z" hostname="Jennys-MacBook-Air.local" tests="7" failures="0" errors="0" skipped="0" time="0.21221">
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; starts loading and returns the stored session" time="0.066342541">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; returns an absent game without an error" time="0.052987083">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; refetches a changed snapshot" time="0.0728405">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; builds a script from the stored roles and wake sequence" time="0.003459333">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; rebuilds the same ordered script from the stored custom sequence" time="0.011882167">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; does not read a script when disabled" time="0.000596708">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; returns no script when the snapshot is missing" time="0.002631083">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useNameCheck.test.ts" timestamp="2026-09-16T17:25:39.924Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.046337708">
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for an empty name and does not call the API" time="0.0082295">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a whitespace-only name and does not call the API" time="0.000720583">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; names too short to check &gt; stays idle for a single-character name and does not call the API" time="0.000579916">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; reports checking immediately without calling the API" time="0.005116792">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; calls the API once 500ms have elapsed" time="0.006160584">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; trims the name before sending it to the API" time="0.002370209">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; debounce &gt; only issues one request when the name changes rapidly" time="0.008482209">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports available when the name is free" time="0.003249417">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; reports taken when the name is in use" time="0.002315709">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; result states &gt; falls back to idle when the request fails" time="0.0025605">
+        </testcase>
+        <testcase classname="src/test/hooks/useNameCheck.test.ts" name="useNameCheck &gt; stale-response handling &gt; ignores a resolved response once the name has moved on" time="0.004476083">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/hooks/useRoles.test.tsx" timestamp="2026-09-16T17:25:39.925Z" hostname="Jennys-MacBook-Air.local" tests="5" failures="0" errors="0" skipped="0" time="0.294039375">
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; starts with loading true while the repository read is pending" time="0.015919958">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the roles matching every requested visibility" time="0.058282292">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; returns the complete unfiltered catalog without arguments" time="0.053886916">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; refetches when visibility changes and when explicitly requested" time="0.056932833">
+        </testcase>
+        <testcase classname="src/test/hooks/useRoles.test.tsx" name="useRoles &gt; propagates Error and non-Error repository failures" time="0.107842208">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/storage/game_session_storage.test.ts" timestamp="2026-09-16T17:25:39.925Z" hostname="Jennys-MacBook-Air.local" tests="6" failures="0" errors="0" skipped="0" time="0.00474825">
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; returns null for a missing or corrupt entry" time="0.001825291">
+        </testcase>
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; round-trips a completed snapshot and keeps separate ids isolated" time="0.000826416">
+        </testcase>
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; treats a partial snapshot as missing" time="0.000110667">
+        </testcase>
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; treats an invalid role team as missing" time="0.000089292">
+        </testcase>
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; treats array step parameters as missing" time="0.000113416">
+        </testcase>
+        <testcase classname="src/test/storage/game_session_storage.test.ts" name="game session storage &gt; lets storage write failures escape to the caller" time="0.000857542">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/GameFacilitator.test.tsx" timestamp="2026-09-16T17:25:39.926Z" hostname="Jennys-MacBook-Air.local" tests="12" failures="0" errors="0" skipped="0" time="0.240883084">
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; shows a setup link for a missing game" time="0.0675235">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; shows a setup link when the game id route parameter is missing" time="0.00387675">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; shows loading while the stored snapshot is being read" time="0.0083795">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; treats corrupt storage as a missing game with setup recovery" time="0.012156375">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; renders setup warnings only when present" time="0.0179175">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; starts locally and persists the night phase" time="0.028971125">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; advances discussion locally" time="0.024538583">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; keeps the previous phase when a transition write fails" time="0.021685">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; keeps the previous phase when an advance write fails" time="0.012559875">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; rebuilds the night script after a refresh and resets the reader index" time="0.025498042">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; reloads the voting and resolution phases" time="0.011545458">
+        </testcase>
+        <testcase classname="src/test/pages/GameFacilitator.test.tsx" name="GameFacilitatorPage &gt; keeps completed sessions on refresh" time="0.005162041">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/GameSetup.test.tsx" timestamp="2026-09-16T17:25:39.926Z" hostname="Jennys-MacBook-Air.local" tests="25" failures="0" errors="0" skipped="0" time="0.350218333">
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; playerCount &gt; does not clamp on change — allows typing freely" time="0.047088542">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; playerCount &gt; clamps value below minimum up to 3 on blur" time="0.004839375">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; playerCount &gt; clamps value above maximum down to 20 on blur" time="0.00615625">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; playerCount &gt; clamps empty input to minimum on blur" time="0.004119834">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; centerCount &gt; does not clamp on change" time="0.004676708">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; centerCount &gt; clamps value below minimum up to 0 on blur" time="0.003699708">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; centerCount &gt; clamps value above maximum down to 5 on blur" time="0.006797667">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; timerSeconds &gt; allows mid-edit without clamping" time="0.004147625">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; input clamping &gt; timerSeconds &gt; clamps value below minimum up to 60 on blur" time="0.00950875">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; clicking a role with default_count=2 adds 2 to the total count" time="0.008849791">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; clicking an already-selected role removes it" time="0.022781125">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; + button increments count" time="0.007206334">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; - button decrements count" time="0.028011041">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; + button disabled at max_count" time="0.005663125">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; - at min_count removes role entirely" time="0.018662417">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; multi-copy role selection &gt; Mason (min=max=2) adds 2 and removes 2 atomically; no +/- buttons visible" time="0.014527875">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; dependency auto-selection &gt; selecting role with REQUIRES dependency auto-selects the required role" time="0.006044959">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; dependency auto-selection &gt; removing required role cascade-removes dependent" time="0.027981292">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; dependency auto-selection &gt; removing dependent does NOT remove required (one-way)" time="0.030614458">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; dependency auto-selection &gt; silently skips dependency when required role is not in fetched list" time="0.004110667">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; dependency auto-selection &gt; auto-selects multi-copy dependency at its default_count" time="0.020383917">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; Next button navigation &gt; button says &quot;Next&quot; instead of &quot;Start Game&quot;" time="0.002687167">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; Next button navigation &gt; clicking &quot;Next&quot; navigates to /games/new/wake-order with correct Router state" time="0.027860417">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; team sorting and grouping &gt; renders team section headers in canonical order" time="0.0255135">
+        </testcase>
+        <testcase classname="src/test/pages/GameSetup.test.tsx" name="GameSetupPage &gt; team sorting and grouping &gt; renders role cards under the correct team section" time="0.006039709">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/HomePage.test.tsx" timestamp="2026-09-16T17:25:39.927Z" hostname="Jennys-MacBook-Air.local" tests="6" failures="0" errors="0" skipped="0" time="0.124899208">
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; rendering &gt; displays welcome message" time="0.047395584">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; rendering &gt; displays YourWolf branding with Wolf highlighted" time="0.030694916">
+        </testcase>
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; rendering &gt; displays description text" time="0.002615167">
+        </testcase>
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; navigation &gt; has link to roles page" time="0.03589975">
+        </testcase>
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; features section &gt; displays feature cards" time="0.004454667">
+        </testcase>
+        <testcase classname="src/test/pages/HomePage.test.tsx" name="HomePage &gt; features section &gt; displays feature descriptions" time="0.002754417">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/RoleBuilder.test.tsx" timestamp="2026-09-16T17:25:39.928Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.535671542">
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the page heading" time="0.049295916">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders the Wizard component" time="0.007173917">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rendering &gt; renders step indicator with all steps" time="0.04661875">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; navigates to roles listing after successful create" time="0.131062083">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; create role &gt; shows error message when create fails" time="0.067961833">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; sets fallback validation when validate call fails" time="0.055338583">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validation &gt; surfaces the server field message when validate rejects with a 422" time="0.0423995">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders the engine preview after debounce while validation remains server-backed" time="0.022125625">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders only the newest draft after rapid edits within one debounce window" time="0.024926334">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; keeps the newest validation when an older validation resolves late" time="0.057720292">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; local preview &gt; renders an empty preview for a non-waking draft without a preview error state" time="0.025375334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/RolesPage.test.tsx" timestamp="2026-09-16T17:25:39.928Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.239319542">
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; loading state &gt; shows loading indicator when loading" time="0.028875167">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; loading state &gt; does not show roles grid when loading" time="0.001486958">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; error state &gt; displays error message when error occurs" time="0.008665917">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; error state &gt; shows help text for server connection" time="0.001333083">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; success state &gt; displays page title" time="0.020506583">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; success state &gt; displays page subtitle" time="0.006551208">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; success state &gt; renders role cards for each role" time="0.015757458">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; success state &gt; renders correct number of role cards" time="0.035592875">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; empty state &gt; shows empty message when no roles" time="0.006355875">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; empty state &gt; shows icon in empty state" time="0.003867708">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; team sorting and grouping &gt; renders team section headers in canonical order" time="0.008919167">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; team sorting and grouping &gt; renders role cards under the correct team section" time="0.00533925">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; team sorting and grouping &gt; only renders team headers for teams that have roles" time="0.021123">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; filter buttons &gt; renders three filter buttons" time="0.020791667">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; filter buttons &gt; Official and My Roles are active by default" time="0.008295">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; filter buttons &gt; toggling Downloaded filter calls useRoles with updated visibility" time="0.020744333">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; filter buttons &gt; cannot deselect last active filter" time="0.016965">
+        </testcase>
+        <testcase classname="src/test/pages/RolesPage.test.tsx" name="RolesPage &gt; filter buttons &gt; passes default visibility to useRoles on initial render" time="0.006928875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/WakeOrderResolution.test.tsx" timestamp="2026-09-16T17:25:39.929Z" hostname="Jennys-MacBook-Air.local" tests="28" failures="0" errors="0" skipped="0" time="0.439068625">
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects to /games/new when Router state is missing" time="0.010876834">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects malformed router state before reading its fields" time="0.001001541">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; redirects when nested role state is malformed" time="0.000707791">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; redirect without state &gt; accepts a null wake_order from the role-list response" time="0.027767375">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; only shows waking roles (wake_order &gt; 0) as tiles" time="0.016591209">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; deduplicates copies of the same role into one tile" time="0.004777958">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; tile rendering &gt; displays tile with role name and team-colored border" time="0.002893708">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; renders group headers with correct labels for each unique wake_order" time="0.004255917">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; tiles appear within their respective wake order groups" time="0.004939">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; single-role groups display one tile under their header" time="0.004105083">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; grouped layout and headers &gt; multi-role groups contain all roles with that wake_order" time="0.003558125">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; random shuffle within groups &gt; tiles within a multi-role group are not always in the same order across renders" time="0.121489833">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; &quot;Start Game&quot; is always enabled on page load" time="0.002587292">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; &quot;Start Game&quot; is enabled even when multiple roles share the same wake_order" time="0.01356975">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; always-enabled Start Game &gt; does not show conflict warning message" time="0.011483542">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; no waking roles &gt; &quot;Start Game&quot; is enabled immediately when no waking roles selected" time="0.007576792">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; no waking roles &gt; shows message about no waking roles" time="0.004536542">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; page text &gt; shows &quot;Review Wake Order&quot; as page title" time="0.002379459">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; page text &gt; shows correct subtitle text" time="0.002045584">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; starts all distinct detail requests before awaiting their results" time="0.034957334">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; fetches one detail per distinct role, stores the engine session, and navigates" time="0.0184045">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; preserves the page custom sequence within a shared wake group" time="0.022195708">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; retains one waking role in the custom sequence" time="0.022411334">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; retains repeated card ids and flattened custom wake ordering" time="0.017731042">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows one error and re-enables after a detail fetch fails" time="0.016804625">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; passes an empty custom sequence when no waking roles" time="0.020208833">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows an engine validation error and prevents navigation" time="0.016191542">
+        </testcase>
+        <testcase classname="src/test/pages/WakeOrderResolution.test.tsx" name="WakeOrderResolutionPage &gt; game creation &gt; shows a storage write failure and prevents navigation" time="0.021207084">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/engine/gameSession.test.ts" timestamp="2026-09-16T17:25:39.930Z" hostname="Jennys-MacBook-Air.local" tests="16" failures="0" errors="0" skipped="0" time="0.0154695">
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; creates a setup session with caller values and injected id" time="0.011534709">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; keeps an omitted wake sequence absent" time="0.000151625">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; propagates dependency warnings to the session" time="0.000120625">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; does not mutate create input values" time="0.000375167">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; uses a deterministic id generator without ambient crypto" time="0.000470792">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session creation &gt; rejects before creating a session or mutating caller-owned values" time="0.000561333">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; starts only from setup and initializes wake order to zero" time="0.000174708">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; rejects starting a non-setup session without mutation" time="0.000129208">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; rejects advance from setup without mutation" time="0.000170709">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; advances night to discussion" time="0.000078292">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; advances discussion to voting" time="0.000048584">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; advances voting to resolution" time="0.000041958">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; advances resolution to complete" time="0.000047333">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; rejects advance from complete without mutation" time="0.000146209">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; advances a started session through the complete phase path" time="0.0000875">
+        </testcase>
+        <testcase classname="src/test/engine/gameSession.test.ts" name="engine game session transitions &gt; returns new values for successful transitions" time="0.000290875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/engine/gameSetupValidation.test.ts" timestamp="2026-09-16T17:25:39.931Z" hostname="Jennys-MacBook-Air.local" tests="34" failures="0" errors="0" skipped="0" time="0.003935625">
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup validation &gt; returns no warnings for a valid setup" time="0.00095">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup validation &gt; normalizes a valid wake order sequence to strings" time="0.000189583">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup validation &gt; rejects a broken setup" time="0.000185084">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup rule precedence &gt; count rule precedes unknown role id check" time="0.000056542">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup rule precedence &gt; unknown role id precedes card count rule" time="0.000058083">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup rule precedence &gt; card count rule precedes primary team rule" time="0.000059709">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup rule precedence &gt; primary team rule precedes dependency rule" time="0.000059292">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup rule precedence &gt; dependency rule precedes wake sequence rule" time="0.000063166">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects an unknown role id" time="0.000058625">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects multiple unknown role ids" time="0.000051542">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects too few roles" time="0.000046875">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects too many roles" time="0.0000585">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts an exact role count" time="0.000066708">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; count rule precedes unknown role id check" time="0.000047333">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects exceeding max count" time="0.000059542">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects below min count" time="0.000052833">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts valid card counts" time="0.000059875">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects a missing required dependency" time="0.000063541">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts a satisfied required dependency" time="0.000059959">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; warns on a missing recommends dependency" time="0.000066375">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; returns no warnings when recommends is satisfied" time="0.000061292">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects only a minion without a primary wolf" time="0.000057125">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts a werewolf and minion" time="0.000058917">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects only a squire without a primary wolf" time="0.000057167">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects multiple teams without primary roles" time="0.000062333">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; stores a valid wake order sequence" time="0.000077125">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects an extra role in the sequence" time="0.000064208">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects a missing waking role in the sequence" time="0.0000675">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects duplicate ids in the sequence" time="0.0000585">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts a null sequence as omitted" time="0.000060833">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; accepts an empty sequence with no waking roles" time="0.000084958">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine create-boundary setup cases &gt; rejects a non-waking role in the sequence" time="0.000069">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup edge paths &gt; checks vampire primary roles" time="0.000057834">
+        </testcase>
+        <testcase classname="src/test/engine/gameSetupValidation.test.ts" name="engine setup edge paths &gt; checks alien primary roles" time="0.000055333">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/engine/narration.test.ts" timestamp="2026-09-16T17:25:39.932Z" hostname="Jennys-MacBook-Air.local" tests="13" failures="0" errors="0" skipped="0" time="0.008242708">
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; sorts waking roles deterministically and applies custom ordering rules" time="0.001494958">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; deduplicates ids and sorts unnamed custom roles by wake order and name" time="0.000271167">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; builds dense role actions and preserves required and OR flags" time="0.0003405">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; builds wake and close-eyes actions for a role without steps" time="0.000081042">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; skips unknown inherited ability names without duration" time="0.0004915">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; assembles opening, unique waking role blocks, and closing actions" time="0.000152583">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; keeps opening and closing actions when no roles wake" time="0.000135917">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; builds previews with one copied-role section header" time="0.000141">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; returns no preview for null or zero wake order" time="0.000073292">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; does not mutate generated action inputs" time="0.000207917">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; keeps fixture roles in the verified engine input shape" time="0.001220375">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; matches the Python-generated night-script fixtures for all seed roles" time="0.0014205">
+        </testcase>
+        <testcase classname="src/test/engine/narration.test.ts" name="narration engine &gt; matches the Python-generated previews for all seed roles" time="0.001008916">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/engine/templates.test.ts" timestamp="2026-09-16T17:25:39.933Z" hostname="Jennys-MacBook-Air.local" tests="81" failures="0" errors="0" skipped="0" time="0.008615916">
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target null" time="0.001151208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target player.self" time="0.000152166">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target team.werewolf" time="0.000091917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target team.alien" time="0.000088209">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target team.vampire" time="0.000082709">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target role.doppelganger" time="0.00009375">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target role.the_thing" time="0.000084958">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target team.unknown" time="0.00008225">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target garbage" time="0.000090042">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders wake target " time="0.000105416">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; rewrites underscores in role wake targets" time="0.000113">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; empty wake targets follow the player self path" time="0.000095708">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000227875">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000101125">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000081375">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000088917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.00008825">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000089833">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_card with literal parameters" time="0.000122625">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.0001275">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.000083291">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.000084208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.000069875">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.0000765">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders swap_card with literal parameters" time="0.000072584">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders take_card with literal parameters" time="0.00010525">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders take_card with literal parameters" time="0.000068167">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders take_card with literal parameters" time="0.000095167">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders view_awake with literal parameters" time="0.000091958">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000126875">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000138917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000080334">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000078792">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000069708">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000084791">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders thumbs_up with literal parameters" time="0.000068625">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders explicit_no_view with literal parameters" time="0.000116292">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders rotate_all with literal parameters" time="0.000094917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders rotate_all with literal parameters" time="0.000071">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders touch with literal parameters" time="0.0000745">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders flip_card with literal parameters" time="0.000121">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders copy_role with literal parameters" time="0.000075375">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders change_to_team with literal parameters" time="0.000145542">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders change_to_team with literal parameters" time="0.000054417">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders perform_as with literal parameters" time="0.000045208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders perform_immediately with literal parameters" time="0.00004925">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders stop with literal parameters" time="0.000031042">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders random_num_players with literal parameters" time="0.0000685">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders random_num_players with literal parameters" time="0.000026875">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders random_num_players with literal parameters" time="0.000031208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders random_num_players with literal parameters" time="0.000032041">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders random_num_players with literal parameters" time="0.000031125">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; renders unknown_type with literal parameters" time="0.000024583">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; OR prefixes a recognized instruction" time="0.000043709">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; OR does not prefix an unknown instruction" time="0.000064375">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; treats inherited property constructor as an unknown instruction" time="0.000042708">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; treats inherited property toString as an unknown instruction" time="0.000024208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; treats inherited property __proto__ as an unknown instruction" time="0.000023291">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; non-OR modifier none does not prefix" time="0.000035291">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; non-OR modifier and does not prefix" time="0.000024458">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; non-OR modifier if does not prefix" time="0.000023583">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for view_card" time="0.000065584">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for swap_card" time="0.000027125">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for take_card" time="0.000069667">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for view_awake" time="0.000022917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for thumbs_up" time="0.000022584">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for explicit_no_view" time="0.000030125">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for rotate_all" time="0.000021917">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for touch" time="0.000023458">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for flip_card" time="0.000023541">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for copy_role" time="0.000022">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for change_to_team" time="0.00002175">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for perform_as" time="0.0000225">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for perform_immediately" time="0.000029292">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for stop" time="0.000021541">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the duration for random_num_players" time="0.000022625">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; unknown durations default to five seconds" time="0.000031084">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the default duration for inherited property constructor" time="0.0000285">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the default duration for inherited property toString" time="0.0000215">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; uses the default duration for inherited property __proto__" time="0.000023208">
+        </testcase>
+        <testcase classname="src/test/engine/templates.test.ts" name="engine narration templates &gt; the public shape includes all required engine and production output fields" time="0.000631792">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/utils/format.test.ts" timestamp="2026-09-16T17:25:39.936Z" hostname="Jennys-MacBook-Air.local" tests="4" failures="0" errors="0" skipped="0" time="0.001171666">
+        <testcase classname="src/test/utils/format.test.ts" name="utils/format capitalize &gt; uppercases the first character and leaves the rest untouched" time="0.000484">
+        </testcase>
+        <testcase classname="src/test/utils/format.test.ts" name="utils/format capitalize &gt; leaves an already-capitalized string unchanged" time="0.000068">
+        </testcase>
+        <testcase classname="src/test/utils/format.test.ts" name="utils/format capitalize &gt; returns an empty string unchanged" time="0.000048666">
+        </testcase>
+        <testcase classname="src/test/utils/format.test.ts" name="utils/format capitalize &gt; does not lowercase the remainder of the string" time="0.00004625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/utils/roleSort.test.ts" timestamp="2026-09-16T17:25:39.936Z" hostname="Jennys-MacBook-Air.local" tests="10" failures="0" errors="0" skipped="0" time="0.002811042">
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; TEAM_ORDER &gt; defines canonical ordering: village, werewolf, vampire, alien, neutral" time="0.000802166">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; sortRolesByTeam &gt; returns an empty array when given an empty array" time="0.000095708">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; sortRolesByTeam &gt; sorts roles by canonical team order" time="0.0001105">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; sortRolesByTeam &gt; preserves original order within the same team" time="0.000072875">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; sortRolesByTeam &gt; does not mutate the original array" time="0.000071792">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; sortRolesByTeam &gt; places unknown teams after all known teams" time="0.000064042">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; groupRolesByTeam &gt; returns an empty array when given an empty array" time="0.000076125">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; groupRolesByTeam &gt; groups roles by team with team label headers" time="0.000521667">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; groupRolesByTeam &gt; groups multiple roles of the same team together" time="0.000252167">
+        </testcase>
+        <testcase classname="src/test/utils/roleSort.test.ts" name="roleSort &gt; groupRolesByTeam &gt; sorts roles by team order before grouping" time="0.000068083">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/NarratorPreview.test.tsx" timestamp="2026-09-16T17:25:39.937Z" hostname="Jennys-MacBook-Air.local" tests="9" failures="0" errors="0" skipped="0" time="0.068302958">
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; rendering actions (AC2) &gt; renders all action instructions" time="0.055459375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; rendering actions (AC2) &gt; renders the Narrator Preview header" time="0.001969584">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; empty state (AC6) &gt; shows non-waking message when role has a name but no actions" time="0.001463125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; empty state (AC6) &gt; shows placeholder message when role name is too short" time="0.001537083">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; empty state (AC6) &gt; shows placeholder message for very short name" time="0.000974416">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; loading state &gt; shows generating message when loading" time="0.000897334">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; loading state &gt; does not show action instructions when loading" time="0.00090675">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; section headers (AC4) &gt; renders section headers with distinct styling" time="0.001761">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/NarratorPreview.test.tsx" name="NarratorPreview &gt; data-testid &gt; has narrator-preview testid for querying" time="0.001085459">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/Wizard.test.tsx" timestamp="2026-09-16T17:25:39.937Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.754922333">
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows Basic Info step first" time="0.0600485">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows step indicator with all 4 steps" time="0.044112791">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; Back button is disabled on step 1" time="0.037095958">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is empty" time="0.027078917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is only whitespace" time="0.012442417">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is enabled when name has at least 2 chars" time="0.036634792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; advances to Abilities step on Next" time="0.052326084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; navigates through all 4 steps" time="0.081178834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; Back navigation returns to previous step" time="0.045721917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; shows Create Role button on review step instead of Next" time="0.047692833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking Create Role calls onSave" time="0.037315542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking step indicator navigates to that step (for completed steps)" time="0.046624375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; saving state &gt; Create Role button is disabled while saving" time="0.03699425">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is invalid" time="0.071207833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is null" time="0.043871625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Basic Info tab" time="0.006514875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Abilities tab" time="0.023960208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on all 4 tabs when navigated" time="0.042495375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" timestamp="2026-09-16T17:25:39.938Z" hostname="Jennys-MacBook-Air.local" tests="29" failures="0" errors="0" skipped="0" time="0.421217708">
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; rendering &gt; renders category tabs" time="0.074261042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; rendering &gt; shows ability in palette when category matches" time="0.003479333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; rendering &gt; shows loading state while abilities fetch" time="0.002162792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; rendering &gt; shows empty message when no abilities in category" time="0.029688209">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; adding abilities &gt; clicking ability adds it to draft steps" time="0.004372958">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; adding abilities &gt; second added ability gets order 2" time="0.026164375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; adding abilities &gt; adding ability with integer params initializes defaults" time="0.00245975">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; renders added steps" time="0.014395792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; remove button removes a step" time="0.034272792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; move up button reorders steps" time="0.023063708">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; first step hides modifier dropdown" time="0.010346917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; subsequent steps show Then: label" time="0.004837458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; modifier options show descriptive text" time="0.012941041">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; step list management &gt; modifier change still sends raw values" time="0.022010208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; category switching &gt; shows information abilities when Information tab clicked" time="0.018934791">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_renders_parameter_inputs_when_schema_has_properties" time="0.024716625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_enum_string_renders_select_with_enum_options" time="0.023962792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_free_string_renders_select_with_target_options" time="0.02291175">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_integer_renders_number_input_with_default_1" time="0.016222959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_array_renders_comma_separated_input" time="0.02173075">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_changing_param_calls_onChange_with_updated_parameters" time="0.011564">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_no_inputs_rendered_for_empty_schema" time="0.002448417">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; parameter inputs &gt; test_required_param_has_asterisk_label" time="0.004025542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; shows gating message when wake_order is 0" time="0.000790625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; shows gating message when wake_order is null (legacy)" time="0.000526833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; palette is interactive when wake_order &gt; 0" time="0.002555583">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; shows warning when steps exist but wake_order is 0" time="0.001471375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; does not show steps-exist warning when wake_order &gt; 0 with steps" time="0.002404916">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStep.test.tsx" name="AbilitiesStep &gt; wake order gating &gt; ability steps are preserved when wake_order set back to 0" time="0.001220334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/AbilitiesStepNoOpContract.test.tsx" timestamp="2026-09-16T17:25:39.939Z" hostname="Jennys-MacBook-Air.local" tests="4" failures="0" errors="0" skipped="0" time="0.041519833">
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStepNoOpContract.test.tsx" name="AbilitiesStep no-op reference-identity contract &gt; does not fire onChange when moving the first step up" time="0.030622333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStepNoOpContract.test.tsx" name="AbilitiesStep no-op reference-identity contract &gt; does not fire onChange when moving the last step down" time="0.0040235">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStepNoOpContract.test.tsx" name="AbilitiesStep no-op reference-identity contract &gt; still fires onChange for a move that does reorder" time="0.003776667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilitiesStepNoOpContract.test.tsx" name="AbilitiesStep no-op reference-identity contract &gt; still fires onChange for a move down that does reorder" time="0.002330833">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" timestamp="2026-09-16T17:25:39.939Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.113019959">
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; category tabs &gt; renders a tab for every ability category" time="0.072366875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; category tabs &gt; reports the clicked category id without changing state itself" time="0.017417125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; category tabs &gt; shows abilities for whichever category the container marks active" time="0.003185125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; lists only abilities whose type belongs to the active category" time="0.004870875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; reports the ability type and name when an ability is clicked" time="0.00211675">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; shows the loading message while abilities are fetching" time="0.00183975">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; prefers the loading message over the empty message" time="0.001444667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; shows the empty message when the active category has no abilities" time="0.001392125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; shows the empty message when no abilities loaded at all" time="0.001361166">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; renders tabs even while loading" time="0.004860458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/AbilityPalette.test.tsx" name="AbilityPalette &gt; ability grid &gt; renders no ability buttons for an unrecognised active category" time="0.001417666">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" timestamp="2026-09-16T17:25:39.940Z" hostname="Jennys-MacBook-Air.local" tests="28" failures="0" errors="0" skipped="0" time="0.424049167">
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; renders name input" time="0.04357275">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; renders description textarea" time="0.007139084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; renders wake order input" time="0.005132042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; renders votes input" time="0.004796333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; renders all 5 team buttons" time="0.058015">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; rendering &gt; shows current draft values" time="0.00552375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; name field interactions &gt; calls onChange when name changes" time="0.039312375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; name field interactions &gt; triggers name check after 500ms debounce" time="0.035412042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; name field interactions &gt; shows Available status after name check" time="0.006082584">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; name field interactions &gt; shows Taken status when name is unavailable" time="0.006265542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; team selection &gt; calls onChange with correct team on button click" time="0.008929834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; team selection &gt; calls onChange for each team" time="0.082247125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; renders toggle for werewolf team" time="0.013438125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; renders toggle for vampire team" time="0.016892709">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; renders toggle for alien team" time="0.012787917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; hides toggle for village team" time="0.004018">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; hides toggle for neutral team" time="0.003679959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; checking toggle calls onChange with is_primary_team_role true" time="0.006013333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; switching to village clears is_primary_team_role to false" time="0.007680333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; primary team role toggle &gt; switching to neutral clears is_primary_team_role to false" time="0.007051708">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; other field interactions &gt; calls onChange when description changes" time="0.011803791">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; other field interactions &gt; calls onChange when wake order changes" time="0.006278834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; other field interactions &gt; calls onChange when votes changes" time="0.003509584">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; other field interactions &gt; clearing wake order sets it to 0 not null" time="0.003346083">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; wake order label and hint &gt; renders wake order label with range hint (0–40)" time="0.01532275">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; wake order label and hint &gt; shows does-not-wake hint when wake_order is 0" time="0.002873083">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; wake order label and hint &gt; hides does-not-wake hint when wake_order &gt; 0" time="0.002795041">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/BasicInfoStep.test.tsx" name="BasicInfoStep &gt; wake order label and hint &gt; shows does-not-wake hint when wake_order is null (legacy)" time="0.00275275">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" timestamp="2026-09-16T17:25:39.941Z" hostname="Jennys-MacBook-Air.local" tests="15" failures="0" errors="0" skipped="0" time="0.09066375">
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows role name" time="0.039545">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows team" time="0.002822875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows description" time="0.002495709">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows wake order when set" time="0.002193792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows votes" time="0.002019375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows ability steps" time="0.011052708">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows step order and modifier" time="0.003159458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows descriptive modifier labels instead of raw values" time="0.003887875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows no ability steps message when empty" time="0.00190575">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; win conditions &gt; shows win conditions" time="0.002197084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; win conditions &gt; shows no win conditions message when empty" time="0.001722125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows Validating... when validation is null" time="0.002616208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows validation errors in red" time="0.010085708">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows validation warnings in yellow" time="0.0020475">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows valid status when validation passes" time="0.001539792">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/StepList.test.tsx" timestamp="2026-09-16T17:25:39.942Z" hostname="Jennys-MacBook-Air.local" tests="17" failures="0" errors="0" skipped="0" time="0.215212875">
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; rendering &gt; renders each step with its order and ability name" time="0.056669166">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; rendering &gt; renders nothing for an empty step list" time="0.001450084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; modifier control &gt; hides the modifier dropdown on the first step" time="0.031570834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; modifier control &gt; shows the Then: label on subsequent steps" time="0.015008458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; modifier control &gt; offers every modifier except none, with descriptive labels" time="0.019146209">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; modifier control &gt; reflects the step modifier as the select value" time="0.012595667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; modifier control &gt; reports the step index and raw modifier value on change" time="0.0135985">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; reordering and removal &gt; disables move up on the first step" time="0.007103875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; reordering and removal &gt; disables move down on the last step" time="0.006194292">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; reordering and removal &gt; reports the index on move up" time="0.00720325">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; reordering and removal &gt; reports the index on move down" time="0.015952792">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; reordering and removal &gt; reports the index on remove" time="0.012082959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; parameter inputs &gt; renders parameter inputs using the schema resolved for the step ability type" time="0.005571208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; parameter inputs &gt; renders no parameter inputs when the schema cannot be resolved" time="0.003393542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="StepList &gt; parameter inputs &gt; reports the step index, key and raw value on parameter change" time="0.004309">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="ReadOnlyStepList &gt; lists each step with its order and ability name" time="0.001293291">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepList.test.tsx" name="ReadOnlyStepList &gt; renders no interactive controls" time="0.000943417">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" timestamp="2026-09-16T17:25:39.942Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.198635167">
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; no-render paths &gt; renders nothing when schema has no properties key" time="0.011732208">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; no-render paths &gt; renders nothing when properties is empty" time="0.000635042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; no-render paths &gt; skips properties with an unknown type" time="0.01310025">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; enum string parameter &gt; renders a select containing every enum option plus the empty placeholder" time="0.053936125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; enum string parameter &gt; reflects the current value" time="0.005550583">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; enum string parameter &gt; emits the raw selected value through onChange" time="0.010432">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; free string parameter &gt; renders a select backed by STRING_TARGET_OPTIONS" time="0.039432083">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; free string parameter &gt; emits the raw selected value through onChange" time="0.012693417">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; integer parameter &gt; renders a number input with min 1" time="0.00612075">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; integer parameter &gt; falls back to the schema default when the value is absent" time="0.006507542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; integer parameter &gt; falls back to 1 when neither value nor schema default exists" time="0.002312625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; integer parameter &gt; emits the raw string input through onChange, leaving coercion to the caller" time="0.004287042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; array parameter &gt; renders array values as a comma-separated text input" time="0.014298459">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; array parameter &gt; renders an empty string when the array value is absent" time="0.002626375">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; array parameter &gt; emits the raw text through onChange, leaving parsing to the caller" time="0.003139959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; labels and ids &gt; marks required params with an asterisk and optional params as (optional)" time="0.004313458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; labels and ids &gt; treats every param as optional when the schema declares no required list" time="0.001019917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/StepParameterInputs.test.tsx" name="StepParameterInputs &gt; labels and ids &gt; namespaces input ids by step index so multiple steps do not collide" time="0.005029625">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" timestamp="2026-09-16T17:25:39.943Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="0" errors="0" skipped="0" time="0.170187292">
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; rendering &gt; renders Add Condition button" time="0.083540458">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; rendering &gt; shows empty state when no win conditions" time="0.002055959">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; rendering &gt; renders existing win conditions" time="0.018088542">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; adding conditions &gt; clicking Add Condition increases the list" time="0.015718625">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; removing conditions &gt; remove button removes the condition" time="0.012845292">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; primary toggle &gt; setting primary on one unsets others" time="0.009328708">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; label clarity &gt; renders &quot;Primary win condition&quot; label text" time="0.002450875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; label clarity &gt; renders &quot;(Only one allowed per role)&quot; subtext" time="0.010865084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; label clarity &gt; renders &quot;Independent win&quot; label text" time="0.002515416">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; label clarity &gt; renders &quot;(Wins regardless of team outcome)&quot; subtext" time="0.002031917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/WinConditionsStep.test.tsx" name="WinConditionsStep &gt; condition type dropdown &gt; changing condition type calls onChange" time="0.008731416">
+        </testcase>
+    </testsuite>
+</testsuites>

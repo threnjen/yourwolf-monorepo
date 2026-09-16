@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="11" failures="2" errors="0" time="3.373">
+    <testsuite name="src/test/hooks/useGame.test.ts" timestamp="2026-09-16T18:23:38.326Z" hostname="Jennys-MacBook-Air.local" tests="11" failures="2" errors="0" skipped="0" time="2.517848042">
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; starts loading and returns the stored session" time="0.060310209">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; returns an absent game without an error" time="0.053742709">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; refetches a changed snapshot" time="0.05618375">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useGame &gt; reads the game snapshot from the repository provider" time="0.057581667">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; builds a script from the stored roles and wake sequence" time="0.057340167">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; rebuilds the same ordered script from the stored custom sequence" time="0.11380925">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; does not read a script when disabled" time="0.002803583">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; returns no script when the snapshot is missing" time="0.057055791">
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; ignores a stale night-script read after the request is disabled" time="1.038568708">
+            <failure message="expected false to be true // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m&lt;html&gt;[39m
+  [36m&lt;head /&gt;[39m
+  [36m&lt;body&gt;[39m
+    [36m&lt;div /&gt;[39m
+  [36m&lt;/body&gt;[39m
+[36m&lt;/html&gt;[39m" type="AssertionError">
+AssertionError: expected false to be true // Object.is equality
+
+Ignored nodes: comments, script, style
+&lt;html&gt;
+  &lt;head /&gt;
+  &lt;body&gt;
+    &lt;div /&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/test/hooks/useGame.test.ts:178:65
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+            </failure>
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; ignores a stale night-script read after the game id changes" time="1.010293084">
+            <failure message="expected undefined to be &apos;second&apos; // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m&lt;html&gt;[39m
+  [36m&lt;head /&gt;[39m
+  [36m&lt;body&gt;[39m
+    [36m&lt;div /&gt;[39m
+  [36m&lt;/body&gt;[39m
+[36m&lt;/html&gt;[39m" type="AssertionError">
+AssertionError: expected undefined to be &apos;second&apos; // Object.is equality
+
+Ignored nodes: comments, script, style
+&lt;html&gt;
+  &lt;head /&gt;
+  &lt;body&gt;
+    &lt;div /&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+- Expected: 
+&quot;second&quot;
+
++ Received: 
+undefined
+
+ ❯ src/test/hooks/useGame.test.ts:211:81
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+            </failure>
+        </testcase>
+        <testcase classname="src/test/hooks/useGame.test.ts" name="useNightScript &gt; does not build a stale night script after unmount" time="0.008494916">
+        </testcase>
+    </testsuite>
+</testsuites>

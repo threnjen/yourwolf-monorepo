@@ -142,3 +142,26 @@ Decisions made during one feature that constrain or inform later phases. Append-
 - **The transport `Role` type under-declares `RoleRead`.** The backend returns `min_count`, `max_count`, `is_primary_team_role`, and `dependencies` on the single-role endpoint; the frontend type omits them. Phase 04b adds them. Any later consumer of `GET /roles/{id}` should trust the backend schema over the older frontend type.
 - **The frontend games API client is deleted in Phase 04b.** Backend `/games` routes remain for cloud use. A later cloud phase that wants server-side games reintroduces a client deliberately rather than reviving the old one.
 - **Phase 04b does not extend the transport `Role` type.** The earlier bullet saying 04b adds counts, primary flag, and dependencies is superseded: `RoleListItem` already carries them, and the adapter merges list item plus detail response. Signal: a plan that adds fields to a full-detail DTO when the list DTO already declares them.
+
+## Phase 05 Replanning
+
+- **Local data is one IndexedDB-backed repository used unchanged across browser, Tauri desktop, and Tauri mobile. SQLite is out of the roadmap.** The signal is any plan that adds sql.js, `tauri-plugin-sql`, or a second storage driver. Reject it unless a new requirement needs relational queries. Records carry `id` and `updated_at` so Phase 09 sync needs no schema change.
+- **The Tauri app identifier is a storage key. `Must-do in Phase 06a`: choose it once and never change it.** Changing it moves the webview data directory and orphans every custom role. Dev (`localhost`) and production (`tauri.localhost`) origins hold separate stores by design.
+- **Narration uses `window.speechSynthesis`, feature-detected. `Must-do in Phase 07a`: handle the undefined case (Linux WebKitGTK) and wait for `voiceschanged` before listing voices.** A native plugin is Phase 07b and only if device QA fails.
+- **Seed data has one canonical home in the backend and a parity-guarded copy in the frontend.** A monorepo-root shared file breaks both Docker builds. `Must-do in Phase 05a`: the parity test must read the backend file by relative path and fail when the copies differ.
+- **Official seed roles get deterministic ids minted from their name; custom roles get UUIDs.** Seed roles carry no ids and the engine already ties on name, so a name-derived id is stable across installs and reinstalls. `Must-do before Phase 09`: sync maps official roles by name, not by local id.
+
+## Phase 05a Refinement
+
+- **Role save landed in 05a with a local case-insensitive name check that stays permanently.** The signal is Phase 05b planning that re-adds a save path or removes the local check when the server name check goes. `Must-do in Phase 05b`: port validation and name check only; keep the local check and delete the HTTP client.
+- **`src/data/` declares its own record types and never imports `src/types/`.** The pure-layer ESLint rule bans `types` for engine, domain, and data alike. Transport compatibility is structural and pinned by a type-level test. A later phase that wants one shared type must move it into `src/data/`, not import transport.
+- **Reseed deletes stale official records by id.** A renamed official role gets a new name-derived id, so a custom role's dependency on the old id dangles. `Must-do before Phase 09`: sync and export treat an unresolvable official dependency id as a warning, not an error.
+
+## Phase 05a Catalog Bootstrap
+
+- **The repository provider owns IndexedDB bootstrap while `Layout` stays outside the route gate.** The signal is an app shell that must remain visible during database loading or failure. Later features should keep catalog and snapshot pages behind the existing gate and use the provider's aggregate repository value.
+- **Shared repository-backed tests use unique database names and explicit close/delete cleanup.** The signal is any test that mounts a repository provider or reads local records. Reuse the helper in `src/test/test_utils.tsx` so asynchronous tests cannot share IndexedDB state.
+
+## Phase 05a QA Handoff
+
+- **Packaged-origin separation requires the packaged Tauri runtime.** The signal is a local-storage QA step that compares `http://localhost:3000` with the production webview origin. `Must-do in Phase 06`: execute Phase 05a QA row 7.2 after packaging exists; keep it deferred rather than blocking the Phase 05a browser checklist.

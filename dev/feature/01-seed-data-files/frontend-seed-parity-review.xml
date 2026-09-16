@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="3" failures="0" errors="0" time="0.707">
+    <testsuite name="src/test/data/seed_parity.test.ts" timestamp="2026-09-16T16:06:29.164Z" hostname="Jennys-MacBook-Air.local" tests="3" failures="0" errors="0" skipped="0" time="0.005510709">
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; matches the canonical roles file" time="0.003477209">
+        </testcase>
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; matches the canonical abilities file" time="0.00038075">
+        </testcase>
+        <testcase classname="src/test/data/seed_parity.test.ts" name="frontend seed copies &gt; fails when a copied seed is mutated" time="0.00118675">
+        </testcase>
+    </testsuite>
+</testsuites>
