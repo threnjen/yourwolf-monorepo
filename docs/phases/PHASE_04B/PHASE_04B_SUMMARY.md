@@ -1,6 +1,6 @@
 # Phase 4b: Engine Frontend Integration
 
-**Status**: Planned
+**Status**: In Progress
 **Depends on**: Phase 04a (Client-Side Game Engine)
 **Estimated complexity**: Medium
 **Cross-references**: Engine contract in `yourwolf-frontend/src/engine/`; Phase 04a summary at `docs/phases/PHASE_04A/PHASE_04A_SUMMARY.md`; planning decisions in `docs/phases/DISCOVERY_CONTEXT.md`; Python reference stays untouched in `yourwolf-backend/`
@@ -48,6 +48,7 @@ Route those six call sites through the engine, persist the in-progress game in s
 | 1 | Adapters, store, role detail fetch | Pure adapter functions, the session store module, `rolesApi.getById` | adapters, storage, api |
 | 2 | Local game flow | Wake-order page creates locally, hooks read the store, facilitator starts and advances locally, games client deleted | pages, hooks, tests |
 | 3 | Local narrator preview | Role builder preview built by the engine from the draft | pages, adapters |
+| 4 | Offline flow integration | Automated integration evidence, deleted-path verification, and the phase-required manual QA checklist | verification, documentation |
 
 ## Technical Context
 
@@ -85,26 +86,39 @@ Route those six call sites through the engine, persist the in-progress game in s
 
 ## Success Criteria
 
-- [ ] A full game (setup → night → discussion → voting → resolution → complete) completes with no request to any `/games` path, proven by the shared axios stub throwing on any such path and by the manual QA network check.
-- [ ] Refreshing the facilitator page during any phase after setup returns to that phase with the same night script.
-- [ ] The night script rendered for the seed roles matches the Phase 04a fixture output for the chosen sequence.
-- [ ] The narrator preview in the role builder updates without a request to `/roles/preview-script`, and role validation still calls the server.
-- [ ] Setup validation failures display the engine's message on the wake-order page and create no game.
-- [ ] Setup warnings render on the facilitator setup view when present, and nothing renders when absent.
-- [ ] Malformed router state on the wake-order page redirects to game setup.
-- [ ] An unknown game id shows "Game not found" and a working link to game setup.
-- [ ] `rolesApi.getById` is tested, and the games client, its test, and unused mocks are gone.
-- [ ] A completed game survives refresh and still shows the completed view.
-- [ ] When one role detail fetch fails at Start Game, the error banner shows, no game is created, and the button re-enables.
-- [ ] When the store write fails at creation, an error shows and no navigation happens. When it fails at start or advance, the facilitator shows the error and keeps the previous phase.
-- [ ] The manual QA document exists and covers the full game flow, refresh in each phase, the offline check, and the narrator preview.
-- [ ] Adapter tests cover absent and null `wake_target`, absent and null `wake_order`, null `ability_type`, and an empty step list.
-- [ ] ESLint passes with zero warnings and no file under `src/engine/` changes.
-- [ ] Global coverage stays at or above the 80 percent threshold.
+- [ ] A full game completes with no `/games` request. The automated no-games guard is green. The browser network check remains pending in `PHASE_04B_QA.md`.
+- [x] Automated page tests cover refresh recovery for setup, night, discussion, voting, resolution, and complete. Night refresh resets to the first locally rebuilt action.
+- [x] The automated engine and hook suites verify the seed-role night script against the Phase 04a fixture for the chosen sequence.
+- [x] RoleBuilder tests verify local preview output and continued server validation. The shared request guard rejects `/roles/preview-script`.
+- [x] Wake-order tests verify engine validation failures remain visible and prevent game creation.
+- [x] Facilitator tests verify setup warnings render when present and remain absent when empty.
+- [x] Wake-order tests verify malformed router state redirects to game setup.
+- [x] Facilitator tests verify an unknown game id shows "Game not found" with a setup link.
+- [x] The roles client detail method is covered. The games client, its test, and unused game mocks are absent from frontend source.
+- [x] Facilitator tests verify a completed game survives refresh and retains its complete view.
+- [x] Wake-order tests verify detail-fetch failure shows an error, creates no game, and re-enables the action.
+- [x] Wake-order and facilitator tests verify storage failures show an error and preserve the prior visible state.
+- [x] The manual QA document exists at `docs/phases/PHASE_04B/PHASE_04B_QA.md` and all manual rows remain pending until execution.
+- [x] Adapter tests cover absent and null `wake_target`, absent and null `wake_order`, null `ability_type`, and an empty step list.
+- [x] ESLint passes with zero warnings and no file under `src/engine/` changed.
+- [x] Global frontend coverage remains above the 80 percent threshold.
+
+Automated evidence is recorded in `dev/test-results/04-offline-flow-integration/`. Manual network, browser, and storage checks remain pending.
+
+## Verification Status
+
+| Area | Status | Evidence |
+|---|---|---|
+| Focused integration suites | Complete | `dev/test-results/04-offline-flow-integration/affected.json`: 229 tests passed, 0 failed. |
+| Full frontend suite | Complete | `dev/test-results/04-offline-flow-integration/full.json`: 685 tests passed, 0 failed. |
+| Coverage | Complete | `dev/test-results/04-offline-flow-integration/coverage/coverage-summary.json`: 92.32% lines/statements, 93.01% functions, 94.46% branches. |
+| Lint and build | Complete | `dev/test-results/04-offline-flow-integration/lint-final.json` has 0 errors and 0 warnings. `build.log` records a successful build. |
+| Deleted-path and protected-path checks | Complete | No games or preview client references remain under `yourwolf-frontend/src`. No backend, engine, or domain files changed. |
+| Manual browser QA | Pending | Follow `PHASE_04B_QA.md`. No manual checks have been executed in this phase run. |
 
 ## QA Considerations
 
-- This phase changes user-facing flow, so a manual QA document is required. It must include the offline check: stop the backend after loading the roles list and complete a game.
+- This phase changes user-facing flow, so `PHASE_04B_QA.md` provides the required manual checklist. It includes the offline check: stop the backend after loading the role list and details, then complete a game.
 - Automated QA is the no-games-request guard, the adapter tests, and the updated page tests.
 - Affected suites: wake-order page, facilitator page, role builder page, routes, game hooks, roles client, shared mocks.
 
@@ -116,5 +130,6 @@ Suggested decomposition: **(1)** adapters, store, and role detail fetch → **(2
 - No-games-request guard. Suggested implementation shape, to be verified by Phase - Execute against current code and tests: the app uses axios, not `fetch`, and `src/test/setup.ts` already replaces axios with stub methods. Make those stub `get` and `post` methods throw on any `/games` path, so every page and hook test enforces the criterion without a dedicated test.
 - Feature 2 owns the router state guard, the parallel detail fetch on Start Game, the store reads in the hooks, and the deletion. Keep the facilitator's phase views unchanged and swap only the data source.
 - Feature 3 is independent of feature 2 and small. Keep `rolesApi.validate` as is.
+- Feature 4 verifies the combined route graph, records automated evidence, and keeps manual checks pending until a browser-capable runner executes them.
 - Do not touch `src/engine/` or `src/domain/`. Where an adapter needs a guard the engine lacks, put it in the adapter and test it there.
 - Land as one pull request.
