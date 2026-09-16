@@ -21,13 +21,14 @@ export function installNoNetworkGuard(): NoNetworkGuard {
   const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (...args) => {
     void args;
     fetchAttempts += 1;
-    return new Response(null, {status: 204});
+    throw new Error('Unexpected browser request: fetch');
   });
   const originalXmlHttpRequest = globalThis.XMLHttpRequest;
   const xhrSpy = vi.spyOn(globalThis, 'XMLHttpRequest').mockImplementation(() => {
     const request = new originalXmlHttpRequest();
     vi.spyOn(request, 'send').mockImplementation(() => {
       xhrAttempts += 1;
+      throw new Error('Unexpected browser request: XMLHttpRequest');
     });
     return request;
   });

@@ -25,7 +25,7 @@
 | # | Action | Expected | Status | Evidence |
 |---|---|---|---|---|
 | 3.1 | Set **Wake Order (0–40)** to `1`, open **Abilities**, and add six ability steps. Open **Review**. | The warning `This role has more than 5 ability steps, which may make it complex to balance.` appears. | Pending | — |
-| 3.2 | Add **Copy Role** and **Change to Team** ability steps, then open **Review**. | The warning `Using both 'copy_role' and 'change_to_team' abilities may cause conflicts.` appears. | Pending | — |
+| 3.2 | In **Card Actions**, add **Copy Role**. In **State Changes**, add **Change to Team**, then open **Review**. | The warning `Using both 'copy_role' and 'change_to_team' abilities may cause conflicts.` appears. | Pending | — |
 
 ## 4. Local name status and save
 

@@ -105,6 +105,7 @@ describe('RoleBuilderPage', () => {
   });
 
   it('proves draft validation, name status, and preview stay offline', async () => {
+    mockUseAbilities.mockReturnValue({abilities: [createMockAbility()], loading: false, error: null});
     const networkGuard = installNoNetworkGuard();
     try {
       renderPage();
@@ -119,12 +120,49 @@ describe('RoleBuilderPage', () => {
         errors: expect.arrayContaining(['At least one win condition is required.']),
       });
       expect(screen.queryByText(/Validation service unavailable/i)).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      fireEvent.click(screen.getByRole('button', {name: /add condition/i}));
+      fireEvent.click(screen.getByLabelText(/primary win condition/i));
+      await settleValidation();
+      fireEvent.click(screen.getByRole('button', {name: /next/i}));
+      expect(screen.getByRole('button', {name: /create role/i})).not.toBeDisabled();
+      fireEvent.click(screen.getByRole('button', {name: /create role/i}));
+      await act(async () => {});
+      expect(mockRolesPut).toHaveBeenCalledWith(expect.objectContaining({name: 'Offline Role'}));
+      expect(mockNavigate).toHaveBeenCalledWith('/roles');
+
       expect(networkGuard.getFetchAttempts()).toBe(0);
       expect(networkGuard.getXhrAttempts()).toBe(0);
       networkGuard.assertNoRequests();
     } finally {
       networkGuard.restore();
     }
+  });
+
+  it('fails at the browser request boundary and restores globals after assertion failure', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalXmlHttpRequest = globalThis.XMLHttpRequest;
+    const networkGuard = installNoNetworkGuard();
+    try {
+      await expect(globalThis.fetch('/unexpected')).rejects.toThrow('Unexpected browser request: fetch');
+
+      const request = new globalThis.XMLHttpRequest();
+      request.open('GET', '/unexpected');
+      expect(() => request.send()).toThrow('Unexpected browser request: XMLHttpRequest');
+
+      expect(networkGuard.getFetchAttempts()).toBe(1);
+      expect(networkGuard.getXhrAttempts()).toBe(1);
+      expect(() => networkGuard.assertNoRequests()).toThrow(
+        'Unexpected browser requests: fetch=1, XMLHttpRequest=1',
+      );
+    } finally {
+      networkGuard.restore();
+    }
+
+    expect(globalThis.fetch).toBe(originalFetch);
+    expect(globalThis.XMLHttpRequest).toBe(originalXmlHttpRequest);
   });
 
   it('cancels pending preview and validation work on unmount', () => {
