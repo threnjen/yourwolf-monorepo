@@ -3,9 +3,8 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {MemoryRouter} from 'react-router-dom';
 import {Layout} from '../../components/Layout';
 import {AppRoutes} from '../../routes';
-import {createRepositoryTestContext} from '../test_utils';
+import {createRepositoryTestContext, installNoNetworkGuard} from '../test_utils';
 import {RepositoryProvider} from '../../context/repository_context';
-import {apiClient} from '../../api/client';
 import {RolesPage} from '../../pages/RolesPage';
 import {GameSetupPage} from '../../pages/GameSetup';
 import {createCustomRole} from '../../data/conversion';
@@ -43,7 +42,7 @@ describe('Phase 05A application smoke flow', () => {
 
   it('completes a seeded game through one repository provider without API traffic', async () => {
     const context = await createRepositoryTestContext();
-    const apiMethods = [apiClient.get, apiClient.post, apiClient.put, apiClient.patch, apiClient.delete];
+    const networkGuard = installNoNetworkGuard();
 
     try {
       render(
@@ -85,10 +84,11 @@ describe('Phase 05A application smoke flow', () => {
       await waitFor(() => expect(screen.getByText('RESOLUTION Phase')).toBeInTheDocument());
       fireEvent.click(screen.getByRole('button', {name: 'Complete Game'}));
       await waitFor(() => expect(screen.getByText('Game Over')).toBeInTheDocument());
-      for (const apiMethod of apiMethods) {
-        expect(apiMethod).not.toHaveBeenCalled();
-      }
+      expect(networkGuard.getFetchAttempts()).toBe(0);
+      expect(networkGuard.getXhrAttempts()).toBe(0);
+      networkGuard.assertNoRequests();
     } finally {
+      networkGuard.restore();
       await context.cleanup();
     }
   }, 20000);

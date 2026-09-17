@@ -1,244 +1,183 @@
-import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-import {render, screen, fireEvent, act} from '@testing-library/react';
+import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {render, screen, fireEvent} from '@testing-library/react';
 import {BasicInfoStep} from '../../../../components/RoleBuilder/steps/BasicInfoStep';
-import {rolesApi} from '../../../../api/roles';
 import {createMockDraft} from '../../../mocks';
-
-vi.mock('../../../../api/roles', () => ({
-  rolesApi: {
-    list: vi.fn(),
-    validate: vi.fn(),
-    checkName: vi.fn(),
-    create: vi.fn(),
-  },
-}));
-
-const mockRolesApi = rolesApi as unknown as {
-  checkName: ReturnType<typeof vi.fn>;
-};
 
 describe('BasicInfoStep', () => {
   const mockOnChange = vi.fn();
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
+    mockOnChange.mockClear();
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+  function renderStep(nameStatus: 'idle' | 'checking' | 'available' | 'taken' = 'idle') {
+    return render(
+      <BasicInfoStep
+        draft={createMockDraft()}
+        onChange={mockOnChange}
+        nameStatus={nameStatus}
+      />,
+    );
+  }
+
+  it('renders the basic role fields and team buttons', () => {
+    renderStep();
+    expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/wake order/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/votes/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /village/i})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /werewolf/i})).toBeInTheDocument();
   });
 
-  describe('rendering', () => {
-    it('renders name input', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
-    });
-
-    it('renders description textarea', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
-    });
-
-    it('renders wake order input', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByLabelText(/wake order/i)).toBeInTheDocument();
-    });
-
-    it('renders votes input', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByLabelText(/votes/i)).toBeInTheDocument();
-    });
-
-    it('renders all 5 team buttons', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByRole('button', {name: /village/i})).toBeInTheDocument();
-      expect(screen.getByRole('button', {name: /werewolf/i})).toBeInTheDocument();
-      expect(screen.getByRole('button', {name: /vampire/i})).toBeInTheDocument();
-      expect(screen.getByRole('button', {name: /alien/i})).toBeInTheDocument();
-      expect(screen.getByRole('button', {name: /neutral/i})).toBeInTheDocument();
-    });
-
-    it('shows current draft values', () => {
-      const draft = createMockDraft({name: 'My Role', description: 'Some desc', votes: 2});
-      render(<BasicInfoStep draft={draft} onChange={mockOnChange} />);
-      expect(screen.getByLabelText(/name/i)).toHaveValue('My Role');
-      expect(screen.getByLabelText(/description/i)).toHaveValue('Some desc');
-      expect(screen.getByLabelText(/votes/i)).toHaveValue(2);
-    });
+  it('renders all five team buttons', () => {
+    renderStep();
+    for (const team of ['village', 'werewolf', 'vampire', 'alien', 'neutral']) {
+      expect(screen.getByRole('button', {name: new RegExp(team, 'i')})).toBeInTheDocument();
+    }
   });
 
-  describe('name field interactions', () => {
-    it('calls onChange when name changes', () => {
-      render(<BasicInfoStep draft={createMockDraft({name: ''})} onChange={mockOnChange} />);
-      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'New Name'}});
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({name: 'New Name'}));
-    });
-
-    it('triggers name check after 500ms debounce', async () => {
-      mockRolesApi.checkName.mockResolvedValue({name: 'New Name', is_available: true, message: 'Available'});
-      render(<BasicInfoStep draft={createMockDraft({name: ''})} onChange={mockOnChange} />);
-
-      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'New Name'}});
-      expect(mockRolesApi.checkName).not.toHaveBeenCalled();
-
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      expect(mockRolesApi.checkName).toHaveBeenCalledWith('New Name');
-    });
-
-    it('shows Available status after name check', async () => {
-      mockRolesApi.checkName.mockResolvedValue({name: 'Unique', is_available: true, message: 'Available'});
-      render(<BasicInfoStep draft={createMockDraft({name: ''})} onChange={mockOnChange} />);
-
-      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Unique'}});
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-      // Flush the resolved checkName promise and its resulting state update
-      await act(async () => {});
-
-      expect(screen.getByText(/available/i)).toBeInTheDocument();
-    });
-
-    it('shows Taken status when name is unavailable', async () => {
-      mockRolesApi.checkName.mockResolvedValue({name: 'Werewolf', is_available: false, message: 'Name is taken'});
-      render(<BasicInfoStep draft={createMockDraft({name: ''})} onChange={mockOnChange} />);
-
-      fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'Werewolf'}});
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-      // Flush the resolved checkName promise and its resulting state update
-      await act(async () => {});
-
-      expect(screen.getByText(/taken/i)).toBeInTheDocument();
-    });
+  it('shows current draft values', () => {
+    render(
+      <BasicInfoStep
+        draft={createMockDraft({name: 'My Role', description: 'Some desc', votes: 2})}
+        onChange={mockOnChange}
+        nameStatus="idle"
+      />,
+    );
+    expect(screen.getByLabelText(/name/i)).toHaveValue('My Role');
+    expect(screen.getByLabelText(/description/i)).toHaveValue('Some desc');
+    expect(screen.getByLabelText(/votes/i)).toHaveValue(2);
   });
 
-  describe('team selection', () => {
-    it('calls onChange with correct team on button click', () => {
-      render(<BasicInfoStep draft={createMockDraft({team: 'village'})} onChange={mockOnChange} />);
-      fireEvent.click(screen.getByRole('button', {name: /werewolf/i}));
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({team: 'werewolf'}));
-    });
-
-    it('calls onChange for each team', () => {
-      const teams = ['village', 'werewolf', 'vampire', 'alien', 'neutral'] as const;
-      for (const team of teams) {
-        const draft = createMockDraft({team: 'village'});
-        const onChange = vi.fn();
-        const {unmount} = render(<BasicInfoStep draft={draft} onChange={onChange} />);
-        fireEvent.click(screen.getByRole('button', {name: new RegExp(team, 'i')}));
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({team}));
-        unmount();
-      }
-    });
+  it('renders the wake order range in the field label', () => {
+    renderStep();
+    expect(screen.getByText(/wake order \(0–40\)/i)).toBeInTheDocument();
   });
 
-  describe('primary team role toggle', () => {
-    it.each(['werewolf', 'vampire', 'alien'] as const)('renders toggle for %s team', (team) => {
-      render(<BasicInfoStep draft={createMockDraft({team})} onChange={mockOnChange} />);
-      expect(screen.getByLabelText('Primary team role')).toBeInTheDocument();
-    });
+  it.each([
+    ['checking', 'Checking...'],
+    ['available', 'Available ✓'],
+    ['taken', 'Taken ✗'],
+  ] as const)('renders the supplied %s status without reading roles', (status, text) => {
+    renderStep(status);
+    expect(screen.getByText(text)).toBeInTheDocument();
+  });
 
-    it('hides toggle for village team', () => {
-      render(<BasicInfoStep draft={createMockDraft({team: 'village'})} onChange={mockOnChange} />);
-      expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
-    });
+  it('does not render a status when the supplied status is idle', () => {
+    renderStep();
+    expect(screen.queryByText(/checking|available|taken/i)).not.toBeInTheDocument();
+  });
 
-    it('hides toggle for neutral team', () => {
-      render(<BasicInfoStep draft={createMockDraft({team: 'neutral'})} onChange={mockOnChange} />);
-      expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
-    });
+  it('passes name edits to the page owner', () => {
+    render(<BasicInfoStep draft={createMockDraft({name: ''})} onChange={mockOnChange} nameStatus="checking" />);
+    fireEvent.change(screen.getByLabelText(/name/i), {target: {value: 'New Name'}});
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({name: 'New Name'}));
+  });
 
-    it('checking toggle calls onChange with is_primary_team_role true', () => {
+  it('passes field edits and team changes to the page owner', () => {
+    renderStep();
+    fireEvent.change(screen.getByLabelText(/description/i), {target: {value: 'New desc'}});
+    fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '5'}});
+    fireEvent.change(screen.getByLabelText(/votes/i), {target: {value: '2'}});
+    fireEvent.click(screen.getByRole('button', {name: /werewolf/i}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({description: 'New desc'}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({wake_order: 5}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({votes: 2}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({team: 'werewolf'}));
+  });
+
+  it.each(['village', 'werewolf', 'vampire', 'alien', 'neutral'] as const)(
+    'passes %s team selection to the page owner',
+    (team) => {
+      const onChange = vi.fn();
       render(
         <BasicInfoStep
-          draft={createMockDraft({team: 'werewolf', is_primary_team_role: false})}
-          onChange={mockOnChange}
-        />
+          draft={createMockDraft({team: 'village'})}
+          onChange={onChange}
+          nameStatus="idle"
+        />,
       );
-      fireEvent.click(screen.getByLabelText('Primary team role'));
-      expect(mockOnChange).toHaveBeenCalledWith(
-        expect.objectContaining({is_primary_team_role: true})
-      );
-    });
+      fireEvent.click(screen.getByRole('button', {name: new RegExp(team, 'i')}));
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({team}));
+    },
+  );
 
-    it('switching to village clears is_primary_team_role to false', () => {
-      render(
-        <BasicInfoStep
-          draft={createMockDraft({team: 'werewolf', is_primary_team_role: true})}
-          onChange={mockOnChange}
-        />
-      );
-      fireEvent.click(screen.getByRole('button', {name: /village/i}));
-      expect(mockOnChange).toHaveBeenCalledWith(
-        expect.objectContaining({team: 'village', is_primary_team_role: false})
-      );
-    });
-
-    it('switching to neutral clears is_primary_team_role to false', () => {
-      render(
-        <BasicInfoStep
-          draft={createMockDraft({team: 'werewolf', is_primary_team_role: true})}
-          onChange={mockOnChange}
-        />
-      );
-      fireEvent.click(screen.getByRole('button', {name: /neutral/i}));
-      expect(mockOnChange).toHaveBeenCalledWith(
-        expect.objectContaining({team: 'neutral', is_primary_team_role: false})
-      );
-    });
+  it('clears primary team role when switching to village or neutral', () => {
+    const draft = createMockDraft({team: 'werewolf', is_primary_team_role: true});
+    render(<BasicInfoStep draft={draft} onChange={mockOnChange} nameStatus="idle" />);
+    fireEvent.click(screen.getByRole('button', {name: /village/i}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({team: 'village', is_primary_team_role: false}));
   });
 
-  describe('other field interactions', () => {
-    it('calls onChange when description changes', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      fireEvent.change(screen.getByLabelText(/description/i), {target: {value: 'New desc'}});
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({description: 'New desc'}));
-    });
-
-    it('calls onChange when wake order changes', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: '5'}});
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({wake_order: 5}));
-    });
-
-    it('calls onChange when votes changes', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      fireEvent.change(screen.getByLabelText(/votes/i), {target: {value: '2'}});
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({votes: 2}));
-    });
-
-    it('clearing wake order sets it to 0 not null', () => {
-      render(<BasicInfoStep draft={createMockDraft({wake_order: 5})} onChange={mockOnChange} />);
-      fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: ''}});
-      expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({wake_order: 0}));
-    });
+  it('shows primary team role only for eligible teams', () => {
+    const {unmount} = render(
+      <BasicInfoStep draft={createMockDraft({team: 'werewolf'})} onChange={mockOnChange} nameStatus="idle" />,
+    );
+    expect(screen.getByLabelText('Primary team role')).toBeInTheDocument();
+    unmount();
+    render(<BasicInfoStep draft={createMockDraft({team: 'village'})} onChange={mockOnChange} nameStatus="idle" />);
+    expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
   });
 
-  describe('wake order label and hint', () => {
-    it('renders wake order label with range hint (0–40)', () => {
-      render(<BasicInfoStep draft={createMockDraft()} onChange={mockOnChange} />);
-      expect(screen.getByText(/wake order \(0–40\)/i)).toBeInTheDocument();
-    });
+  it.each(['werewolf', 'vampire', 'alien'] as const)('shows the primary toggle for %s', (team) => {
+    render(
+      <BasicInfoStep
+        draft={createMockDraft({team})}
+        onChange={mockOnChange}
+        nameStatus="idle"
+      />,
+    );
+    expect(screen.getByLabelText('Primary team role')).toBeInTheDocument();
+  });
 
-    it('shows does-not-wake hint when wake_order is 0', () => {
-      render(<BasicInfoStep draft={createMockDraft({wake_order: 0})} onChange={mockOnChange} />);
+  it.each(['village', 'neutral'] as const)('hides the primary toggle for %s', (team) => {
+    render(
+      <BasicInfoStep
+        draft={createMockDraft({team})}
+        onChange={mockOnChange}
+        nameStatus="idle"
+      />,
+    );
+    expect(screen.queryByLabelText('Primary team role')).not.toBeInTheDocument();
+  });
+
+  it('passes a checked primary team role to the page owner', () => {
+    const onChange = vi.fn();
+    render(
+      <BasicInfoStep
+        draft={createMockDraft({team: 'werewolf', is_primary_team_role: false})}
+        onChange={onChange}
+        nameStatus="idle"
+      />,
+    );
+    fireEvent.click(screen.getByLabelText('Primary team role'));
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({is_primary_team_role: true}));
+  });
+
+  it('clears primary team role when switching to neutral', () => {
+    const draft = createMockDraft({team: 'werewolf', is_primary_team_role: true});
+    render(<BasicInfoStep draft={draft} onChange={mockOnChange} nameStatus="idle" />);
+    fireEvent.click(screen.getByRole('button', {name: /neutral/i}));
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({team: 'neutral', is_primary_team_role: false}));
+  });
+
+  it('sets wake order to zero when its input is cleared', () => {
+    render(<BasicInfoStep draft={createMockDraft({wake_order: 5})} onChange={mockOnChange} nameStatus="idle" />);
+    fireEvent.change(screen.getByLabelText(/wake order/i), {target: {value: ''}});
+    expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({wake_order: 0}));
+  });
+
+  it.each([
+    [0, true],
+    [null, true],
+    [5, false],
+  ] as const)('renders the does-not-wake hint for wake order %s', (wakeOrder, shouldRender) => {
+    render(<BasicInfoStep draft={createMockDraft({wake_order: wakeOrder})} onChange={mockOnChange} nameStatus="idle" />);
+    if (shouldRender) {
       expect(screen.getByText('Does not wake up')).toBeInTheDocument();
-    });
-
-    it('hides does-not-wake hint when wake_order > 0', () => {
-      render(<BasicInfoStep draft={createMockDraft({wake_order: 5})} onChange={mockOnChange} />);
+    } else {
       expect(screen.queryByText('Does not wake up')).not.toBeInTheDocument();
-    });
-
-    it('shows does-not-wake hint when wake_order is null (legacy)', () => {
-      render(<BasicInfoStep draft={createMockDraft({wake_order: null})} onChange={mockOnChange} />);
-      expect(screen.getByText('Does not wake up')).toBeInTheDocument();
-    });
+    }
   });
 });

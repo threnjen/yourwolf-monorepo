@@ -102,7 +102,7 @@ npm install
 npm run dev
 ```
 
-The dev server starts at http://localhost:3000. Catalog browsing, game flow, and local role persistence use IndexedDB. A running backend remains required for draft validation and role-name availability checks. Ensure `VITE_API_URL` in `yourwolf-frontend/.env` points to that backend.
+The dev server starts at http://localhost:3000. Catalog browsing, game flow, role authoring, validation, name checks, and local persistence all work without a running backend. The frontend requires no environment variables for local operation.
 
 ---
 
@@ -232,4 +232,3 @@ docker compose exec db psql -U yourwolf -d yourwolf -c 'SELECT COUNT(*) FROM rol
 | Frontend shows stale code | Vite cache issue | `docker compose down && docker compose up --build` |
 | Port already in use (8000 / 3000 / 5432) | Another process on that port | Stop the conflicting process, or change ports in `docker-compose.yml` |
 | Database data unexpectedly gone | `down -v` was used | Re-run `docker compose up` — seed runs automatically |
-| Frontend can't reach the API | `VITE_API_URL` misconfigured | Verify `yourwolf-frontend/.env` has `VITE_API_URL=http://localhost:8000` |

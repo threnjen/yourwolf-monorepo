@@ -4,7 +4,7 @@
 
 ## What is YourWolf?
 
-YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. The current web app uses a pure TypeScript engine for game sessions, night scripts, phase transitions, and narrator previews. IndexedDB stores the bundled role and ability catalogs, custom roles, and game snapshots. Draft validation and role-name availability checks still use the FastAPI backend. Native apps, voice narration, and cloud features remain planned.
+YourWolf is a **game facilitator app** for in-person social deduction games based on One Night Ultimate Werewolf. The current web app uses a pure TypeScript engine for game sessions, night scripts, phase transitions, narrator previews, and role validation. IndexedDB stores the bundled role and ability catalogs, custom roles, and game snapshots. The frontend makes no server requests. Native apps, voice narration, and cloud features remain planned.
 
 ### The Problem
 
@@ -66,7 +66,6 @@ yourwolf-monorepo/
 │   ├── alembic/          Database migrations
 │   └── tests/            Pytest suite (SQLite in-memory, 80% coverage threshold)
 ├── yourwolf-frontend/    React 18, TypeScript, Vite
-│   ├── src/api/          Axios API clients
 │   ├── src/adapters/     Transport and draft adapters for the engine
 │   ├── src/components/   Reusable UI components
 │   ├── src/context/      Repository provider and bootstrap state
@@ -108,7 +107,8 @@ yourwolf-monorepo/
 | [3.6](docs/phases/PHASE_3.6/) | Wake Order Resolution | Complete |
 | [04a](docs/phases/PHASE_04A/) | Client-Side Game Engine | Complete |
 | [04b](docs/phases/PHASE_04B/) | Engine Frontend Integration | Complete |
-| [05a](docs/phases/PHASE_05A/) | Local Catalog and Store | Implementation Complete |
+| [05a](docs/phases/PHASE_05A/) | Local Catalog and Store | Complete — Manual QA Pending |
+| [05b](docs/phases/PHASE_05B/) | Local Role Authoring | Complete — Manual QA Pending |
 | 06 | Desktop App (Tauri v2) | Planned |
 | 07 | Narration Engine (TTS) | Planned |
 | 08 | Mobile App (Tauri v2) | Planned |

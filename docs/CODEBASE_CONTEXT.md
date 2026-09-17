@@ -1,6 +1,6 @@
 # Codebase Context
 
-> Dense reference for AI agents. Current phase: 05a implementation complete; browser manual QA pending.
+> Dense reference for AI agents. Current phase: 05b complete; browser manual QA pending.
 
 ## Project
 
@@ -129,11 +129,6 @@ yourwolf-frontend/
 │   ├── main.tsx             # ReactDOM.createRoot entry
 │   ├── App.tsx              # Layout wrapper + AppRoutes
 │   ├── routes.tsx           # React Router v6 route definitions
-│   ├── api/                 # Axios clients
-│   │   ├── client.ts        # Axios instance (baseURL: VITE_API_URL/api/v1)
-│   │   ├── roles.ts         # rolesApi: list, getById, create, validate, checkName
-│   │   ├── errors.ts        # Reads FastAPI 422 detail arrays and domain-error string details
-│   │   └── abilities.ts     # abilitiesApi: list
 │   ├── adapters/
 │   │   └── role_adapters.ts # Role list/detail and draft shapes → engine inputs
 │   ├── context/
@@ -151,7 +146,7 @@ yourwolf-frontend/
 │   │   ├── useGameSetup.ts  # Role selection, card count validation, navigate to wake order
 │   │   ├── useRoles.ts      # Role list with filtering
 │   │   ├── useAbilities.ts  # Abilities list
-│   │   └── useNameCheck.ts  # Debounced, race-safe role-name availability check
+│   │   └── useNameCheck.ts  # Debounced local role-name availability check
 │   ├── pages/
 │   │   ├── HomePage.tsx
 │   │   ├── RolesPage.tsx
@@ -172,6 +167,7 @@ yourwolf-frontend/
 │   │   ├── teams.ts         # TEAMS, Team
 │   │   ├── constants.ts     # ABILITY_CATEGORIES, STRING_TARGET_OPTIONS, MODIFIERS, MODIFIER_LABELS
 │   │   ├── roleDraft.ts     # RoleDraft, AbilityStepDraft, WinConditionDraft, StepModifier, createEmptyDraft
+│   │   ├── roleValidation.ts # Draft validation, warnings, and local name collision
 │   │   ├── roleSelection.ts # buildRoleMap, countSelectedCards, toggleRoleSelection,
 │   │   │                    # adjustRoleCount, removeRoleWithCascade
 │   │   ├── abilitySteps.ts  # append/remove/move/renumber steps, parameter coercion
@@ -185,7 +181,7 @@ yourwolf-frontend/
 │   │   └── gameSession.ts   # Immutable create/start/advance phase state machine
 │   ├── types/
 │   │   ├── game.ts          # NarratorAction and NightScript UI contracts
-│   │   ├── transport.ts     # Wire DTOs: Role, AbilityStep, Visibility, ValidationResult, NameCheckResult, NarratorPreviewAction/Response
+│   │   ├── transport.ts     # DTOs: Role, AbilityStep, Visibility, ValidationResult, NarratorPreviewAction/Response
 │   │   └── routerState.ts   # Typed router-state contract plus runtime guard
 │   ├── styles/
 │   │   ├── theme.ts         # Dark theme object (colors, spacing, borderRadius, shadows)
@@ -206,7 +202,7 @@ yourwolf-frontend/
 | Layer | Must NOT import |
 |-------|-----------------|
 | `src/data/**`, `src/domain/**`, `src/engine/**` | `react` / `react-dom`; `api`, `hooks`, `components`, `pages`, `styles`; `types` (transport DTOs) |
-| `src/components/**` | `src/api` — go through a hook in `src/hooks` |
+| `src/components/**` | `src/api` — the frontend has no HTTP layer |
 
 - Dependencies point inward. Transport types may depend on domain types, never the reverse — if the domain needs a shape, declare it in `src/domain`.
 - The domain rule uses the `@typescript-eslint` variant with `allowTypeImports: false`, so `import type` is restricted too.
@@ -231,8 +227,9 @@ yourwolf-frontend/
 
 - Styling: inline styles with centralized `theme` object, no CSS-in-JS library
 - State: React useState/useCallback hooks, no global state library
-- API calls: Axios sends only role validation and name-check requests; catalog, role save, and game flow use local repositories
-- Testing: Vitest + jsdom + @testing-library/react, Axios mocked globally in `test/setup.ts`; the shared mock rejects `/games` and `/roles/preview-script` requests
+- Network boundary: application code makes no HTTP requests; catalogs and persistence use repositories, while rules and narration run locally
+- Role authoring: `validateRoleDraft` returns local errors and warnings; `useNameCheck` compares against the local catalog after a 500 ms debounce
+- Testing: Vitest + jsdom + @testing-library/react; `installNoNetworkGuard()` fails offline-flow tests on any `fetch` or `XMLHttpRequest` attempt
 - Named exports only (no `export default` — enforced since Phase 2.5)
 - `useFetch` generic hook: wraps fetcher in loading/error/data/refetch pattern
 - Coverage threshold: 80% lines/branches/functions/statements
@@ -243,7 +240,7 @@ yourwolf-frontend/
 |------|---------------|------------------|
 | `/` | HomePage | — |
 | `/roles` | RolesPage | useRoles |
-| `/roles/new` | RoleBuilderPage | local `buildPreview`, local role repository save, rolesApi.validate/checkName, useAbilities, useNameCheck |
+| `/roles/new` | RoleBuilderPage | local `buildPreview`, `validateRoleDraft`, local role repository save, useAbilities, useNameCheck |
 | `/games/new` | GameSetupPage | useGameSetup, useRoles |
 | `/games/new/wake-order` | WakeOrderResolutionPage | @dnd-kit, GameRepository, engine adapters |
 | `/games/:gameId` | GameFacilitatorPage | useGame, useNightScript, GameRepository, engine phase functions |
@@ -264,15 +261,16 @@ yourwolf-frontend/
 | `DATABASE_URL` | Backend | `postgresql://yourwolf:yourwolf_dev@db:5432/yourwolf` | DB connection |
 | `ENVIRONMENT` | Backend | `development` | App mode (development/test/staging/production) |
 | `CORS_ORIGINS` | Backend | `http://localhost:3000,http://127.0.0.1:3000` | Allowed origins |
-| `VITE_API_URL` | Frontend | `http://localhost:8000` | Backend URL |
+
+- The frontend requires no environment variables for local operation.
 
 ## Current Status
 
-- Phases 01–04b are complete.
-- Phase 05a implementation is complete. Five feature reviews are approved with no unresolved findings.
+- Phases 01–05b are complete.
+- Phase 05b passed production review with no findings. Its browser manual QA remains pending.
 - Phase 05a browser manual QA has 31 pending rows. The packaged-Tauri origin check is deferred to Phase 06 because Phase 05a provides no packaged runtime.
-- The live frontend runs catalog reads, role save, game creation, phase transitions, night scripts, and narrator previews locally. It uses the backend for draft validation and name checks.
-- Next: local role authoring (05b), backup import/export (05c), Tauri desktop (06), narration (07), mobile (08), then cloud features (09–13).
+- The live frontend runs catalog reads, role save, role validation, name checks, game creation, phase transitions, night scripts, and narrator previews locally. It makes no server requests.
+- Next: backup import/export (05c), Tauri desktop (06), narration (07), mobile (08), then cloud features (09–13).
 
 ## Do Not
 
@@ -283,10 +281,9 @@ yourwolf-frontend/
 - Do NOT add DOM/Node/React dependencies to `src/engine/` (Phase 04) — must be pure TypeScript
 - Do NOT import transport DTOs from `src/engine/` — Phase 04b adapters belong outside the engine.
 - Do NOT add a frontend games API client or call `/api/v1/games` from the application flow — use the engine and game snapshot store.
-- Do NOT call `/api/v1/roles/preview-script` from RoleBuilder — build previews locally and keep `/roles/validate` server-backed.
+- Do NOT add frontend calls to backend role, ability, game, or preview endpoints — use repositories, domain rules, and the TypeScript engine.
 - Do NOT describe the TypeScript engine as fully identical to Python — deterministic wake-order ties and setup-advance rejection are deliberate differences.
 - Do NOT skip `_ensure_abilities()` in backend tests that need ability data — tests use fresh SQLite per function
-- Do NOT hardcode `localhost` URLs — use `VITE_API_URL` env var via `import.meta.env`
 - Do NOT forget `useCallback` around fetcher functions passed to `useFetch` — causes infinite re-render loops
 - Do NOT import `settings`, `engine`, or `SessionLocal` from `app.config` / `app.database` — they no longer exist. Use `get_settings()`, `get_engine()`, `get_session_factory()`.
 - Do NOT construct `Settings()` directly or bind an engine at import time — it reintroduces the import-order hazard the accessors removed.

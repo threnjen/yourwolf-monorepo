@@ -14,9 +14,8 @@ export type StepModifier = 'none' | 'and' | 'or' | 'if';
  *
  * Distinct from the transport `AbilityStep` DTO despite the shapes currently
  * lining up: `id` here is a client-generated key (`crypto.randomUUID`) used to
- * track the step across reorders, and `api/roles.ts` drops it when building the
- * create payload. The transport `id` is the server's identifier for a persisted
- * step. The two are free to drift as the API evolves.
+ * track the step across reorders. The transport `id` is the server's identifier
+ * for a persisted step. The two are free to drift at the data boundary.
  */
 export interface AbilityStepDraft {
   id: string;
@@ -34,9 +33,8 @@ export interface AbilityStepDraft {
  * One win condition as the builder wizard holds it while editing.
  *
  * Distinct from the transport `WinCondition` DTO for the same reason as
- * `AbilityStepDraft`: `id` is a client-side editing key that the create payload
- * drops, and the draft leaves `condition_params` optional where the payload
- * requires an explicit `null` (normalized at the meeting point in `api/roles.ts`).
+ * `AbilityStepDraft`: `id` is a client-side editing key that persistence can
+ * normalize, and the draft leaves `condition_params` optional until storage.
  */
 export interface WinConditionDraft {
   id: string;
@@ -53,7 +51,7 @@ export interface WinConditionDraft {
  * server-assigned fields the transport `Role` has (`visibility`, `vote_score`,
  * `use_count`, `is_locked`), and it uses `null` rather than absence for the
  * not-yet-set wake fields so the form can bind to them directly.
- * `api/roles.ts` maps this to the create payload.
+ * The local repository stores this editing model directly.
  */
 export interface RoleDraft {
   id: string;

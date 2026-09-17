@@ -91,19 +91,6 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 
 ---
 
-### Frontend can't reach the backend API
-
-**Symptom**: Network errors in the browser console; API calls fail with `ERR_CONNECTION_REFUSED`.
-
-**Cause**: `VITE_API_URL` is not configured, or the backend isn't running.
-
-**Fix**:
-1. Verify `yourwolf-frontend/.env` contains `VITE_API_URL=http://localhost:8000`
-2. Verify the backend container is running: `docker compose ps`
-3. Test the backend directly: `curl http://localhost:8000/health`
-
----
-
 ### Lint fails: "src/domain and src/engine must stay pure TypeScript"
 
 **Symptom**: `no-restricted-imports` errors on an import inside `src/domain/` (or `src/engine/`), including on an `import type`.
@@ -142,7 +129,7 @@ If running standalone: stop the dev server, delete `node_modules/.vite`, restart
 
 **Fix**: Wrap the fetcher in `useCallback`:
 ```tsx
-const fetcher = useCallback(() => rolesApi.list({limit: 100}), []);
+const fetcher = useCallback(() => repositories.roles.list(), [repositories]);
 const {data, loading, error, refetch} = useFetch(fetcher);
 ```
 
@@ -244,19 +231,13 @@ raise DomainValidationError("Role must have at least one win condition.")
 
 ## Frontend Tests
 
-### Axios calls not being mocked
+### Offline frontend test reports a network request
 
-**Symptom**: Tests make real HTTP requests or fail with network errors.
+**Symptom**: A role-builder or smoke test fails with an error that identifies a `fetch` or `XMLHttpRequest` attempt.
 
-**Cause**: The global Axios mock in `src/test/setup.ts` mocks `axios.create()` but tests may import the already-created `apiClient` instance.
+**Cause**: Frontend application code crossed the offline boundary. The shipped frontend has no HTTP client and must use repositories, domain rules, or the TypeScript engine.
 
-**Fix**: Mock the specific API module, not axios directly. Note that `src/test/` mirrors the source tree, so the relative depth depends on where the test file sits. From `src/test/pages/GameSetup.test.tsx`, the roles client path is `../../api/roles`, not `../api/roles`:
-```tsx
-vi.mock('../../api/roles');
-const mockList = rolesApi.list as ReturnType<typeof vi.fn>;
-```
-
-Game creation and phase transitions use the TypeScript engine and the provider-backed `GameRepository` in `src/data/indexeddb.ts`. Tests for those paths mock repository reads and writes, not an API client.
+**Fix**: Keep the request guard installed with `installNoNetworkGuard()` from `src/test/test_utils.tsx`. Replace the request with the matching repository, domain, or engine call. Do not mock the request away.
 
 ---
 
