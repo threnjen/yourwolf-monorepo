@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="19" failures="0" errors="0" time="0.857">
+    <testsuite name="src/test/integration/phase_05a_smoke.test.tsx" timestamp="2026-09-16T22:55:00.321Z" hostname="Jennys-MacBook-Air.local" tests="2" failures="0" errors="0" skipped="0" time="0.185129959">
+        <testcase classname="src/test/integration/phase_05a_smoke.test.tsx" name="Phase 05A application smoke flow &gt; makes a saved custom role visible to list and setup consumers" time="0.084079458">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/integration/phase_05a_smoke.test.tsx" name="Phase 05A application smoke flow &gt; completes a seeded game through one repository provider without API traffic" time="0.100539875">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/pages/RoleBuilder.test.tsx" timestamp="2026-09-16T22:55:00.322Z" hostname="Jennys-MacBook-Air.local" tests="17" failures="0" errors="0" skipped="0" time="0.302704333">
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders the builder heading and steps" time="0.058503333">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; uses local validation after the 1000ms debounce and keeps preview local" time="0.0130675">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; proves draft validation, name status, and preview stay offline" time="0.008721583">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; cancels pending preview and validation work on unmount" time="0.004716834">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; waits for roles and abilities before publishing validation" time="0.019471">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validates the latest draft when both catalogs become ready" time="0.016553917">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; clears pending validation when a catalog becomes unavailable" time="0.018333">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; combines collision and domain errors with length precedence" time="0.015323417">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders local domain warnings alongside a valid validation result" time="0.040604583">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; suppresses collision for a trimmed 51-character name only when length is invalid" time="0.013636875">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; suppresses collision for a one-character name that matches a local role" time="0.004460375">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps all save defenses and rechecks the repository immediately before put" time="0.0206355">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rechecks the repeated save gate before reading the repository" time="0.01697175">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps the draft when local persistence fails" time="0.019879708">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; saves a valid local role and navigates after persistence succeeds" time="0.021067625">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps preview generation independent of validation readiness for a non-waking role" time="0.004206583">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders only the newest preview after rapid draft edits" time="0.005871833">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="18" failures="0" errors="0" time="0.82">
+    <testsuite name="src/test/pages/RoleBuilder.test.tsx" timestamp="2026-09-16T23:07:20.656Z" hostname="Jennys-MacBook-Air.local" tests="18" failures="0" errors="0" skipped="0" time="0.299095708">
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders the builder heading and steps" time="0.05467325">
+            <system-err>
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; uses local validation after the 1000ms debounce and keeps preview local" time="0.012754584">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; proves draft validation, name status, and preview stay offline" time="0.037001458">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; fails at the browser request boundary and restores globals after assertion failure" time="0.0014845">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; cancels pending preview and validation work on unmount" time="0.003976125">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; waits for roles and abilities before publishing validation" time="0.012851792">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; validates the latest draft when both catalogs become ready" time="0.014739875">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; clears pending validation when a catalog becomes unavailable" time="0.016267958">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; combines collision and domain errors with length precedence" time="0.013356125">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders local domain warnings alongside a valid validation result" time="0.03530225">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; suppresses collision for a trimmed 51-character name only when length is invalid" time="0.012605125">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; suppresses collision for a one-character name that matches a local role" time="0.003431958">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps all save defenses and rechecks the repository immediately before put" time="0.019010542">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; rechecks the repeated save gate before reading the repository" time="0.014061292">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps the draft when local persistence fails" time="0.018611291">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; saves a valid local role and navigates after persistence succeeds" time="0.018943125">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; keeps preview generation independent of validation readiness for a non-waking role" time="0.003926583">
+        </testcase>
+        <testcase classname="src/test/pages/RoleBuilder.test.tsx" name="RoleBuilderPage &gt; renders only the newest preview after rapid draft edits" time="0.005443125">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="23" failures="0" errors="0" time="0.385">
+    <testsuite name="src/test/domain/roleValidation.test.ts" timestamp="2026-09-16T22:05:34.568Z" hostname="Jennys-MacBook-Air.local" tests="23" failures="0" errors="0" skipped="0" time="0.002553292">
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; returns a transport-compatible valid result for a valid draft" time="0.000645792">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; preserves backend error ordering for several independent violations" time="0.000151333">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports the frontend-only trimmed upper-bound error" time="0.000080167">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports the lower-bound error for a one-character name" time="0.000057375">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports a trimmed one-character name and accepts the two-character boundary" time="0.000067459">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; rejects a whitespace-only name and accepts the 50-character boundary" time="0.000079125">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; uses the lowest-order step for the first-step modifier rule" time="0.000072875">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; does not reorder draft steps while finding the lowest-order step" time="0.000123917">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports absent and inactive abilities in draft order with one literal message" time="0.000069375">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports a duplicate-order error instead of a gap error" time="0.00006025">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports a gap when distinct orders do not start at one sequentially" time="0.000049708">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; reports each win-condition cardinality rule with the backend wording" time="0.000070042">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; does not report step-specific errors for an empty step list" time="0.000039334">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="validateRoleDraft &gt; returns an independent error list without throwing for an invalid draft" time="0.000040666">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="getRoleWarnings &gt; returns no warnings for a plain role" time="0.00003825">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="getRoleWarnings &gt; returns backend warnings in their declared order" time="0.000065625">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="getRoleWarnings &gt; keeps warnings non-blocking" time="0.000058834">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="getRoleWarnings &gt; reports the many-step warning independently" time="0.000053125">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="getRoleWarnings &gt; reports the conflicting-ability warning independently" time="0.000039">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="hasRoleNameCollision &gt; returns false for a novel name" time="0.000053833">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="hasRoleNameCollision &gt; trims and compares case-insensitively across private and official local roles" time="0.000052541">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="hasRoleNameCollision &gt; returns false for an empty normalized name or no matching role" time="0.000043375">
+        </testcase>
+        <testcase classname="src/test/domain/roleValidation.test.ts" name="hasRoleNameCollision &gt; treats a private local role as taken, unlike the backend public-role filter" time="0.000032166">
+        </testcase>
+    </testsuite>
+</testsuites>

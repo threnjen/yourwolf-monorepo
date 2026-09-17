@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="34" failures="0" errors="0" time="0.742">
+    <testsuite name="src/test/components/RoleBuilder/Wizard.test.tsx" timestamp="2026-09-16T22:38:14.011Z" hostname="Jennys-MacBook-Air.local" tests="19" failures="0" errors="0" skipped="0" time="0.239036">
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows Basic Info step first" time="0.037074667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; shows step indicator with all 4 steps" time="0.021299084">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; initial render &gt; Back button is disabled on step 1" time="0.009636917">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is empty" time="0.007176167">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is disabled when name is only whitespace" time="0.007319416">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; Next button &gt; Next is enabled when name has at least 2 chars" time="0.006686791">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; advances to Abilities step on Next" time="0.01197125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; navigates through all 4 steps" time="0.0149595">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; Back navigation returns to previous step" time="0.012873292">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; shows Create Role button on review step instead of Next" time="0.015984042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking Create Role calls onSave" time="0.012870125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; navigation &gt; clicking step indicator navigates to that step (for completed steps)" time="0.010962125">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; saving state &gt; Create Role button is disabled while saving" time="0.012194042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is invalid" time="0.011969333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when validation is null" time="0.012482667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; submit validation &gt; Create Role button is disabled when name status is omitted" time="0.011288167">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Basic Info tab" time="0.002905833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on Abilities tab" time="0.007258709">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/Wizard.test.tsx" name="Wizard &gt; narrator preview integration (AC1) &gt; preview panel is visible on all 4 tabs when navigated" time="0.010841666">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" timestamp="2026-09-16T22:38:14.012Z" hostname="Jennys-MacBook-Air.local" tests="15" failures="0" errors="0" skipped="0" time="0.049488458">
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows role name" time="0.025214042">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows team" time="0.00209775">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows description" time="0.001546459">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows wake order when set" time="0.001522333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; role summary &gt; shows votes" time="0.001524667">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows ability steps" time="0.004937833">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows step order and modifier" time="0.0014255">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows descriptive modifier labels instead of raw values" time="0.002532333">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; ability steps &gt; shows no ability steps message when empty" time="0.0012265">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; win conditions &gt; shows win conditions" time="0.001380834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; win conditions &gt; shows no win conditions message when empty" time="0.001065875">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows Validating... when validation is null" time="0.001091709">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows validation errors in red" time="0.001327834">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows validation warnings in yellow" time="0.00097675">
+        </testcase>
+        <testcase classname="src/test/components/RoleBuilder/steps/ReviewStep.test.tsx" name="ReviewStep &gt; validation display &gt; shows valid status when validation passes" time="0.000919">
+        </testcase>
+    </testsuite>
+</testsuites>
